@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Source>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</Source>
+    <SmallTileSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</SmallTileSource>
+    <MediumTileSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</MediumTileSource>
+    <WideTileSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</WideTileSource>
+    <LargeTileSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</LargeTileSource>
+    <AppIconSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</AppIconSource>
+    <SplashScreenSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</SplashScreenSource>
+    <BadgeLogoSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</BadgeLogoSource>
+    <PackageLogoSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</PackageLogoSource>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="App.xaml">
+      <SubType>Designer</SubType>
+    </None>
+    <Page Update="Frameworks\View\SettingsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="History\View\HistoryView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Home\View\HomeView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <None Update="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+</Project>

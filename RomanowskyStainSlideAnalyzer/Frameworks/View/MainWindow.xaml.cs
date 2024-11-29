@@ -1,0 +1,106 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Navigation;
+using RomanowskyStainSlideAnalyzer.Home.View;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
+
+// To learn more about WinUI, the WinUI project structure,
+// and more about our project templates, see: http://aka.ms/winui-project-info.
+
+namespace RomanowskyStainSlideAnalyzer.Frameworks.View
+{
+    /// <summary>
+    /// An empty window that can be used on its own or navigated to within a Frame.
+    /// </summary>
+    public sealed partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            this.InitializeComponent();
+            Init();
+        }
+
+        private void Init()
+        {
+            ExtendsContentIntoTitleBar = true;
+            SystemBackdrop = new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
+            SetTitleBar(AppTitleBar);
+            ContentFrame.Navigated += OnNavigated;
+            Navigate(typeof(HomeView), new EntranceNavigationTransitionInfo());
+        }
+
+        private void Navigate(
+            Type navPageType,
+            NavigationTransitionInfo transitionInfo
+        )
+        {
+            Type preNavPageType = ContentFrame.CurrentSourcePageType;
+
+            if (navPageType != null && !Type.Equals(preNavPageType, navPageType))
+            {
+                ContentFrame.Navigate(navPageType, null, transitionInfo);
+            }
+        }
+
+        private void OnItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        {
+            if (args.IsSettingsInvoked)
+            {
+                Navigate(typeof(SettingsView), args.RecommendedNavigationTransitionInfo);
+            }
+            else if (args.InvokedItemContainer != null)
+            {
+                Type navPageType = Type.GetType(args.InvokedItemContainer.Tag.ToString());
+                Navigate(navPageType, args.RecommendedNavigationTransitionInfo);
+            }
+        }
+
+        private void OnBackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+        {
+            if (ContentFrame.CanGoBack)
+            {
+                ContentFrame.GoBack();
+            }
+        }
+
+        private void OnDisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
+        {
+            AppTitleBar.Margin = new Thickness()
+            {
+                Left = sender.CompactPaneLength * (sender.DisplayMode == NavigationViewDisplayMode.Minimal ? 2 : 1),
+                Top = AppTitleBar.Margin.Top,
+                Right = AppTitleBar.Margin.Right,
+                Bottom = AppTitleBar.Margin.Bottom
+            };
+        }
+
+        private void OnNavigated(object sender, NavigationEventArgs e)
+        {
+            NavView.IsBackEnabled = ContentFrame.CanGoBack;
+
+            if (ContentFrame.SourcePageType == typeof(SettingsView))
+            {
+                NavView.SelectedItem = (NavigationViewItem)NavView.SettingsItem;
+                NavView.Header = "Settings";
+            }
+            else if (ContentFrame.SourcePageType != null)
+            {
+                NavView.SelectedItem = NavView.MenuItems.OfType<NavigationViewItem>()
+                    .First(i => i.Tag.Equals(ContentFrame.SourcePageType.FullName.ToString()));
+
+                NavView.Header = ((NavigationViewItem)NavView.SelectedItem)?.Content?.ToString();
+            }
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "RomanowskyStainSlideAnalyzer (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "RomanowskyStainSlideAnalyzer (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
