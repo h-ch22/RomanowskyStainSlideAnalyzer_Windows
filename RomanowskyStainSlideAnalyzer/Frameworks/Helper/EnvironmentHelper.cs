@@ -103,7 +103,6 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 Debug.WriteLine($"Exception at InstallUbuntu(): {e.Message}");
                 return false;
             }
-
         }
 
         public void reboot(int t=1)
@@ -131,9 +130,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 process.Start();
 
                 string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
                 Debug.WriteLine(output);
+                Debug.WriteLine(error);
 
                 return output;
             }
