@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +19,9 @@ namespace FeatureInstaller
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern bool TerminateProcess(IntPtr proc, uint uExit);
+
         private double _progress = 0;
         public double progress
         {
@@ -40,10 +44,23 @@ namespace FeatureInstaller
             }
         }
 
-        private string[] features = ["Microsoft-Hyper-V-All", "Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlaform"];
-        private string error = "";
+        private string _output = "";
+        public string output
+        {
+            get { return _output; }
+            set
+            {
+                _output += $"\n{value}";
+                OnPropertyChanged(nameof(output));
+            }
+        }
+
+        private string[] features = ["Microsoft-Hyper-V-All", "Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform"];
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public bool IsRunning { get; set; }
+
+        private bool AutoScroll = true;
 
         public MainWindow()
         {
@@ -61,12 +78,12 @@ namespace FeatureInstaller
 
         private void updateProgress(double value=25)
         {
-            progress += value;
+            Dispatcher.Invoke(() => { progress += value; });
         }
 
         private void updateStatus(string newStatus)
         {
-            status = newStatus;
+            Dispatcher.Invoke(() => { status = newStatus; });
         }
 
         private void getPackages()
@@ -76,10 +93,10 @@ namespace FeatureInstaller
 
             foreach(var feature in features)
             {
-                Debug.WriteLine($"Installing {feature}");
                 updateStatus($"Activating Package {feature}");
+                output = $"****** Output for {feature} ******";
 
-                var result = runCommand("powershell", $"dism /online /enable-feature /featurename:{feature}");
+                var result = runCommand("cmd.exe", $"/C ECHO N | powershell Enable-WindowsOptionalFeature -Online -FeatureName {feature}");
 
                 if(!result)
                 {
@@ -94,47 +111,83 @@ namespace FeatureInstaller
             Environment.Exit(0);
         }
 
+        private void ScrollViewer_ScrollChanged(Object sender, ScrollChangedEventArgs e)
+        {
+            if (e.ExtentHeightChange == 0)
+            {  
+                if (scrollViewer.VerticalOffset == scrollViewer.ScrollableHeight)
+                {   
+                    AutoScroll = true;
+                }
+                else
+                {   
+                    AutoScroll = false;
+                }
+            }
+
+            if (AutoScroll && e.ExtentHeightChange != 0)
+            {   
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.ExtentHeight);
+            }
+        }
+
         private bool runCommand(string command, string arguments)
         {
             try
             {
-                Process process = new Process
+                using(var process = new Process())
                 {
-                    StartInfo = new ProcessStartInfo
+                    process.StartInfo.FileName = command;
+                    process.StartInfo.Arguments = $"-Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {arguments}\"";
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardInput = true;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+                    process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
+
+                    process.OutputDataReceived += (sender, args) =>
                     {
-                        FileName = command,
-                        Arguments = arguments,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        RedirectStandardInput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = false
-                    }
-                };
+                        if (!string.IsNullOrWhiteSpace(args.Data))
+                        {
+                            Dispatcher.Invoke(() => OnStandardTextReceived(args.Data));
+                        }
+                    };
 
-                process.Start();
+                    process.ErrorDataReceived += (sender, args) =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(args.Data))
+                        {
+                            Dispatcher.Invoke(() => OnErrorTextReceived(args.Data));
+                        }
+                    };
 
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
+                    process.Start();
 
-                Debug.WriteLine(output);
-                Debug.WriteLine(error);
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
 
-                if(error != "" || error != null)
-                {
-                    this.error = error;
-                    return false;
+                    process.WaitForExit();
+
+                    return process.ExitCode == 0;
                 }
-
-                return true;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
-                error = ex.Message;
                 return false;
             }
+        }
+
+        protected virtual void OnStandardTextReceived(string message)
+        {
+            output = message;
+        }
+
+        protected virtual void OnErrorTextReceived(string message)
+        {
+            output = $"Error: {message}";
         }
     }
 }

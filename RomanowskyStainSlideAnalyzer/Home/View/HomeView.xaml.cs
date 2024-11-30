@@ -30,6 +30,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
     public sealed partial class HomeView : Page, INotifyPropertyChanged
     {
         private string _StatusText = "Initializing...";
+        private bool isRebootRequired = false;
+        private bool isError = false;
         public string StatusText
         {
             get => _StatusText;
@@ -77,54 +79,89 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             if(!result)
             {
-                if(!helper.isWSLActivated)
+                if(!helper.isWSLActivated || !helper.isVirtualMachinePlatformActivated || !helper.isHyperVActivated)
                 {
-                    updateStatus("Activating Windows Subsystem for Linux (WSL)");
-                    //TODO: Activate
+                    updateStatus("Checking Feature Activator Installation Status");
+                    var isActivatorInstalled = helper.GetFeatureActivatorInstalledStatus();
+                    increaseProgress();
+
+                    if (!isActivatorInstalled)
+                    {
+                        updateStatus("Installing Feature Activator");
+                        var installResult = helper.InstallFeatureActivator();
+                        increaseProgress();
+
+                        if (!installResult)
+                        {
+                            showErrorMessage();
+                        }
+                    }
+
+                    if(!isError)
+                    {
+
+                        updateStatus("Activating Features");
+                        var activateResult = helper.ActivateFeatures();
+
+                        if (activateResult)
+                        {
+                            isRebootRequired = true;
+                            increaseProgress();
+                            showRebootMessageBox();
+                        }
+                        else
+                        {
+                            showErrorMessage();
+                        }
+                    }
+
                 }
-
-                increaseProgress();
-
-                if (!helper.isVirtualMachinePlatformActivated)
-                {
-                    updateStatus("Activating Virtual Machine Platform");
-                    //TODO: Activate
-                }
-
-                increaseProgress();
-
-                if(!helper.isHyperVActivated)
-                {
-                    updateStatus("Activating Hyper-V");
-                    //TODO: Activate
-                }
-
-                increaseProgress();
-                showRebootMessageBox();
             }
             else {
                 increaseProgress(30);
             }
 
-            updateStatus("Checking Installed Linux");
-
-            var installedLinux = helper.GetInstalledLinux();
-            increaseProgress();
-
-            if(installedLinux == null)
+            if(!isRebootRequired && !isError)
             {
+                updateStatus("Checking Installed Linux");
 
-            } else if(installedLinux == "")
-            {
-                updateStatus("Installing Linux (Ubuntu)...");
-                helper.InstallUbuntu();
+                var installedLinux = helper.GetInstalledLinux();
                 increaseProgress();
-            } else
-            {
-                increaseProgress();
+
+                if (installedLinux == null)
+                {
+
+                }
+                else if (installedLinux == "")
+                {
+                    updateStatus("Installing Linux (Ubuntu)...");
+                    helper.InstallUbuntu();
+                    increaseProgress();
+                }
+                else
+                {
+                    increaseProgress();
+                }
+
+                updateStatus("Installing Python, CUDA, cuDNN...");
             }
+        }
 
-            updateStatus("Installing Python, CUDA, cuDNN...");
+        private void showErrorMessage()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                isError = true;
+
+                ic_status.Visibility = Visibility.Collapsed;
+                InitializeText.Visibility = Visibility.Collapsed;
+                progressBar.Visibility = Visibility.Collapsed;
+                txt_status.Visibility = Visibility.Collapsed;
+                btn_reboot.Visibility = Visibility.Collapsed;
+
+                ic_error.Visibility = Visibility.Visible;
+                ErrorText.Visibility = Visibility.Visible;
+            });
         }
 
         private void increaseProgress(double value = 10)
@@ -141,6 +178,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         {
             DispatcherQueue.TryEnqueue(async () =>
             {
+                isRebootRequired = true;
+
                 var contentDialog = new ContentDialog
                 {
                     Title = "Reboot Required",
@@ -153,7 +192,9 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 };
 
                 contentDialog.PrimaryButtonClick += (_s, _e) => { helper.reboot(); };
-                contentDialog.SecondaryButtonClick += (_s, _e) => { helper.reboot(3600); };
+                contentDialog.SecondaryButtonClick += (_s, _e) => {
+                    helper.reboot(3600);
+                };
 
                 contentDialog.CloseButtonClick += (_s, _e) => {
                     InitializeText.Text = "Please reboot to continue";

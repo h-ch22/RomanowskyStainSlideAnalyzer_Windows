@@ -57,6 +57,14 @@
     </Resource>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Include\setup.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Include\SetupForFeatureInstaller.msi">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Page Update="Frameworks\View\SettingsView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

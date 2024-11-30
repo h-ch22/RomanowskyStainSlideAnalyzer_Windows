@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Management;
+using System.Reflection;
 using Windows.Devices.Sensors;
 
 namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
@@ -12,6 +14,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
         public bool isHyperVActivated = false;
 
         private string[] linuxDistros = { "Ubuntu", "Debian", "Kali", "Fedora", "openSUSE", "Alpine" };
+        private readonly string featureActivatorPath = "C:\\Program Files\\Romanowsky Stain Slide Analyzer\\Romanowsky Stain Slide Analyzer Feature Activator";
 
         public bool GetWSLStatus()
         {
@@ -42,6 +45,56 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
             }
 
             return isWSLActivated && isVirtualMachinePlatformActivated && isHyperVActivated;
+        }
+
+        public bool GetFeatureActivatorInstalledStatus()
+        {
+            return Path.Exists(featureActivatorPath);
+        }
+
+        public bool InstallFeatureActivator()
+        {
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Include\setup.exe");
+            Process process = new();
+            process.StartInfo.FileName = path;
+            process.StartInfo.CreateNoWindow = false;
+            process.StartInfo.UseShellExecute = true;
+            process.StartInfo.Verb = "runas";
+
+            try
+            {
+                process.Start();
+                process.WaitForExit();
+
+                return process.ExitCode == 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.Write(ex.Message);
+                return false;
+            }
+        }
+
+        public bool ActivateFeatures()
+        {
+            try
+            {
+                Process process = new();
+                process.StartInfo.FileName = $"{featureActivatorPath}\\FeatureInstaller.exe";
+                process.StartInfo.CreateNoWindow = false;
+                process.StartInfo.UseShellExecute = true;
+                process.StartInfo.Verb = "runas";
+
+                process.Start();
+                process.WaitForExit();
+
+                return process.ExitCode == 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
         }
 
         public string? GetInstalledLinux()

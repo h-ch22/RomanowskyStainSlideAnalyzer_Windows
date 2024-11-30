@@ -9,7 +9,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="150"/>
-            <RowDefinition Height="300"/>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -21,5 +22,16 @@
             <ProgressBar Width="600" Height="10" x:Name="progressBar" Minimum="0" Maximum="100" Value="{Binding progress}"/>
             <TextBlock Text="{Binding status}" Margin="0 10 0 0" TextAlignment="Center" HorizontalAlignment="Center"/>
         </StackPanel>
+
+        <ScrollViewer ScrollChanged="ScrollViewer_ScrollChanged" x:Name="scrollViewer" Grid.Row="2" Margin="0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+            <StackPanel Background="LightGray" Orientation="Vertical" Margin="10">
+                <TextBlock Margin="0 5 0 5" Text="Output" FontWeight="SemiBold"/>
+                <TextBlock ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Text="{Binding output}" TextWrapping="Wrap" />
+
+            </StackPanel>
+        </ScrollViewer>
+        
+
     </Grid>
 </Window>

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RomanowskyStainSlideAnalyze
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeatureInstaller", "FeatureInstaller\FeatureInstaller.csproj", "{34699A2A-1082-4F0D-813A-E0547EBB45A5}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SetupForFeatureInstaller", "SetupForFeatureInstaller\SetupForFeatureInstaller.vdproj", "{8B5ECB3B-D944-43ED-B780-99554F8FDABF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -47,6 +49,12 @@ Global
 		{34699A2A-1082-4F0D-813A-E0547EBB45A5}.Release|x64.Build.0 = Release|Any CPU
 		{34699A2A-1082-4F0D-813A-E0547EBB45A5}.Release|x86.ActiveCfg = Release|Any CPU
 		{34699A2A-1082-4F0D-813A-E0547EBB45A5}.Release|x86.Build.0 = Release|Any CPU
+		{8B5ECB3B-D944-43ED-B780-99554F8FDABF}.Debug|ARM64.ActiveCfg = Debug
+		{8B5ECB3B-D944-43ED-B780-99554F8FDABF}.Debug|x64.ActiveCfg = Debug
+		{8B5ECB3B-D944-43ED-B780-99554F8FDABF}.Debug|x86.ActiveCfg = Debug
+		{8B5ECB3B-D944-43ED-B780-99554F8FDABF}.Release|ARM64.ActiveCfg = Release
+		{8B5ECB3B-D944-43ED-B780-99554F8FDABF}.Release|x64.ActiveCfg = Release
+		{8B5ECB3B-D944-43ED-B780-99554F8FDABF}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
