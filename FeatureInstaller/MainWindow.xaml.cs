@@ -55,7 +55,7 @@ namespace FeatureInstaller
             }
         }
 
-        private string[] features = ["Microsoft-Hyper-V-All", "Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform"];
+        private string[] features = ["Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform"];
 
         public event PropertyChangedEventHandler PropertyChanged;
         public bool IsRunning { get; set; }
@@ -66,8 +66,7 @@ namespace FeatureInstaller
         {
             InitializeComponent();
             DataContext = this;
-
-            Thread thread = new Thread(getPackages);
+            Thread thread = new Thread(App.ConfigType == 0 ? getPackages : getUbuntu);
             thread.Start();
         }
 
@@ -111,6 +110,25 @@ namespace FeatureInstaller
             Environment.Exit(0);
         }
 
+        private void getUbuntu()
+        {
+            updateStatus("Installing Ubuntu...");
+            updateProgress(50);
+            output = $"****** Output during install Ubuntu ******";
+
+            var result = runCommand("cmd.exe", $"/C ECHO systemctl poweroff | powershell wsl --install -d Ubuntu");
+
+            if (!result)
+            {
+                MessageBox.Show($"An error occurred while installing Ubuntu.\nPlease check your network status or make sure that some of your Windows system files are not corrupted and try again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(-1);
+            }
+
+            updateProgress(50);
+            MessageBox.Show("Ubuntu have been installed successfully.\nContinue with the main application.");
+            Environment.Exit(0);
+        }
+
         private void ScrollViewer_ScrollChanged(Object sender, ScrollChangedEventArgs e)
         {
             if (e.ExtentHeightChange == 0)
@@ -131,44 +149,60 @@ namespace FeatureInstaller
             }
         }
 
-        private bool runCommand(string command, string arguments)
+        private bool runCommand(string command, string arguments, bool redirectInput = true, bool useUTF8 = true)
         {
             try
             {
                 using(var process = new Process())
                 {
                     process.StartInfo.FileName = command;
-                    process.StartInfo.Arguments = $"-Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {arguments}\"";
-                    process.StartInfo.RedirectStandardError = true;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-                    process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
+                    process.StartInfo.Arguments = useUTF8 ? $"-Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {arguments}\"; exit" : $"{arguments}; exit";
+                    process.StartInfo.RedirectStandardError = redirectInput;
+                    process.StartInfo.RedirectStandardOutput = redirectInput;
+                    process.StartInfo.RedirectStandardInput = redirectInput;
+                    process.StartInfo.CreateNoWindow = redirectInput;
+                    process.StartInfo.UseShellExecute = !redirectInput;
 
-                    process.OutputDataReceived += (sender, args) =>
+                    if(redirectInput)
                     {
-                        if (!string.IsNullOrWhiteSpace(args.Data))
-                        {
-                            Dispatcher.Invoke(() => OnStandardTextReceived(args.Data));
-                        }
-                    };
+                        process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+                        process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
 
-                    process.ErrorDataReceived += (sender, args) =>
-                    {
-                        if (!string.IsNullOrWhiteSpace(args.Data))
+                        process.OutputDataReceived += (sender, args) =>
                         {
-                            Dispatcher.Invoke(() => OnErrorTextReceived(args.Data));
-                        }
-                    };
+                            if (!string.IsNullOrWhiteSpace(args.Data))
+                            {
+                                Dispatcher.Invoke(() => OnStandardTextReceived(args.Data));
+                            }
+                        };
+
+                        process.ErrorDataReceived += (sender, args) =>
+                        {
+                            if (!string.IsNullOrWhiteSpace(args.Data))
+                            {
+                                Dispatcher.Invoke(() => OnErrorTextReceived(args.Data));
+                            }
+                        };
+                    }
 
                     process.Start();
 
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
+                    if (!process.Start())
+                    {
+                        Debug.WriteLine("Failed to start process.");
+                        return false;
+                    }
+
+                    Debug.WriteLine($"Executing command: {command} {arguments}");
+
+                    if(redirectInput)
+                    {
+                        process.BeginOutputReadLine();
+                        process.BeginErrorReadLine();
+                    }
 
                     process.WaitForExit();
+                    Debug.WriteLine($"Process exited with code: {process.ExitCode}");
 
                     return process.ExitCode == 0;
                 }

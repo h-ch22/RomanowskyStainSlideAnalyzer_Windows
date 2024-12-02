@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "LNfWXu/oQcs=",
+  "dgSpecHash": "fVN2Y42sCFo=",
   "success": true,
-  "projectFilePath": "C:\\Users\\ckdwl\\Desktop\\2024\\RomanowskyStainSlideAnalyzer\\src\\Windows\\RomanowskyStainSlideAnalyzer\\FeatureInstaller\\FeatureInstaller.csproj",
+  "projectFilePath": "C:\\Users\\USER\\Desktop\\2024\\RomanowskyStainSlideAnalyzer\\src\\Windows\\FeatureInstaller\\FeatureInstaller.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\ckdwl\\.nuget\\packages\\system.codedom\\9.0.0\\system.codedom.9.0.0.nupkg.sha512",
-    "C:\\Users\\ckdwl\\.nuget\\packages\\system.management\\9.0.0\\system.management.9.0.0.nupkg.sha512",
-    "C:\\Users\\ckdwl\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.20348.53\\microsoft.windows.sdk.net.ref.10.0.20348.53.nupkg.sha512"
+    "C:\\Users\\USER\\.nuget\\packages\\system.codedom\\9.0.0\\system.codedom.9.0.0.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\system.management\\9.0.0\\system.management.9.0.0.nupkg.sha512",
+    "C:\\Users\\USER\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.20348.54\\microsoft.windows.sdk.net.ref.10.0.20348.54.nupkg.sha512"
   ],
   "logs": []
 }

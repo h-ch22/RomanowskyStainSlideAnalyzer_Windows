@@ -9,13 +9,13 @@
       "FeatureInstaller/1.0.0": {
         "dependencies": {
           "System.Management": "9.0.0",
-          "runtimepack.Microsoft.Windows.SDK.NET.Ref": "10.0.20348.53"
+          "runtimepack.Microsoft.Windows.SDK.NET.Ref": "10.0.20348.54"
         },
         "runtime": {
           "FeatureInstaller.dll": {}
         }
       },
-      "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.20348.53": {
+      "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.20348.54": {
         "runtime": {
           "Microsoft.Windows.SDK.NET.dll": {
             "assemblyVersion": "10.0.20348.38",
@@ -62,7 +62,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.20348.53": {
+    "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.20348.54": {
       "type": "runtimepack",
       "serviceable": false,
       "sha512": ""

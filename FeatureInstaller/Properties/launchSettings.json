@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FeatureInstaller": {
+      "commandName": "Project",
+      "commandLineArgs": "/Install-Ubuntu"
+    }
+  }
+}

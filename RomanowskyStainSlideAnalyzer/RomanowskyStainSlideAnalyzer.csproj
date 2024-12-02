@@ -13,9 +13,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="Assets\ic_main.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="Assets\ic_main.png" />
     <None Remove="Frameworks\View\SettingsView.xaml" />
     <None Remove="History\View\HistoryView.xaml" />
@@ -52,16 +49,19 @@
     <Folder Include="Frameworks\Helper\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Assets\ic_main.png">
+    <Content Update="Assets\ic_main.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
+    </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Include\main.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Include\setup.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Include\SetupForFeatureInstaller.msi">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

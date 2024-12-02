@@ -4,15 +4,110 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:RomanowskyStainSlideAnalyzer.Frameworks.View"
+    xmlns:model="using:RomanowskyStainSlideAnalyzer.Frameworks.Models"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="60 0">
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-    </Grid>
+    <Page.Resources>
+        <DataTemplate x:Key="SettingsExpanderItemTemplate" x:DataType="model:EnvironmentDataModel">
+            <ItemContainer AutomationProperties.Name="{x:Bind Title}">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="8*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind Title}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <HyperlinkButton>
+                            <HyperlinkButton.Content>
+                                <StackPanel Orientation="Horizontal">
+                                    <SymbolIcon Symbol="Refresh"/>
+                                    <TextBlock Text="Reset" Margin="10 0 0 0"/>
+                                </StackPanel>
+                            </HyperlinkButton.Content>
+                        </HyperlinkButton>
+
+                        <Button Visibility="{x:Bind FixButtonVisibility}">Fix</Button>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <SymbolIcon Symbol="{x:Bind SymbolIcon}"/>
+                        <TextBlock Margin="10 0 0 0" Text="{x:Bind StatusText}"/>
+                    </StackPanel>
+
+                </Grid>
+            </ItemContainer>
+        </DataTemplate>
+    </Page.Resources>
+
+    <ScrollViewer VerticalAlignment="Stretch">
+        <Grid Padding="60 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel VerticalAlignment="Stretch" Margin="0 10 0 0" Orientation="Vertical" Grid.Row="0">
+                <Expander
+                    IsExpanded="False"
+                    ExpandDirection="Down"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch">
+
+                    <Expander.Header>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="8*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                                <SymbolIcon Symbol="Setting"/>
+                                <TextBlock Margin="10 0 0 0" Text="Environment Status"/>
+                            </StackPanel>
+
+                            <HyperlinkButton Grid.Column="1" HorizontalAlignment="Right" HorizontalContentAlignment="Right">
+                                <StackPanel Orientation="Horizontal">
+                                    <SymbolIcon Symbol="Refresh"/>
+                                    <TextBlock Text="Refresh" Margin="10 0 0 0"/>
+                                </StackPanel>
+                            </HyperlinkButton>
+
+                            <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                <SymbolIcon Symbol="{Binding EnvironmentSymbol}"/>
+                                <TextBlock Margin="10 0 0 0" Text="{Binding IsEnvironmentSet, Mode=TwoWay}"/>
+                            </StackPanel>
+
+                        </Grid>
+                    </Expander.Header>
+
+                    <Expander.Content>
+                        <ListView
+                            SelectionMode="None"
+                            ItemTemplate="{StaticResource SettingsExpanderItemTemplate}"
+                            BorderThickness="0"
+                            BorderBrush="{ThemeResource SystemControlTransparentBrush}"
+                            ItemsSource="{Binding Datas, Mode=TwoWay}"
+                            HorizontalContentAlignment="Stretch"/>
+                    </Expander.Content>
+
+                </Expander>
+            </StackPanel>
+
+            <StackPanel Margin="0 10 0 0" Orientation="Vertical" Grid.Row="1">
+                <TextBlock Text="About this App" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding AppName, Mode=TwoWay}"/>
+                <TextBlock Text="ⓒ 2024 Changjin ha. All rights reserved."/>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+
 </Page>

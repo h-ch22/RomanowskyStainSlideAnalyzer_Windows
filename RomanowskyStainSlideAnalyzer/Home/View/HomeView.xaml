@@ -15,22 +15,29 @@
             <RowDefinition Height="3*"/>
         </Grid.RowDefinitions>
 
-        <CommandBar IsEnabled="False" Background="Transparent" DefaultLabelPosition="Right" Grid.Row="0">
+        <CommandBar x:Name="commandBar" IsEnabled="False" Background="Transparent" DefaultLabelPosition="Right" Grid.Row="0">
             <AppBarButton Icon="Add" Label="Load Image"/>
             <AppBarButton Icon="Setting" Label="Customize Parameters (Advanced)"/>
             <AppBarToggleButton Icon="Find" Label="Use Post-Process" IsChecked="True"/>
             <AppBarButton Icon="Accept" Label="Segment"/>
         </CommandBar>
 
-        <StackPanel Orientation="Vertical" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <SymbolIcon x:Name="ic_status" Symbol="Download" Foreground="Gray"/>
-            <TextBlock x:Name="InitializeText" Text="Romanowsky Stain Slide Analyzer is checking your environment.&#x0a;Please wait." Foreground="Gray" TextAlignment="Center"/>
+        <StackPanel x:Name="configurationView" Orientation="Vertical" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <SymbolIcon x:Name="ic_status" Symbol="Setting" Foreground="Gray"/>
+            <TextBlock x:Name="InitializeText" Text="Romanowsky Stain Slide Analyzer is configuring your computer environment.&#x0a;Please wait." Foreground="Gray" TextAlignment="Center"/>
 
             <SymbolIcon x:Name="ic_error" Symbol="Cancel" Foreground="Gray" Visibility="Collapsed"/>
             <TextBlock x:Name="ErrorText" Text="There was a problem processing your request.&#x0a;Please reinstall the software or contact your administrator." Foreground="Gray" TextAlignment="Center" Visibility="Collapsed"/>
         </StackPanel>
 
-        <StackPanel Orientation="Vertical" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <StackPanel x:Name="imageView" Orientation="Vertical" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <StackPanel x:Name="imageTutorialView" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <SymbolIcon Symbol="Add" Foreground="Gray"/>
+                <TextBlock Text="Please load an image to continue." Foreground="Gray" TextAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel x:Name="progressView" Orientation="Vertical" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
             <ProgressBar x:Name="progressBar" Value="{Binding Progress, Mode=TwoWay}" Width="500" Minimum="0" Maximum="100"/>
             <TextBlock x:Name="txt_status" Margin="0 10 0 0" Text="{Binding StatusText, Mode=TwoWay}" Foreground="Gray" TextAlignment="Center"></TextBlock>
             

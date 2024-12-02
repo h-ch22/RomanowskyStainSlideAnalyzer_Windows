@@ -32,6 +32,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         private string _StatusText = "Initializing...";
         private bool isRebootRequired = false;
         private bool isError = false;
+
         public string StatusText
         {
             get => _StatusText;
@@ -60,8 +61,18 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             InitializeComponent();
             DataContext = this;
 
-            Thread thread = new Thread(checkEnvironment);
-            thread.Start();
+            if(!helper.GetStatus("All Status"))
+            {
+                Thread thread = new Thread(checkEnvironment);
+                thread.Start();
+            }
+            else
+            {
+                commandBar.IsEnabled = true;
+                progressView.Visibility = Visibility.Collapsed;
+                configurationView.Visibility = Visibility.Collapsed;
+                imageView.Visibility = Visibility.Visible;
+            }
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -79,7 +90,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             if(!result)
             {
-                if(!helper.isWSLActivated || !helper.isVirtualMachinePlatformActivated || !helper.isHyperVActivated)
+                if(!helper.isWSLActivated || !helper.isVirtualMachinePlatformActivated)
                 {
                     updateStatus("Checking Feature Activator Installation Status");
                     var isActivatorInstalled = helper.GetFeatureActivatorInstalledStatus();
@@ -94,25 +105,24 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                         if (!installResult)
                         {
                             showErrorMessage();
+                            return;
                         }
                     }
 
-                    if(!isError)
+                    updateStatus("Activating Features (This may take some time)");
+                    var activateResult = helper.ActivateFeatures();
+
+                    if (activateResult)
                     {
-
-                        updateStatus("Activating Features");
-                        var activateResult = helper.ActivateFeatures();
-
-                        if (activateResult)
-                        {
-                            isRebootRequired = true;
-                            increaseProgress();
-                            showRebootMessageBox();
-                        }
-                        else
-                        {
-                            showErrorMessage();
-                        }
+                        isRebootRequired = true;
+                        increaseProgress();
+                        showRebootMessageBox();
+                        return;
+                    }
+                    else
+                    {
+                        showErrorMessage();
+                        return;
                     }
 
                 }
@@ -121,30 +131,113 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 increaseProgress(30);
             }
 
-            if(!isRebootRequired && !isError)
+            updateStatus("Checking Installed Linux");
+
+            var isLinuxInstalled = helper.GetInstalledLinux();
+            increaseProgress();
+
+            if (!isLinuxInstalled)
             {
-                updateStatus("Checking Installed Linux");
+                updateStatus("Installing Ubuntu");
+                var installationResult = helper.InstallUbuntu();
 
-                var installedLinux = helper.GetInstalledLinux();
-                increaseProgress();
-
-                if (installedLinux == null)
+                if (!installationResult)
                 {
-
+                    showErrorMessage();
+                    return;
                 }
-                else if (installedLinux == "")
-                {
-                    updateStatus("Installing Linux (Ubuntu)...");
-                    helper.InstallUbuntu();
-                    increaseProgress();
-                }
-                else
-                {
-                    increaseProgress();
-                }
-
-                updateStatus("Installing Python, CUDA, cuDNN...");
             }
+
+            increaseProgress();
+            updateStatus("Checking GPU");
+
+            var isGPUInstalled = helper.GetGPU();
+
+            if (!isGPUInstalled)
+            {
+                ShowAlert("No GPU Installed", "Windows cannot detect your GPU.\nIf you have a GPU installed, make sure that it is connected and that the GPU drivers are properly installed. If you do not have a GPU installed, segmentation speed may be very slow.\nSkipping GPU configuration.");
+            }
+
+            if (!helper.GetStatus("Essential Packages Status"))
+            {
+                updateStatus("Installing Essential Packages...");
+                var packageInstallResult = helper.InstallEssentialPackages();
+
+                if (!packageInstallResult)
+                {
+                    showErrorMessage();
+                    return;
+                }
+            }
+
+            increaseProgress();
+
+            if (!helper.GetStatus("Project Status"))
+            {
+                updateStatus("Downloading SAM Project...");
+
+                var SAMResult = helper.DownloadSAMProject();
+
+                if (!SAMResult)
+                {
+                    showErrorMessage();
+                    return;
+                }
+            }
+
+            increaseProgress();
+
+            if(!helper.GetStatus("Python Packages Status"))
+            {
+                updateStatus("Genearating Virtual Env...");
+
+                var venvResult = helper.CreateVirtualEnv();
+
+                if (!venvResult)
+                {
+                    showErrorMessage();
+                    return;
+                }
+
+                increaseProgress();
+                updateStatus("Installing Python Packages...");
+
+                var packageResult = helper.InstallPythonPackages();
+
+                if(!packageResult)
+                {
+                    showErrorMessage();
+                    return;
+                }
+            }
+
+            else
+            {
+                increaseProgress();
+            }
+
+            increaseProgress();
+
+            if(!helper.GetStatus("All Status"))
+            {
+                updateStatus("Copying Romanowsky Stain Slide Analyzer for Python CLI...");
+                var copyResult = helper.CopyEntryPoint();
+
+                if (!copyResult)
+                {
+                    showErrorMessage();
+                    return;
+                }
+
+            }
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                commandBar.IsEnabled = true;
+                progressView.Visibility = Visibility.Collapsed;
+                configurationView.Visibility = Visibility.Collapsed;
+                imageView.Visibility = Visibility.Visible;
+            });
         }
 
         private void showErrorMessage()
@@ -194,18 +287,41 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 contentDialog.PrimaryButtonClick += (_s, _e) => { helper.reboot(); };
                 contentDialog.SecondaryButtonClick += (_s, _e) => {
                     helper.reboot(3600);
+                    ShowRebootScreen();
                 };
 
                 contentDialog.CloseButtonClick += (_s, _e) => {
-                    InitializeText.Text = "Please reboot to continue";
-                    progressBar.Visibility = Visibility.Collapsed;
-                    txt_status.Visibility = Visibility.Collapsed;
-                    btn_reboot.Visibility = Visibility.Visible;
-                    ic_status.Symbol = Symbol.Refresh;
+                    ShowRebootScreen();
                 };
 
                 await contentDialog.ShowAsync();
             });
+        }
+
+        private void ShowAlert(string title, string message)
+        {
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                var contentDialog = new ContentDialog
+                {
+                    Title = title,
+                    Content = message,
+                    CloseButtonText = "OK",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = App.window.Content.XamlRoot
+                };
+
+                await contentDialog.ShowAsync();
+            });
+        }
+
+        private void ShowRebootScreen()
+        {
+            InitializeText.Text = "Please reboot to continue";
+            progressBar.Visibility = Visibility.Collapsed;
+            txt_status.Visibility = Visibility.Collapsed;
+            btn_reboot.Visibility = Visibility.Visible;
+            ic_status.Symbol = Symbol.Refresh;
         }
 
         private void OnClick(object sender, RoutedEventArgs e) {
