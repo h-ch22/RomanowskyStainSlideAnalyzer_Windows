@@ -68,6 +68,8 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 process.Start();
                 process.WaitForExit();
 
+                updateSettings("Feature_Activator_Version", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+
                 return process.ExitCode == 0;
             }
             catch (Exception ex)
@@ -292,7 +294,30 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
             return cpResult;
         }
 
+        public bool CopyMain()
+        {
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Include");
+            path = path.Replace(@"\", "/").Replace(@"C:/", "c/").Replace("Program Files", @"Program\ Files");
+
+            var cpResult = runLinux($"cp /mnt/{path}/main.py ~/RomanowskyStainSlideAnalyzer/");
+
+            if (!cpResult)
+            {
+                return false;
+            }
+
+            updateSettings("Entry_Point_Status", true);
+            updateSettings("Entry_Point_Version", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+
+            return cpResult;
+        }
+
         private void updateSettings(string key, bool value)
+        {
+            settings.Values[key] = value;
+        }
+
+        private void updateSettings(string key, string value)
         {
             settings.Values[key] = value;
         }
@@ -310,6 +335,16 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 case "Project Status": return settings.Values["Project_Status"] as bool? ?? false;
                 case "Entry Point Status": return settings.Values["Entry_Point_Status"] as bool? ?? false;
                 default: return false;
+            }
+        }
+
+        public string GetLibrariesVersion(string key)
+        {
+            switch (key)
+            {
+                case "Entry Point Version": return settings.Values["Entry_Point_Version"] as string ?? "1.0.0.0";
+                case "Feature Activator Version": return settings.Values["Feature_Activator_Version"] as string ?? "1.0.0.0";
+                default: return "";
             }
         }
 

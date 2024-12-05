@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -191,6 +192,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             if(!helper.GetFinalStatus())
             {
                 Thread thread = new Thread(checkEnvironment);
+                thread.Start();
+            }
+            else if(helper.GetLibrariesVersion("Entry Point Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString() || helper.GetLibrariesVersion("Feature Activator Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+            {
+                Thread thread = new(updateLibraries);
                 thread.Start();
             }
             else
@@ -396,6 +402,45 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
 
             var _ = helper.GetFinalStatus();
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                commandBar.IsEnabled = true;
+                progressView.Visibility = Visibility.Collapsed;
+                configurationView.Visibility = Visibility.Collapsed;
+                imageView.Visibility = Visibility.Visible;
+            });
+        }
+
+        private async void updateLibraries()
+        {
+            if(helper.GetLibrariesVersion("Feature Activator Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+            {
+                updateStatus("Updating Feature Activator...");
+                var isActivatorInstalled = helper.InstallFeatureActivator();
+
+                if (!isActivatorInstalled)
+                {
+                    showErrorMessage();
+                    return;
+                }
+            }
+
+            increaseProgress(50);
+
+            if(helper.GetLibrariesVersion("Entry Point Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+            {
+                updateStatus("Updating Entry Point...");
+                var isEntryPointCopied = helper.CopyEntryPoint();
+
+                if (!isEntryPointCopied)
+                {
+                    showErrorMessage();
+                    return;
+                }
+            }
+
+            increaseProgress(50);
 
             DispatcherQueue.TryEnqueue(() =>
             {
