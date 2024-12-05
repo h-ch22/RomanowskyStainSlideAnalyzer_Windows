@@ -10,11 +10,18 @@
     <SplashScreenSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</SplashScreenSource>
     <BadgeLogoSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</BadgeLogoSource>
     <PackageLogoSource>C:\Users\ckdwl\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\RomanowskyStainSlideAnalyzer\RomanowskyStainSlideAnalyzer\Assets\ic_main.png</PackageLogoSource>
+    <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
+    <AppxShowAllApps>False</AppxShowAllApps>
+    <AppxBuildConfigurationSelection>x64</AppxBuildConfigurationSelection>
+    <PackageOptionalProjectsInIdeBuilds>False</PackageOptionalProjectsInIdeBuilds>
   </PropertyGroup>
   <ItemGroup>
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Home\View\PointSelectionView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Frameworks\View\SettingsView.xaml">
       <SubType>Designer</SubType>
     </Page>

@@ -16,10 +16,13 @@
         </Grid.RowDefinitions>
 
         <CommandBar x:Name="commandBar" IsEnabled="False" Background="Transparent" DefaultLabelPosition="Right" Grid.Row="0">
-            <AppBarButton Icon="Add" Label="Load Image"/>
-            <AppBarButton Icon="Setting" Label="Customize Parameters (Advanced)"/>
-            <AppBarToggleButton Icon="Find" Label="Use Post-Process" IsChecked="True"/>
-            <AppBarButton Icon="Accept" Label="Segment"/>
+            <AppBarButton x:Name="btn_loadImage" Icon="Add" Label="Load Image" Click="OnClick"/>
+            <AppBarButton x:Name="btn_clear" Icon="Cancel" Label="Clear" Click="OnClick" Visibility="Collapsed"/>
+            <AppBarButton x:Name="btn_customizeParams" Icon="Setting" Label="Customize Parameters (Advanced)" IsEnabled="{Binding IsParameterSettingsEnabled}" Click="OnClick"/>
+            <AppBarButton x:Name="btn_selectPoint" Icon="Favorite" Label="Select Points" IsEnabled="{Binding IsSelectPointEnabled}" Click="OnClick"/>
+            <AppBarToggleButton x:Name="btn_useAutomaticSegmentation" Icon="ViewAll" Label="Use Automatic Segmentation" IsChecked="{Binding UseAutomaticSegmentation, Mode=TwoWay}"/>
+            <AppBarToggleButton x:Name="btn_usePostProcess" Icon="Find" Label="Use Post-Process" IsChecked="{Binding UsePostProcess, Mode=TwoWay}"/>
+            <AppBarButton x:Name="btn_segment" Icon="Accept" Label="Segment" Click="OnClick"/>
         </CommandBar>
 
         <StackPanel x:Name="configurationView" Orientation="Vertical" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -35,14 +38,64 @@
                 <SymbolIcon Symbol="Add" Foreground="Gray"/>
                 <TextBlock Text="Please load an image to continue." Foreground="Gray" TextAlignment="Center"/>
             </StackPanel>
+
+            <StackPanel x:Name="selectedImagePanel" Visibility="Collapsed" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <Image x:Name="selectedImageView" Width="500" Height="350" Stretch="Uniform"/>
+                    <Image x:Name="resultImageView" Margin="10 0 0 0" Width="500" Height="350" Stretch="Uniform" Visibility="Collapsed"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" x:Name="segmentHelpPanel" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <SymbolIcon x:Name="segmentHelpIcon" Symbol="{Binding SegmentHelpIcon, Mode=TwoWay}" Foreground="Gray" Margin="0 10 0 0" VerticalAlignment="Center"/>
+                    <TextBlock Margin="10 0 0 0" x:Name="segmentHelpText" Text="{Binding SegmentHelpText, Mode=TwoWay}" Foreground="Gray" TextAlignment="Center" VerticalAlignment="Center"/>
+                </StackPanel>
+               
+            </StackPanel>
+            
         </StackPanel>
 
         <StackPanel x:Name="progressView" Orientation="Vertical" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <ProgressBar x:Name="progressBar" Value="{Binding Progress, Mode=TwoWay}" Width="500" Minimum="0" Maximum="100"/>
+            <ProgressBar x:Name="progressBar" Value="{Binding Progress, Mode=TwoWay}" IsIndeterminate="{Binding Indeterminate}" Width="500" Minimum="0" Maximum="100"/>
             <TextBlock x:Name="txt_status" Margin="0 10 0 0" Text="{Binding StatusText, Mode=TwoWay}" Foreground="Gray" TextAlignment="Center"></TextBlock>
-            
+
             <Button x:Name="btn_reboot" Click="OnClick" Visibility="Collapsed">Reboot</Button>
         </StackPanel>
+
+        <Grid Margin="20 0" x:Name="controlsView" Grid.Row="2" Visibility="Collapsed" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="4.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <RadioButtons Grid.Column="0" Header="Output File Name">
+                <RadioButton x:Name="radio_prefix" Content="Prefix" Checked="OnRadioButtonChecked"/>
+                <RadioButton x:Name="radio_postfix" Content="Postfix" Checked="OnRadioButtonChecked" IsChecked="True"/>
+                <RadioButton x:Name="radio_newName" Content="New Name" Checked="OnRadioButtonChecked"/>
+            </RadioButtons>
+
+            <AppBarSeparator Grid.Column="1"/>
+            
+            <StackPanel Orientation="Vertical" Grid.Column="2">
+                <TextBlock Text="File Name"/>
+                
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox PlaceholderText="{Binding PlaceHolderText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="30" Width="250"/>
+
+                    <DropDownButton Visibility="Collapsed" x:Name="dropDown_extensions" Content="{Binding Extension, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Click="OnMenuItemClick" Text="png"/>
+                                <MenuFlyoutItem Click="OnMenuItemClick" Text="jpg"/>
+                                <MenuFlyoutItem Click="OnMenuItemClick" Text="jpeg"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </StackPanel>
+                <TextBlock Text="{Binding HelpText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Gray"/>
+            </StackPanel>
+
+        </Grid>
         
     </Grid>
 </Page>

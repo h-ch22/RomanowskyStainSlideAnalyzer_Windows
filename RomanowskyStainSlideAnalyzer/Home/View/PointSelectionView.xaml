@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="RomanowskyStainSlideAnalyzer.Home.View.PointSelectionView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:RomanowskyStainSlideAnalyzer.Home.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Select Points">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="512"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" x:Name="AppTitleBar" Height="48" Margin="20,0,0,0" VerticalAlignment="Top" Padding="0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <SymbolIcon Symbol="Favorite"
+                        x:Name="ic_titlebar"
+                        HorizontalAlignment="Left" 
+                        Grid.Column="0"
+                        VerticalAlignment="Center"/>
+
+            <TextBlock
+                Margin="12,0,0,0"
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="Select Points"/>
+        </Grid>
+
+        <CommandBar Grid.Row="1" Background="Transparent" DefaultLabelPosition="Right">
+            <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Icon="Zoom" Label="Zoom Mode"/>
+            <AppBarButton x:Name="btn_reset" Icon="Refresh" Label="Reset to Default" Click="OnClick"/>
+        </CommandBar>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <SymbolIcon Symbol="TouchPointer" Foreground="Gray"/>
+            <TextBlock Margin="10 0 0 0" Text="Click on the part you want to segment.&#x0a;Right-clicking the mouse will remove the point.&#x0a;With ZoomMode turned on, you can zoom in and out by holding down the Ctrl key while scrolling." Foreground="Gray"/>
+        </StackPanel>
+
+        <ScrollView Grid.Row="3" Width="512" Height="512" ContentOrientation="None" ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTabStop="True" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Canvas Opacity="1" x:Name="canvas" Width="512" Height="512">
+                <Image x:Name="img_source" PointerPressed="CreatePoint" Source="{x:Bind viewModel.Source, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="512" Height="512" Stretch="Uniform"/>
+            </Canvas>
+        
+        </ScrollView>
+
+        <RadioButtons Margin="20" Grid.Row="4" Header="Select Class">
+            <RadioButton x:Name="radio_A" Content="A" IsChecked="True" Checked="OnClassSelected"/>
+            <RadioButton x:Name="radio_B" Content="B" Checked="OnClassSelected"/>
+            <RadioButton x:Name="radio_C" Content="C" Checked="OnClassSelected"/>
+        </RadioButtons>
+    </Grid>
+</Window>

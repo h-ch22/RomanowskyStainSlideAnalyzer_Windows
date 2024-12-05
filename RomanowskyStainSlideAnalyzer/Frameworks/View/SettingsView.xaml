@@ -24,16 +24,16 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                        <HyperlinkButton>
+                        <ProgressRing Width="20" Height="20" Visibility="{x:Bind ProgressBarVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        
+                        <HyperlinkButton x:Name="btn_refresh" Click="Refresh" Visibility="{x:Bind RefreshButtonVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                             <HyperlinkButton.Content>
                                 <StackPanel Orientation="Horizontal">
                                     <SymbolIcon Symbol="Refresh"/>
-                                    <TextBlock Text="Reset" Margin="10 0 0 0"/>
+                                    <TextBlock Text="Refresh" Margin="10 0 0 0"/>
                                 </StackPanel>
                             </HyperlinkButton.Content>
                         </HyperlinkButton>
-
-                        <Button Visibility="{x:Bind FixButtonVisibility}">Fix</Button>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
@@ -54,8 +54,11 @@
             </Grid.RowDefinitions>
 
             <StackPanel VerticalAlignment="Stretch" Margin="0 10 0 0" Orientation="Vertical" Grid.Row="0">
+                <ProgressRing VerticalAlignment="Center" HorizontalAlignment="Center" IsIndeterminate="True" Visibility="{Binding ShowProgress, Mode=TwoWay}"/>
+                
                 <Expander
-                    IsExpanded="False"
+                    x:Name="EnvironmentExpander"
+                    IsExpanded="True"
                     ExpandDirection="Down"
                     VerticalAlignment="Top"
                     HorizontalAlignment="Stretch"
@@ -64,8 +67,7 @@
                     <Expander.Header>
                         <Grid VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="8*"/>
-                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="9*"/>
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
 
@@ -74,14 +76,7 @@
                                 <TextBlock Margin="10 0 0 0" Text="Environment Status"/>
                             </StackPanel>
 
-                            <HyperlinkButton Grid.Column="1" HorizontalAlignment="Right" HorizontalContentAlignment="Right">
-                                <StackPanel Orientation="Horizontal">
-                                    <SymbolIcon Symbol="Refresh"/>
-                                    <TextBlock Text="Refresh" Margin="10 0 0 0"/>
-                                </StackPanel>
-                            </HyperlinkButton>
-
-                            <StackPanel Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
                                 <SymbolIcon Symbol="{Binding EnvironmentSymbol}"/>
                                 <TextBlock Margin="10 0 0 0" Text="{Binding IsEnvironmentSet, Mode=TwoWay}"/>
                             </StackPanel>
@@ -100,12 +95,39 @@
                     </Expander.Content>
 
                 </Expander>
+                
+                <Expander
+                    IsExpanded="False"
+                    ExpandDirection="Down"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Content="Free up space on your computer by removing Segmentation History.">
+
+                    <Expander.Header>
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="9*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                                <SymbolIcon Symbol="Clear"/>
+                                <TextBlock Margin="10 0 0 0" Text="Clear History"/>
+                            </StackPanel>
+
+                            <Button x:Name="btn_clearHistory" Click="Button_Click" Grid.Column="1" HorizontalAlignment="Right" HorizontalContentAlignment="Center">Clear</Button>
+                        </Grid>
+                    </Expander.Header>
+
+                </Expander>
+
             </StackPanel>
 
             <StackPanel Margin="0 10 0 0" Orientation="Vertical" Grid.Row="1">
                 <TextBlock Text="About this App" FontWeight="SemiBold"/>
                 <TextBlock Text="{Binding AppName, Mode=TwoWay}"/>
-                <TextBlock Text="ⓒ 2024 Changjin ha. All rights reserved."/>
+                <TextBlock Text="ⓒ 2024 Changjin Ha. All rights reserved."/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

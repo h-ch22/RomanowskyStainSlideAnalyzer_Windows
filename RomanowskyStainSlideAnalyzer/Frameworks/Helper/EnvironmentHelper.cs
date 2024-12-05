@@ -49,7 +49,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
 
         public bool GetFeatureActivatorInstalledStatus()
         {
-            var isExists = Path.Exists(featureActivatorPath);
+            var isExists = Directory.Exists(featureActivatorPath);
             updateSettings("Feature_Activator_Installation_Status", isExists);
             return isExists;
         }
@@ -92,7 +92,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 process.WaitForExit();
 
                 var exitCode = process.ExitCode;
-                updateSettings("Windows_Additional_Features_Status", exitCode == 0);
+                updateSettings(code == 0 ? "Windows_Additional_Features_Status" : "Linux_Installation_Status", exitCode == 0);
 
                 return exitCode == 0;
             }
@@ -112,6 +112,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
         {
             try
             {
+                var updateWSL = runCommand("powershell.exe", "wsl --update");
                 var installedLinux = runCommand("powershell.exe", "wsl -l -q | more");
                 var installedLinuxList = installedLinux.Split("\n");
 
@@ -162,6 +163,10 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
 
                 process.WaitForExit();
 
+                if (process.ExitCode != 0)
+                {
+                    throw new ArgumentException("Process Not Exited Successfully.");
+                }
 
                 return output;
             }
@@ -258,7 +263,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
 
         public bool InstallPythonPackages()
         {
-            var result = runLinux("cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && pip install torch torchvision torchaudio opencv-python matplotlib pillow && cd sam2 && pip install -e . && cd checkpoints && ./download_ckpts.sh");
+            var result = runLinux("cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && pip install torch torchvision torchaudio opencv-python matplotlib pillow && cd sam2 && cd checkpoints && ./download_ckpts.sh");
 
             updateSettings("Python_Packages_Status", true);
 
@@ -267,20 +272,22 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
 
         public bool CopyEntryPoint()
         {
-            var result = runLinux("cd ~/RomanowskyStainSlideAnalyzer && cp -r ~/RomanowskyStainSlideAnalyzer/sam2/sam2/configs/ ~/RomanowskyStainSlideAnalyzer/ && cp -r ~/RomanowskyStainSlideAnalyzer/sam2/checkpoints/ ~/RomanowskyStainSlideAnalyzer/ && mv sam2 include");
+            var result = runLinux("cd ~/RomanowskyStainSlideAnalyzer && mv ~/RomanowskyStainSlideAnalyzer/sam2 ~/RomanowskyStainSlideAnalyzer/include && cp -r ~/RomanowskyStainSlideAnalyzer/include/sam2/configs/ ~/RomanowskyStainSlideAnalyzer/ && cp -r ~/RomanowskyStainSlideAnalyzer/include/checkpoints/ ~/RomanowskyStainSlideAnalyzer/ && source RomanowskyStainSlideAnalyzer_venv/bin/activate && cd include && pip install -e .");
 
             if (!result) { return false; }
 
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Include\").Replace(@"\", "/").Replace(@"C:", "");
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Include");
 
-            var cpResult = runLinux($"cp /mnt/c{path}main.py ~/RomanowskyStainSlideAnalyzer/");
+            path = path.Replace(@"\", "/").Replace(@"C:/", "c/").Replace("Program Files", @"Program\ Files");
+
+            var cpResult = runLinux($"cp /mnt/{path}/main.py ~/RomanowskyStainSlideAnalyzer/");
 
             if (!cpResult)
             {
                 return false;
             }
 
-            updateSettings("All_Status", true);
+            updateSettings("Entry_Point_Status", true);
 
             return cpResult;
         }
@@ -301,9 +308,27 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 case "Essential Packages Status": return settings.Values["Essential_Packages_Status"] as bool? ?? false;
                 case "Python Packages Status": return settings.Values["Python_Packages_Status"] as bool? ?? false;
                 case "Project Status": return settings.Values["Project_Status"] as bool? ?? false;
-                case "All Status": return settings.Values["All_Status"] as bool? ?? false;
+                case "Entry Point Status": return settings.Values["Entry_Point_Status"] as bool? ?? false;
                 default: return false;
             }
+        }
+
+        public bool GetFinalStatus()
+        {
+            var wslStatus = GetStatus("WSL Status");
+            var addtionalFeaturesStatus = GetStatus("Windows Additional Features Status");
+            var featureActivatorStatus = GetStatus("Feature Activator Status");
+            var linuxStatus = GetStatus("Linux Status");
+            var essentialPackagesStatus = GetStatus("Essential Packages Status");
+            var pythonPackagesStatus = GetStatus("Python Packages Status");
+            var projectStatus = GetStatus("Project Status");
+            var entryPointStatus = GetStatus("Entry Point Status");
+
+            var result = wslStatus && addtionalFeaturesStatus && featureActivatorStatus && linuxStatus && essentialPackagesStatus && pythonPackagesStatus && projectStatus && entryPointStatus;
+
+            updateSettings("Entry_Point_Status", result);
+
+            return result;
         }
     }
 }

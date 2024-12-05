@@ -4,11 +4,64 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:RomanowskyStainSlideAnalyzer.History.View"
+    xmlns:model="using:RomanowskyStainSlideAnalyzer.History.Models"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
+    <Page.Resources>
+        <DataTemplate x:Key="HistoryListItemTemplate" x:DataType="model:HistoryDataModel">
+            <ItemContainer AutomationProperties.Name="{x:Bind date}">
+                <Expander
+                    IsExpanded="False"
+                    Header="{x:Bind date}"
+                    ExpandDirection="Down"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch">
+                    
+                    <Expander.Content>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="8*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
 
+                            <Image Grid.Column="0" Source="{x:Bind imagePath}" Stretch="Uniform" Width="500" Height="500"/>
+                            <TextBlock Grid.Column="1" Text="{x:Bind log}"/>
+                        </Grid>
+                    </Expander.Content>
+
+                </Expander>
+            </ItemContainer>
+        </DataTemplate>
+    </Page.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DatePicker Grid.Row="0" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>
+
+        <ProgressRing Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ShowProgress}" IsIndeterminate="True"/>
+
+        <ScrollView Grid.Row="1" x:Name="listView" VerticalAlignment="Stretch" Margin="0 10 0 0">
+            <StackPanel Orientation="Vertical">
+                <ListView
+                SelectionMode="None"
+                ItemTemplate="{StaticResource HistoryListItemTemplate}"
+                BorderThickness="0"
+                BorderBrush="{ThemeResource SystemControlTransparentBrush}"
+                ItemsSource="{x:Bind Datas, Mode=TwoWay}"
+                HorizontalContentAlignment="Stretch"/>
+            </StackPanel>
+        </ScrollView>
+        
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="emptyPanel" Grid.Row="1">
+            <SymbolIcon Symbol="Cancel" Foreground="Gray"/>
+            <TextBlock Text="There are no records for the selected date." Foreground="Gray"/>
+        </StackPanel>
     </Grid>
 </Page>

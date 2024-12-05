@@ -75,7 +75,7 @@ namespace FeatureInstaller
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));    
         }
 
-        private void updateProgress(double value=25)
+        private void updateProgress(double value=33.3)
         {
             Dispatcher.Invoke(() => { progress += value; });
         }
@@ -87,24 +87,26 @@ namespace FeatureInstaller
 
         private void getPackages()
         {
-            updateStatus("Collecting Packages...");
             updateProgress();
+            updateStatus("Collecting Features...");
 
             foreach(var feature in features)
             {
-                updateStatus($"Activating Package {feature}");
-                output = $"****** Output for {feature} ******";
+                updateStatus($"Activating Feature: {feature}");
+                output = $"****** Outputs while activating {feature} ******";
 
-                var result = runCommand("cmd.exe", $"/C ECHO N | powershell Enable-WindowsOptionalFeature -Online -FeatureName {feature}");
+                var result = runCommand("powershell.exe", $"dism.exe /online /enable-feature /featurename:{feature} /all /norestart", true, true);
 
-                if(!result)
+                if (!result)
                 {
-                    MessageBox.Show($"An error occurred while installing package {feature}.\nPlease check your network status or make sure that some of your Windows system files are not corrupted and try again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"An error occurred while activating features.\nPlease check your network status or make sure that some of your Windows system files are not corrupted and try again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     Environment.Exit(-1);
                 }
 
                 updateProgress();
             }
+
+            updateProgress(0.1);
 
             MessageBox.Show("All packages have been installed successfully.\nContinue with the main application.");
             Environment.Exit(0);

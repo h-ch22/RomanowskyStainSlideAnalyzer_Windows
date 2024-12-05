@@ -15,86 +15,86 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_0B2CF72347084068A7EFD65B76E85D2E"
+        "MsmKey" = "8:_166CA3282DDC43AC97F829D59296393D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_0C44AC8A01674601A44DCCFF704DD7B9"
+        "MsmKey" = "8:_65E9CE37122146EA9C5A11845C81919E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_2209F8C39CD3499A9AF17BA5BE18812E"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_42A4A577AA8A4B4AB97485649395CB17"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_45A4014B3B9E48C2BD858DD819F6BCB4"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_60884F58EDC54D589B9C74B16AD9FAC1"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_7991ED89AF4F49098243CDF28744C4C0"
+        "MsmKey" = "8:_752D00B134604DA98D17B4762A647A0E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_7B29C0769FF93205BA5C58060682F9CA"
-        "OwnerKey" = "8:_42A4A577AA8A4B4AB97485649395CB17"
+        "OwnerKey" = "8:_65E9CE37122146EA9C5A11845C81919E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_7B29C0769FF93205BA5C58060682F9CA"
-        "OwnerKey" = "8:_FCEBAFD2642D4EAD9592784B9AAF900C"
+        "OwnerKey" = "8:_AB60CE007801439D8D2FD8FECC8DF3AD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B2595A9DEA9147E5A02ECB04390B207F"
+        "MsmKey" = "8:_AB60CE007801439D8D2FD8FECC8DF3AD"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_AC4DEA88CE2749B3861C77293C71A507"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BC2EF19BBBDC49E8BBA886710892F1F1"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C6B6DF8626954B50BEE85F4CC4E5A615"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C8EBBC09765B47FAB4F594A1CEA1A17D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_CF38EDD9DFA85923A5D352369020F8C5"
-        "OwnerKey" = "8:_7991ED89AF4F49098243CDF28744C4C0"
+        "OwnerKey" = "8:_752D00B134604DA98D17B4762A647A0E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_E32B12DE01BC4AAC972FD2288D16E330"
+        "MsmKey" = "8:_EB4105DC21904AA7B53FE560FA550FE9"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_FCEBAFD2642D4EAD9592784B9AAF900C"
+        "MsmKey" = "8:_FA42DB35718C450AAF4CFEBDE62E904F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_42A4A577AA8A4B4AB97485649395CB17"
+        "OwnerKey" = "8:_65E9CE37122146EA9C5A11845C81919E"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -122,6 +122,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -146,6 +154,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
     }
@@ -186,116 +202,14 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_0B2CF72347084068A7EFD65B76E85D2E"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:WinRT.Runtime, Version=2.1.0.0, Culture=neutral, PublicKeyToken=99ea127f02d97709, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_0B2CF72347084068A7EFD65B76E85D2E"
-                    {
-                    "Name" = "8:WinRT.Runtime.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\WinRT.Runtime.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0C44AC8A01674601A44DCCFF704DD7B9"
-            {
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.pdb"
-            "TargetName" = "8:FeatureInstaller.pdb"
-            "Tag" = "8:"
-            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2209F8C39CD3499A9AF17BA5BE18812E"
-            {
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.exe"
-            "TargetName" = "8:FeatureInstaller.exe"
-            "Tag" = "8:"
-            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_42A4A577AA8A4B4AB97485649395CB17"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:FeatureInstaller, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
-                "ScatterAssemblies"
-                {
-                    "_42A4A577AA8A4B4AB97485649395CB17"
-                    {
-                    "Name" = "8:FeatureInstaller.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_45A4014B3B9E48C2BD858DD819F6BCB4"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_166CA3282DDC43AC97F829D59296393D"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:System.CodeDom, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_45A4014B3B9E48C2BD858DD819F6BCB4"
+                    "_166CA3282DDC43AC97F829D59296393D"
                     {
                     "Name" = "8:System.CodeDom.dll"
                     "Attributes" = "3:512"
@@ -319,10 +233,21 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_60884F58EDC54D589B9C74B16AD9FAC1"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_65E9CE37122146EA9C5A11845C81919E"
             {
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.deps.json"
-            "TargetName" = "8:FeatureInstaller.deps.json"
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:FeatureInstaller, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
+                "ScatterAssemblies"
+                {
+                    "_65E9CE37122146EA9C5A11845C81919E"
+                    {
+                    "Name" = "8:FeatureInstaller.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.dll"
+            "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
             "Condition" = "8:"
@@ -339,14 +264,14 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_7991ED89AF4F49098243CDF28744C4C0"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_752D00B134604DA98D17B4762A647A0E"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:System.Management, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_7991ED89AF4F49098243CDF28744C4C0"
+                    "_752D00B134604DA98D17B4762A647A0E"
                     {
                     "Name" = "8:System.Management.dll"
                     "Attributes" = "3:512"
@@ -401,23 +326,114 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_B2595A9DEA9147E5A02ECB04390B207F"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_AB60CE007801439D8D2FD8FECC8DF3AD"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:System.Management, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:Microsoft.Windows.SDK.NET, Version=10.0.20348.38, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_B2595A9DEA9147E5A02ECB04390B207F"
+                    "_AB60CE007801439D8D2FD8FECC8DF3AD"
                     {
-                    "Name" = "8:System.Management.dll"
+                    "Name" = "8:Microsoft.Windows.SDK.NET.dll"
                     "Attributes" = "3:512"
                     }
                 }
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\runtimes\\win\\lib\\net8.0\\System.Management.dll"
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\Microsoft.Windows.SDK.NET.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_A4F6795A2F4A424CBB886365F1D943D0"
+            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AC4DEA88CE2749B3861C77293C71A507"
+            {
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.exe"
+            "TargetName" = "8:FeatureInstaller.exe"
+            "Tag" = "8:"
+            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BC2EF19BBBDC49E8BBA886710892F1F1"
+            {
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.deps.json"
+            "TargetName" = "8:FeatureInstaller.deps.json"
+            "Tag" = "8:"
+            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C6B6DF8626954B50BEE85F4CC4E5A615"
+            {
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.runtimeconfig.json"
+            "TargetName" = "8:FeatureInstaller.runtimeconfig.json"
+            "Tag" = "8:"
+            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_C8EBBC09765B47FAB4F594A1CEA1A17D"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:WinRT.Runtime, Version=2.1.0.0, Culture=neutral, PublicKeyToken=99ea127f02d97709, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_C8EBBC09765B47FAB4F594A1CEA1A17D"
+                    {
+                    "Name" = "8:WinRT.Runtime.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\WinRT.Runtime.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -463,12 +479,23 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E32B12DE01BC4AAC972FD2288D16E330"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_EB4105DC21904AA7B53FE560FA550FE9"
             {
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.runtimeconfig.json"
-            "TargetName" = "8:FeatureInstaller.runtimeconfig.json"
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:System.Management, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_EB4105DC21904AA7B53FE560FA550FE9"
+                    {
+                    "Name" = "8:System.Management.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\runtimes\\win\\lib\\net8.0\\System.Management.dll"
+            "TargetName" = "8:"
             "Tag" = "8:"
-            "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
+            "Folder" = "8:_A4F6795A2F4A424CBB886365F1D943D0"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -483,21 +510,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_FCEBAFD2642D4EAD9592784B9AAF900C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FA42DB35718C450AAF4CFEBDE62E904F"
             {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Microsoft.Windows.SDK.NET, Version=10.0.20348.38, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_FCEBAFD2642D4EAD9592784B9AAF900C"
-                    {
-                    "Name" = "8:Microsoft.Windows.SDK.NET.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\Microsoft.Windows.SDK.NET.dll"
-            "TargetName" = "8:"
+            "SourcePath" = "8:..\\FeatureInstaller\\bin\\Release\\net8.0-windows10.0.20348.0\\FeatureInstaller.pdb"
+            "TargetName" = "8:FeatureInstaller.pdb"
             "Tag" = "8:"
             "Folder" = "8:_A368CECAAC8746D98CBD58F7B010E61C"
             "Condition" = "8:"
@@ -614,15 +630,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Romanowsky Stain Slide Analyzer Feature Activator"
-        "ProductCode" = "8:{D2ADB8B6-0A8C-43D0-B669-14C30322073A}"
-        "PackageCode" = "8:{04DEC907-82A0-42C5-80D3-07DD8D6BFA2B}"
+        "ProductCode" = "8:{28F0D9F3-4AB5-4C56-9DCE-60ADDEF51F26}"
+        "PackageCode" = "8:{5D810DD6-2B16-4362-90C6-39BF90C4E1FC}"
         "UpgradeCode" = "8:{FB199470-E9DC-48F0-93F1-3FFFA0DA395E}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.1"
+        "ProductVersion" = "8:1.0.2"
         "Manufacturer" = "8:Romanowsky Stain Slide Analyzer"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
