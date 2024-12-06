@@ -10,6 +10,8 @@ using Microsoft.UI.Xaml.Navigation;
 using RomanowskyStainSlideAnalyzer.Frameworks.Helper;
 using RomanowskyStainSlideAnalyzer.Home.Helper;
 using RomanowskyStainSlideAnalyzer.Home.Models;
+using RomanowskyStainSlideAnalyzer.Labeling.Models;
+using RomanowskyStainSlideAnalyzer.Labeling.View;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -106,6 +108,28 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 OnPropertyChanged(nameof(UseAutomaticSegmentation));
                 OnPropertyChanged(nameof(IsParameterSettingsEnabled));
                 OnPropertyChanged(nameof(IsSelectPointEnabled));
+
+                if (!_UseAutomaticSegmentation)
+                {
+                    btn_usePostProcess.IsEnabled = false;
+                    btn_extractBBoxes.IsEnabled = false;
+                }
+                else
+                {
+                    btn_usePostProcess.IsEnabled = true;
+                    btn_extractBBoxes.IsEnabled = true;
+                }
+            }
+        }
+
+        private bool _ExtractBBoxes = true;
+        public bool ExtractBBoxes
+        {
+            get => _ExtractBBoxes;
+            set
+            {
+                _ExtractBBoxes = value;
+                OnPropertyChanged(nameof(ExtractBBoxes));
             }
         }
 
@@ -141,17 +165,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
-        private ParametersViewModel viewModel = new();
-        private EnvironmentHelper helper = new();
-        private SegmentationHelper segmentationHelper = new();
-        private string filePath = "";
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public string StatusText
         {
             get => _StatusText;
-            set {
+            set
+            {
                 _StatusText = value;
                 OnPropertyChanged(nameof(StatusText));
             }
@@ -179,10 +197,19 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
+        private ParametersViewModel viewModel = new();
+        private LabelingViewModel labelingViewModel = new();
+        private EnvironmentHelper helper = new();
+        private SegmentationHelper segmentationHelper = new();
+        private string filePath = "";
+        private string outputFileName = "";
         private string finalPreFix = "";
         private string finalPostFix = "";
         private string finalFileName = "";
         private string finalExt = "";
+        private string targetPath = "";
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public HomeView()
         {
@@ -571,6 +598,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 btn_clear.Visibility = Visibility.Visible;
                 selectedImagePanel.Visibility = Visibility.Visible;
                 selectedImageView.Source = source;
+                labelingViewModel.Source = source;
                 controlsView.Visibility = Visibility.Visible;
                 viewModel.Source = source;
                 SetFileName();
@@ -597,9 +625,14 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     selectedImagePanel.Visibility = Visibility.Collapsed;
                     controlsView.Visibility = Visibility.Collapsed;
                     resultImageView.Visibility = Visibility.Collapsed;
+                    btn_labeling.Visibility = Visibility.Collapsed;
                     btn_customizeParams.IsEnabled = true;
                     btn_segment.IsEnabled = true;
                     btn_usePostProcess.IsEnabled = true;
+                    btn_useAutomaticSegmentation.IsEnabled = true;
+                    btn_selectPoint.IsEnabled = true;
+                    progressView.Visibility = Visibility.Collapsed;
+
                     SegmentHelpText = "Click the Segment button to start segmentation.";
                     FileName = "output";
                     Extension = "png";
@@ -622,6 +655,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                     break;
 
+                case "btn_labeling":
+                    LabelingWindow labelingWindow = new(labelingViewModel, $@"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}.txt");
+                    labelingWindow.Activate();
+                    break;
+
                 case "btn_segment":
                     if (filePath == "")
                     {
@@ -642,6 +680,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     commandBar.IsEnabled = false;
                     Indeterminate = true;
                     controlsView.Visibility = Visibility.Collapsed;
+                    progressBar.Visibility = Visibility.Visible;
                     progressView.Visibility = Visibility.Visible;
                     segmentHelpPanel.Visibility = Visibility.Collapsed;
                     StatusText = "Romanowsky Stain Slide Analyzer is processing your request.\nPlease wait.";
@@ -686,6 +725,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 finalPostFix,
                 finalExt,
                 _UseAutomaticSegmentation,
+                _ExtractBBoxes,
                 coords,
                 labels,
                 _UsePostProcess,
@@ -711,8 +751,12 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     btn_customizeParams.IsEnabled = false;
                     btn_segment.IsEnabled = false;
                     btn_usePostProcess.IsEnabled = false;
-                    progressView.Visibility = Visibility.Collapsed;
+                    btn_useAutomaticSegmentation.IsEnabled = false;
+                    btn_selectPoint.IsEnabled = false;
+                    
+                    progressBar.Visibility = Visibility.Collapsed;
                     resultImageView.Visibility = Visibility.Collapsed;
+                    StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
                 });
 
                 ShowAlert("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.");
@@ -720,7 +764,6 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
 
             var originalFileName = filePath.Split(@"\");
-            var outputFileName = "";
 
             if (finalPreFix != "")
             {
@@ -738,7 +781,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 outputFileName = $"{FileName}.{Extension}";
             }
 
-            var targetPath = DateTime.Now.ToString("MM_dd_yyyy_HH_mm_ss");
+            targetPath = DateTime.Now.ToString("MM_dd_yyyy_HH_mm_ss");
             updateStatus("Finishing up...");
 
             var createHistoryResult = segmentationHelper.CreateHistory(
@@ -746,6 +789,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 outputFileName,
                 _UsePostProcess,
                 _UseAutomaticSegmentation,
+                _ExtractBBoxes,
                 coords,
                 labels,
                 viewModel.PointsPerSide.Value,
@@ -788,7 +832,14 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 resultImageView.Visibility = Visibility.Visible;
                 resultImageView.Source = new BitmapImage(new Uri(@$"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}"));
                 segmentHelpPanel.Visibility = Visibility.Visible;
+                btn_labeling.Visibility = Visibility.Visible;
                 SegmentHelpText = "The Romanowsky Stain Slide Analyzer has completed the task you requested, and the results are as above.\nFor detailed results, check the results in the History tab.";
+            
+                if(_ExtractBBoxes)
+                {
+                    btn_labeling.Visibility = Visibility.Visible;
+                    SegmentHelpText += "\nYou can use the extracted Bounding Boxes to label the data.";
+                }
             });
         }
 

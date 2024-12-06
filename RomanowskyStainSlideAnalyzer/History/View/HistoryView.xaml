@@ -11,10 +11,10 @@
 
     <Page.Resources>
         <DataTemplate x:Key="HistoryListItemTemplate" x:DataType="model:HistoryDataModel">
-            <ItemContainer AutomationProperties.Name="{x:Bind date}">
+            <ItemContainer AutomationProperties.Name="{x:Bind date, Mode=TwoWay}">
                 <Expander
                     IsExpanded="False"
-                    Header="{x:Bind date}"
+                    Header="{x:Bind date, Mode=TwoWay}"
                     ExpandDirection="Down"
                     VerticalAlignment="Top"
                     HorizontalAlignment="Stretch"
@@ -27,8 +27,8 @@
                                 <ColumnDefinition Width="2*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Image Grid.Column="0" Source="{x:Bind imagePath}" Stretch="Uniform" Width="500" Height="500"/>
-                            <TextBlock Grid.Column="1" Text="{x:Bind log}"/>
+                            <Image Grid.Column="0" Source="{x:Bind imagePath, Mode=TwoWay}" Stretch="Uniform" Width="500" Height="500"/>
+                            <TextBlock Grid.Column="1" Text="{x:Bind log, Mode=TwoWay}"/>
                         </Grid>
                     </Expander.Content>
 
@@ -54,7 +54,7 @@
                 ItemTemplate="{StaticResource HistoryListItemTemplate}"
                 BorderThickness="0"
                 BorderBrush="{ThemeResource SystemControlTransparentBrush}"
-                ItemsSource="{x:Bind Datas, Mode=TwoWay}"
+                ItemsSource="{x:Bind Datas, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 HorizontalContentAlignment="Stretch"/>
             </StackPanel>
         </ScrollView>

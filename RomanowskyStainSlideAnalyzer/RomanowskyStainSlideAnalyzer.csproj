@@ -19,6 +19,7 @@
     <None Remove="History\View\HistoryView.xaml" />
     <None Remove="Home\View\HomeView.xaml" />
     <None Remove="Home\View\PointSelectionView.xaml" />
+    <None Remove="Labeling\View\LabelingWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -129,6 +130,9 @@
     <None Update="Include\SetupForFeatureInstaller.msi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="Labeling\View\LabelingWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Frameworks\View\SettingsView.xaml">

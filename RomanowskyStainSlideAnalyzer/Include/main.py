@@ -131,6 +131,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", required=True, help='Target Image File')
     parser.add_argument("-a", "--automatic_segmentation", default='y')
+    parser.add_argument("-b", "--extract_bounding_boxes", default='y')
     parser.add_argument("-ip", "--input_points", nargs='+')
     parser.add_argument("-il", "--input_labels", nargs='+')
     parser.add_argument("-prefix", "--prefix", type=str, default="")
@@ -158,7 +159,8 @@ if __name__ == '__main__':
     post_name = args.postfix
     ext = args.ext
 
-    automatic_segmentation = True if args.automatic_segmentation == 'y' else False
+    automatic_segmentation = args.automatic_segmentation == 'y'
+    extract_bounding_boxes = args.extract_bounding_boxes == 'y'
     use_post_process = args.usePostProcess
     points_per_side = args.points_per_side
     points_per_batch = args.points_per_batch
@@ -237,6 +239,15 @@ if __name__ == '__main__':
 
         else:
             show_original_anns(mask)
+
+        if extract_bounding_boxes:
+            bboxes = (item['bbox'] for item in mask)
+            file = open(f'{OUTPUT_DIR}/{filename}.txt', 'w+')
+
+            for bbox in bboxes:
+                file.write(f'{bbox}\n')
+
+            file.close()
 
         plt.axis('off')
         plt.savefig(f'{OUTPUT_DIR}/{filename}', dpi=300)

@@ -63,6 +63,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string postfix,
             string ext,
             bool useAutomaticSegmentation,
+            bool extractBoundingBoxes,
             List<double> inputCoords,
             List<int> inputLabels,
             bool usePostProcess,
@@ -97,6 +98,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             if(useAutomaticSegmentation)
             {
                 cli += " -a y";
+
+                if (!extractBoundingBoxes) cli += " -b n";
             }
             else
             {
@@ -147,6 +150,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string outputFileName,
             bool usePostProcess,
             bool useAutomaticSegmentation,
+            bool extractBoundingBoxes,
             List<double> inputCoords,
             List<int> inputLabels,
             string pointsPerSide,
@@ -182,6 +186,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                 var linuxPath = finalPath.Replace(@"\", "/").Replace("C:", "");
 
                 var cli = $"cd ~/RomanowskyStainSlideAnalyzer/outputs && cp ./{outputFileName} /mnt/c{linuxPath}/";
+
+                if(extractBoundingBoxes)
+                {
+                    cli += $" && cp ./{outputFileName}.txt /mnt/c{linuxPath}/";
+                }
+
+                Debug.WriteLine(cli);
 
                 string points = "";
                 string labels = "";

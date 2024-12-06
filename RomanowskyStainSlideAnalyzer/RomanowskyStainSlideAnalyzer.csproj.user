@@ -19,6 +19,9 @@
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Labeling\View\LabelingWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Home\View\PointSelectionView.xaml">
       <SubType>Designer</SubType>
     </Page>
