@@ -31,7 +31,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         private string path;
         private ClassTypeModel classType = ClassTypeModel.TYPE_A;
         private bool IsEditMode = false;
-        private int EditedLine = 0;
+        private int EditModeEndIndex = 0;
 
         public LabelingWindow(LabelingViewModel viewModel, string path)
         {
@@ -62,7 +62,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                     PrimaryButtonText = "OK",
                     SecondaryButtonText = "Cancel",
                     DefaultButton = ContentDialogButton.Secondary,
-                    XamlRoot = Content.XamlRoot
+                    XamlRoot = App.window.Content.XamlRoot
                 };
 
                 contentDialog.SecondaryButtonClick += (_s, _e) => {
@@ -75,7 +75,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             helper.CreateCSVFile();
 
             BoundingBoxes = helper.GetBoundingBox();
+
             viewModel.AllIndex = BoundingBoxes.Count;
+            viewModel.CurrentIndex = 1;
+            viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
+
             CreateBBox();
         }
 
@@ -110,6 +114,9 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         }
 
                         viewModel.CurrentIndex += 1;
+
+                        if (viewModel.CurrentIndex == EditModeEndIndex) IsEditMode = false;
+
                         viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
                         btn_previous.IsEnabled = viewModel.CurrentIndex > 1;
 
@@ -136,6 +143,10 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 case "btn_previous":
                     if(viewModel.CurrentIndex > 1)
                     {
+                        if(!IsEditMode || EditModeEndIndex < viewModel.CurrentIndex)
+                        {
+                            EditModeEndIndex = viewModel.CurrentIndex;
+                        }
                         viewModel.CurrentIndex -= 1;
                         viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
 
@@ -171,7 +182,13 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void CreateBBox()
         {
-            canvas.Children.Clear();
+            foreach(var child in canvas.Children)
+            {
+                if(child.GetType() == typeof(Rectangle))
+                {
+                    canvas.Children.Remove(child);
+                }
+            }
 
             Rectangle bBox = new()
             {

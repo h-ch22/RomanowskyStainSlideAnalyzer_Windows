@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Navigation;
 using RomanowskyStainSlideAnalyzer.Frameworks.Helper;
 using RomanowskyStainSlideAnalyzer.Home.Helper;
 using RomanowskyStainSlideAnalyzer.Home.Models;
+using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.View;
 using System;
@@ -113,6 +114,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 {
                     btn_usePostProcess.IsEnabled = false;
                     btn_extractBBoxes.IsEnabled = false;
+                    ExtractBBoxes = false;
                 }
                 else
                 {
@@ -129,6 +131,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             set
             {
                 _ExtractBBoxes = value;
+
+                if(value)
+                {
+                    UseAutomaticSegmentation = true;
+                    UsePostProcess = false;
+                }
+
                 OnPropertyChanged(nameof(ExtractBBoxes));
             }
         }
@@ -186,13 +195,19 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
-        private bool _UsePostProcess = true;
+        private bool _UsePostProcess = false;
         public bool UsePostProcess
         {
             get => _UsePostProcess;
             set
             {
                 _UsePostProcess = value;
+
+                if(value)
+                {
+                    ExtractBBoxes = false;
+                }
+
                 OnPropertyChanged(nameof(UsePostProcess));
             }
         }

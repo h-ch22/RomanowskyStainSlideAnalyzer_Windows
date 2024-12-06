@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FeatureInstaller")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7db76621a2e04bd3df14b39f229f3d0e1ed258fc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+73c0adb9bd4a4f4ac8f3abe93e41dbd64df62bea")]
 [assembly: System.Reflection.AssemblyProductAttribute("FeatureInstaller")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FeatureInstaller")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

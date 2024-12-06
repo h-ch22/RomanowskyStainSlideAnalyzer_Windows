@@ -22,6 +22,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
         {
             List<BoundingBoxDataModel> boundingBoxes = new();
 
+            if(!File.Exists(path))
+            {
+                return boundingBoxes;
+            }
+
             using (var reader = new StreamReader(path, Encoding.UTF8))
             {
                 while (!reader.EndOfStream)
@@ -72,11 +77,10 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
         public void ChangeLine(int classId, string X, string Y, string W, string H, int line)
         {
             var filePath = $"{path.Split(".txt")[0]}.csv";
-            var csv = new StringBuilder();
             var content = string.Format("{0}, {1}, {2}, {3}, {4}", classId.ToString(), X, Y, W, H);
 
             string[] lineArr = File.ReadAllLines(filePath);
-            lineArr[line] = csv.ToString();
+            lineArr[line] = content.ToString();
             
             File.WriteAllLines(filePath, lineArr);
         }
