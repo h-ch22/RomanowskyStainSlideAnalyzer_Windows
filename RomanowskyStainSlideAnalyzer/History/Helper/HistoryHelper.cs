@@ -55,7 +55,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                 }
             }
 
-            return history;
+            return new ObservableCollection<HistoryDataModel>(history.OrderByDescending(x => x.date));
         }
     }
 }

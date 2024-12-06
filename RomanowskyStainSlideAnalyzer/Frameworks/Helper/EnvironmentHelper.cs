@@ -290,11 +290,12 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
             }
 
             updateSettings("Entry_Point_Status", true);
+            updateSettings("Entry_Point_Version", Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
             return cpResult;
         }
 
-        public bool CopyMain()
+        public bool UpdateEntryPoint()
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Include");
             path = path.Replace(@"\", "/").Replace(@"C:/", "c/").Replace("Program Files", @"Program\ Files");
@@ -334,6 +335,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 case "Python Packages Status": return settings.Values["Python_Packages_Status"] as bool? ?? false;
                 case "Project Status": return settings.Values["Project_Status"] as bool? ?? false;
                 case "Entry Point Status": return settings.Values["Entry_Point_Status"] as bool? ?? false;
+
                 default: return false;
             }
         }

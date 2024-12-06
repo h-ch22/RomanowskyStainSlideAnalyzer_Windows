@@ -74,6 +74,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             get; private set;
         }
 
+        public ObservableCollection<PluginVersionDataModel> PluginVersions
+        {
+            get; private set;
+        }
+
         private Dictionary<int, string> Titles = new()
         {
             { 0, "WSL Status" },
@@ -84,6 +89,12 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             { 5, "Project Status" },
             { 6, "Python Packages Status" },
             { 7, "Entry Point Status" }
+        };
+
+        private Dictionary<int, string> VersionTitles = new()
+        {
+            { 0, "Feature Activator Version" },
+            { 1, "Entry Point Version" }
         };
 
         public SettingsView()
@@ -98,10 +109,18 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
         private void Init()
         {
             Datas = new();
+            PluginVersions = new();
 
             foreach (var title in Titles)
             {
                 Datas.Add(new EnvironmentDataModel(title.Key, title.Value, helper.GetStatus(title.Value)));
+            }
+
+            foreach (var title in VersionTitles)
+            {
+                PluginVersions.Add(
+                    new(title.Key, title.Value, helper.GetLibrariesVersion(title.Value))
+                );
             }
 
             IsEnvironmentSet = helper.GetFinalStatus() ? "Set" : "Not Set";

@@ -45,17 +45,17 @@
 
         <DatePicker Grid.Row="0" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>
 
-        <ProgressRing Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ShowProgress}" IsIndeterminate="True"/>
+        <ProgressRing Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ShowProgress, Mode=TwoWay}" IsIndeterminate="True"/>
 
         <ScrollView Grid.Row="1" x:Name="listView" VerticalAlignment="Stretch" Margin="0 10 0 0">
             <StackPanel Orientation="Vertical">
                 <ListView
-                SelectionMode="None"
-                ItemTemplate="{StaticResource HistoryListItemTemplate}"
-                BorderThickness="0"
-                BorderBrush="{ThemeResource SystemControlTransparentBrush}"
-                ItemsSource="{x:Bind Datas, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                HorizontalContentAlignment="Stretch"/>
+                    x:Name="historyListView"
+                    SelectionMode="None"
+                    ItemTemplate="{StaticResource HistoryListItemTemplate}"
+                    BorderThickness="0"
+                    BorderBrush="{ThemeResource SystemControlTransparentBrush}"
+                    HorizontalContentAlignment="Stretch"/>
             </StackPanel>
         </ScrollView>
         

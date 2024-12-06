@@ -44,6 +44,23 @@
                 </Grid>
             </ItemContainer>
         </DataTemplate>
+        <DataTemplate x:Key="VersionsExpanderItemTemplate" x:DataType="model:PluginVersionDataModel">
+            <ItemContainer AutomationProperties.Name="{x:Bind Title}">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="8*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind Title}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="1" TextAlignment="Right" HorizontalAlignment="Right" HorizontalTextAlignment="Right" Margin="10 0 0 0" Text="{x:Bind Version}"/>
+                </Grid>
+            </ItemContainer>
+        </DataTemplate>
+
     </Page.Resources>
 
     <ScrollViewer VerticalAlignment="Stretch">
@@ -95,7 +112,34 @@
                     </Expander.Content>
 
                 </Expander>
-                
+
+                <Expander
+                    x:Name="PluginExpander"
+                    IsExpanded="False"
+                    ExpandDirection="Down"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch">
+
+                    <Expander.Header>
+                        <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                            <SymbolIcon Symbol="AllApps"/>
+                            <TextBlock Margin="10 0 0 0" Text="Plugin Versions"/>
+                        </StackPanel>
+                    </Expander.Header>
+
+                    <Expander.Content>
+                        <ListView
+                            SelectionMode="None"
+                            ItemTemplate="{StaticResource VersionsExpanderItemTemplate}"
+                            BorderThickness="0"
+                            BorderBrush="{ThemeResource SystemControlTransparentBrush}"
+                            ItemsSource="{Binding PluginVersions, Mode=TwoWay}"
+                            HorizontalContentAlignment="Stretch"/>
+                    </Expander.Content>
+
+                </Expander>
+
                 <Expander
                     IsExpanded="False"
                     ExpandDirection="Down"

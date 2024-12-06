@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading;
+using System.Diagnostics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -23,17 +24,7 @@ namespace RomanowskyStainSlideAnalyzer.History.View
     {
         private HistoryHelper helper = new();
 
-        private ObservableCollection<HistoryDataModel> _Datas = new();
-
-        public ObservableCollection<HistoryDataModel> Datas
-        {
-            get => _Datas;
-            set
-            {
-                _Datas = value;
-                OnPropertyChanged(nameof(Datas));
-            }
-        }
+        private ObservableCollection<HistoryDataModel> Datas = new();
 
         private DateTimeOffset _Date = DateTimeOffset.Now;
         public DateTimeOffset Date
@@ -76,12 +67,13 @@ namespace RomanowskyStainSlideAnalyzer.History.View
         {
             this.InitializeComponent();
             DataContext = this;
+            historyListView.ItemsSource = Datas;
             GetHistory();
         }
 
         private void GetHistory()
         {
-            if(Datas != null && Datas.Count > 0) Datas.Clear();
+            if(Datas.Count > 0) Datas.Clear();
 
             ShowProgress = Visibility.Visible;
 
@@ -108,12 +100,19 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                     emptyPanel.Visibility = Visibility.Collapsed;
                     listView.Visibility = Visibility.Visible;
                 }
+
             });
         }
 
         private void GetHistory(string date)
         {
             Datas = helper.GetHistory(date);
+
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                historyListView.ItemsSource = Datas;
+            });
+
         }
     }
 }

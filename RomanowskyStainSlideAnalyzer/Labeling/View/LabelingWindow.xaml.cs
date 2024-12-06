@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using RomanowskyStainSlideAnalyzer.Home.Models;
@@ -13,6 +14,10 @@ using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Provider;
 using Windows.UI;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -31,6 +36,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         private string path;
         private ClassTypeModel classType = ClassTypeModel.TYPE_A;
         private bool IsEditMode = false;
+        private bool IsDone = false;
         private int EditModeEndIndex = 0;
 
         public LabelingWindow(LabelingViewModel viewModel, string path)
@@ -72,7 +78,13 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 await contentDialog.ShowAsync();
             }
 
-            helper.CreateCSVFile();
+            try
+            {
+                helper.CreateCSVFile();
+            }
+            catch (Exception ex) {
+                ShowAlert("Error", $"An error occurred while creating the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
+            }
 
             BoundingBoxes = helper.GetBoundingBox();
 
@@ -83,16 +95,39 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             CreateBBox();
         }
 
-        private void OnClick(object sender, RoutedEventArgs e)
+        private void ShowAlert(string title, string message, bool exit=true)
+        {
+            var contentDialog = new ContentDialog
+            {
+                Title = title,
+                Content = message,
+                PrimaryButtonText = "OK",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = App.window.Content.XamlRoot
+            };
+
+            if(exit)
+            {
+                contentDialog.PrimaryButtonClick += (_s, _e) => {
+                    this.Close();
+                };
+            }
+
+            contentDialog.ShowAsync();
+        }
+
+        private async void OnClick(object sender, RoutedEventArgs e)
         {
             switch((sender as Button).Name)
             {
                 case "btn_next":
-                    if(viewModel.CurrentIndex < viewModel.AllIndex)
+                    if(!IsDone)
                     {
                         if (IsEditMode)
                         {
-                            helper.ChangeLine(
+                            try
+                            {
+                                helper.ChangeLine(
                                 (int)classType,
                                 BoundingBoxes[viewModel.CurrentIndex - 1].X.ToString(),
                                 BoundingBoxes[viewModel.CurrentIndex - 1].Y.ToString(),
@@ -100,19 +135,34 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                                 BoundingBoxes[viewModel.CurrentIndex - 1].Height.ToString(),
                                 viewModel.CurrentIndex
                             );
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowAlert("Error", $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
+                            }
                         }
 
                         else
                         {
-                            helper.AppendText(
+                            try
+                            {
+                                helper.AppendText(
                                 (int)classType,
                                 BoundingBoxes[viewModel.CurrentIndex - 1].X.ToString(),
                                 BoundingBoxes[viewModel.CurrentIndex - 1].Y.ToString(),
                                 BoundingBoxes[viewModel.CurrentIndex - 1].Width.ToString(),
                                 BoundingBoxes[viewModel.CurrentIndex - 1].Height.ToString()
                             );
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowAlert("Error", $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
+                            }
                         }
+                    }
 
+                    if (viewModel.CurrentIndex < viewModel.AllIndex)
+                    {
                         viewModel.CurrentIndex += 1;
 
                         if (viewModel.CurrentIndex == EditModeEndIndex) IsEditMode = false;
@@ -120,12 +170,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
                         btn_previous.IsEnabled = viewModel.CurrentIndex > 1;
 
-                        if (viewModel.CurrentIndex < viewModel.AllIndex)
-                        {
-                            btn_next.IsEnabled = true;
-                        }
-
-                        else
+                        if (viewModel.CurrentIndex >= viewModel.AllIndex)
                         {
                             btn_next.Content = "Done";
                         }
@@ -135,12 +180,38 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                     else
                     {
-                        this.Close();
+                        IsDone = true;
+                        var folderPicker = new FolderPicker();
+                        var window = App.window;
+                        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+                        WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                        folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                        folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                        var folder = await folderPicker.PickSingleFolderAsync();
+
+                        if (folder != null)
+                        {
+                            try
+                            {
+                                helper.Copy(folder.Path);
+                                this.Close();
+                            }
+                            catch(Exception ex)
+                            {
+                                ShowAlert("Error", $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}", false);
+                            }
+                        }
+
                     }
 
                     break;
 
                 case "btn_previous":
+                    IsDone = false;
+
                     if(viewModel.CurrentIndex > 1)
                     {
                         if(!IsEditMode || EditModeEndIndex < viewModel.CurrentIndex)
@@ -192,14 +263,14 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
             Rectangle bBox = new()
             {
-                Width = BoundingBoxes[viewModel.CurrentIndex].Width,
-                Height = BoundingBoxes[viewModel.CurrentIndex].Height,
+                Width = BoundingBoxes[viewModel.CurrentIndex - 1].Width,
+                Height = BoundingBoxes[viewModel.CurrentIndex - 1].Height,
                 Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 219, 66, 66))
             };
 
             canvas.Children.Add(bBox);
-            bBox.SetValue(Canvas.LeftProperty, BoundingBoxes[viewModel.CurrentIndex].X);
-            bBox.SetValue(Canvas.TopProperty, BoundingBoxes[viewModel.CurrentIndex].Y);
+            bBox.SetValue(Canvas.LeftProperty, BoundingBoxes[viewModel.CurrentIndex - 1].X);
+            bBox.SetValue(Canvas.TopProperty, BoundingBoxes[viewModel.CurrentIndex - 1].Y);
         }
     }
 }

@@ -231,7 +231,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             InitializeComponent();
             DataContext = this;
 
-            if(!helper.GetFinalStatus())
+            if (!helper.GetFinalStatus())
             {
                 Thread thread = new Thread(checkEnvironment);
                 thread.Start();
@@ -473,7 +473,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             if(helper.GetLibrariesVersion("Entry Point Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
             {
                 updateStatus("Updating Entry Point...");
-                var isEntryPointCopied = helper.CopyEntryPoint();
+                var isEntryPointCopied = helper.UpdateEntryPoint();
 
                 if (!isEntryPointCopied)
                 {
@@ -847,7 +847,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 resultImageView.Visibility = Visibility.Visible;
                 resultImageView.Source = new BitmapImage(new Uri(@$"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}"));
                 segmentHelpPanel.Visibility = Visibility.Visible;
-                btn_labeling.Visibility = Visibility.Visible;
+                btn_labeling.Visibility = ExtractBBoxes ? Visibility.Visible : Visibility.Collapsed;
                 SegmentHelpText = "The Romanowsky Stain Slide Analyzer has completed the task you requested, and the results are as above.\nFor detailed results, check the results in the History tab.";
             
                 if(_ExtractBBoxes)

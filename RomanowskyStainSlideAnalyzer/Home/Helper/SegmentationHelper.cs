@@ -210,6 +210,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                 string[] lines =
                 {
                     $"Use Automatic Segmentation: {useAutomaticSegmentation}",
+                    $"Extract Bounding Box: {extractBoundingBoxes}",
                     $"Points: {points}",
                     $"Labels: {labels}",
                     $"Points Per Side: {pointsPerSide}",
