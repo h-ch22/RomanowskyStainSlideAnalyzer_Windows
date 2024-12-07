@@ -19,7 +19,7 @@
             <AppBarButton x:Name="btn_loadImage" Icon="Add" Label="Load Image" Click="OnClick"/>
             <AppBarButton x:Name="btn_clear" Icon="Cancel" Label="Clear" Click="OnClick" Visibility="Collapsed"/>
             <AppBarButton x:Name="btn_customizeParams" Icon="Setting" Label="Customize Parameters (Advanced)" IsEnabled="{Binding IsParameterSettingsEnabled}" Click="OnClick"/>
-            <AppBarButton x:Name="btn_labeling" Icon="Caption" Label="Labeling" Visibility="Visible" Click="OnClick"/>
+            <AppBarButton x:Name="btn_labeling" Icon="Caption" Label="Labeling" Visibility="Collapsed" Click="OnClick"/>
             <AppBarButton x:Name="btn_selectPoint" Icon="Favorite" Label="Select Points" IsEnabled="{Binding IsSelectPointEnabled}" Click="OnClick"/>
             <AppBarToggleButton x:Name="btn_useAutomaticSegmentation" Icon="ViewAll" Label="Use Automatic Segmentation" IsChecked="{Binding UseAutomaticSegmentation, Mode=TwoWay}"/>
             <AppBarToggleButton x:Name="btn_usePostProcess" Icon="Find" Label="Use Post-Process" IsChecked="{Binding UsePostProcess, Mode=TwoWay}"/>
