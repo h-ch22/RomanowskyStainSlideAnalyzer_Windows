@@ -1,4 +1,6 @@
-﻿using RomanowskyStainSlideAnalyzer.History.Models;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Shapes;
+using RomanowskyStainSlideAnalyzer.History.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -35,6 +37,8 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                     else if(jpegFiles.Length > 0) file = jpegFiles[0];
                     else file = pngFiles[0];
 
+                    var csvFiles = Directory.GetFiles($@"{dir}\", "*.csv");
+
                     var fullDate = dir.Split(@"\");
                     var fullLog = "";
 
@@ -49,13 +53,27 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
                     history.Add(
                         new HistoryDataModel(
-                            fullDate[fullDate.Length - 1], file, fullLog
+                            fullDate[fullDate.Length - 1], dir, csvFiles.Length > 0 ? csvFiles[0] : "", file, fullLog, csvFiles.Length > 0 ? Visibility.Visible : Visibility.Collapsed
                         )
-                    );
+                    ); 
                 }
             }
 
             return new ObservableCollection<HistoryDataModel>(history.OrderByDescending(x => x.date));
+        }
+        public void Copy(string from, string to)
+        {
+            var splitPath = from.Split(@"\");
+            var fileName = splitPath[splitPath.Length - 1];
+
+            try
+            {
+                File.Copy($"{from.Split(".txt")[0]}", $@"{to}\{fileName.Split(@".txt")[0]}");
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.UI.Xaml;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,14 +10,20 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
     public class HistoryDataModel
     {
         public string date;
+        public string root;
+        public string labelingDataPath;
         public string imagePath;
         public string log;
+        public Visibility showSaveButton;
 
-        public HistoryDataModel(string date, string imagePath, string log)
+        public HistoryDataModel(string date, string root, string labelingDataPath, string imagePath, string log, Visibility showSaveButton)
         {
             this.date = date;
+            this.root = root;
+            this.labelingDataPath = labelingDataPath;
             this.imagePath = imagePath;
             this.log = log;
+            this.showSaveButton = showSaveButton;
         }
     }
 }

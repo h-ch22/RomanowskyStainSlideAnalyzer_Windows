@@ -38,6 +38,15 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             SetTitleBar(AppTitleBar);
             ContentFrame.Navigated += OnNavigated;
             Navigate(typeof(HomeView), new EntranceNavigationTransitionInfo());
+
+            var rssaFolder = @"C:\RomanowskyStainSlideAnalyzer";
+
+            if (Directory.Exists(rssaFolder))
+            {
+                DirectoryInfo directoryInfo = new DirectoryInfo(rssaFolder);
+
+                directoryInfo.Attributes |= FileAttributes.Hidden;
+            }
         }
 
         private void Navigate(

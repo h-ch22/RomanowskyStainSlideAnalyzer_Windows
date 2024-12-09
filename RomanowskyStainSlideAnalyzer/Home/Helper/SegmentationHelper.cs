@@ -173,7 +173,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
 
                 if (!Directory.Exists(rssaFolder))
                 {
-                    Directory.CreateDirectory(rssaFolder);
+                    DirectoryInfo di = Directory.CreateDirectory(rssaFolder);
+                    di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
                 }
 
                 var finalPath = Path.Combine(rssaFolder, targetPath);

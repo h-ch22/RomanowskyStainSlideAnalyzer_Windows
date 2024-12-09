@@ -11,6 +11,9 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading;
 using System.Diagnostics;
+using RomanowskyStainSlideAnalyzer.Frameworks.Models;
+using Windows.Storage.Pickers;
+using System.IO;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -113,6 +116,59 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                 historyListView.ItemsSource = Datas;
             });
 
+        }
+
+        private async void OnClick(object sender, RoutedEventArgs e)
+        {
+            HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
+            var file = "";
+
+            var jpgFiles = Directory.GetFiles($@"{dataModel.root}\", "*.jpg");
+            var jpegFiles = Directory.GetFiles($@"{dataModel.root}\", "*.jpeg");
+            var pngFiles = Directory.GetFiles($@"{dataModel.root}\", "*.png");
+
+            if (jpgFiles.Length > 0) file = jpgFiles[0];
+            else if (jpegFiles.Length > 0) file = jpegFiles[0];
+            else file = pngFiles[0];
+
+            var folderPicker = new FolderPicker();
+            var window = App.window;
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+            WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+            folderPicker.ViewMode = PickerViewMode.Thumbnail;
+            folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+            var folder = await folderPicker.PickSingleFolderAsync();
+
+            if (folder != null)
+            {
+                try
+                {
+                    helper.Copy((sender as Button).Name == "btn_saveLabelingData" ? dataModel.labelingDataPath : file, folder.Path);
+                }
+                catch (Exception ex)
+                {
+                    ShowAlert("Error", $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}");
+                }
+            }
+        }
+        private void ShowAlert(string title, string message)
+        {
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                var contentDialog = new ContentDialog
+                {
+                    Title = title,
+                    Content = message,
+                    CloseButtonText = "OK",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = App.window.Content.XamlRoot
+                };
+
+                await contentDialog.ShowAsync();
+            });
         }
     }
 }
