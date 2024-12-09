@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\ic_main.png" />
+    <None Remove="Frameworks\View\ChangeLogView.xaml" />
     <None Remove="Frameworks\View\SettingsView.xaml" />
     <None Remove="History\View\HistoryView.xaml" />
     <None Remove="Home\View\HomeView.xaml" />
@@ -119,6 +120,9 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="Home\View\PointSelectionView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Frameworks\View\ChangeLogView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <None Update="Include\main.py">

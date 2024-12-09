@@ -19,6 +19,9 @@
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Frameworks\View\ChangeLogView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Labeling\View\LabelingWindow.xaml">
       <SubType>Designer</SubType>
     </Page>

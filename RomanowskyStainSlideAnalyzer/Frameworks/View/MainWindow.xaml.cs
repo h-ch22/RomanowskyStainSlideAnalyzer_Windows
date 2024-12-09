@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -11,6 +12,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
+using RomanowskyStainSlideAnalyzer.Frameworks.Helper;
 using RomanowskyStainSlideAnalyzer.Home.View;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -25,6 +27,8 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
     /// </summary>
     public sealed partial class MainWindow : Window
     {
+        private EnvironmentHelper environmentHelper = new();
+
         public MainWindow()
         {
             this.InitializeComponent();
@@ -46,6 +50,16 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
                 DirectoryInfo directoryInfo = new DirectoryInfo(rssaFolder);
 
                 directoryInfo.Attributes |= FileAttributes.Hidden;
+            }
+
+            var lastLaunchedVersion = environmentHelper.GetLastLaunchedVersion();
+
+            if(lastLaunchedVersion != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+            {
+                environmentHelper.UpdateLastLaunchedVersion();
+
+                ChangeLogView changeLogView = new();
+                changeLogView.Activate();
             }
         }
 

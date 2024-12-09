@@ -323,6 +323,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
             settings.Values[key] = value;
         }
 
+        public void UpdateLastLaunchedVersion()
+        {
+            settings.Values["Last_Launched_Version"] = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        }
+
         public bool GetStatus(string key)
         {
             switch (key)
@@ -348,6 +353,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
                 case "Feature Activator Version": return settings.Values["Feature_Activator_Version"] as string ?? "1.0.0.0";
                 default: return "";
             }
+        }
+
+        public string GetLastLaunchedVersion()
+        {
+            return settings.Values["Last_Launched_Version"] as string ?? "1.0.0.0";
         }
 
         public bool GetFinalStatus()
