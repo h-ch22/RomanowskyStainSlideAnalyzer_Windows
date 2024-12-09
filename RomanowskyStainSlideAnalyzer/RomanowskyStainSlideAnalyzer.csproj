@@ -14,6 +14,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Analytics\View\AnalyticsView.xaml" />
     <None Remove="Assets\ic_main.png" />
     <None Remove="Frameworks\View\ChangeLogView.xaml" />
     <None Remove="Frameworks\View\SettingsView.xaml" />
@@ -125,6 +126,9 @@
     <Page Update="Frameworks\View\ChangeLogView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Update="Analytics\View\AnalyticsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <None Update="Include\main.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -180,7 +184,7 @@
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <FileVersion>1.1.0.0</FileVersion>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
   </PropertyGroup>
 </Project>

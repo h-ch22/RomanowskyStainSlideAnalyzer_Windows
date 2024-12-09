@@ -45,6 +45,7 @@
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Segmentation" Icon="Find" Tag="RomanowskyStainSlideAnalyzer.Home.View.HomeView" IsSelected="True"/>
                 <NavigationViewItem Content="History" Tag="RomanowskyStainSlideAnalyzer.History.View.HistoryView" Icon="Rotate"/>
+                <NavigationViewItem Content="Analytics" Tag="RomanowskyStainSlideAnalyzer.Analytics.View.AnalyticsView" Icon="Filter"/>
             </NavigationView.MenuItems>
 
             <Frame x:Name="ContentFrame"/>

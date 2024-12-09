@@ -63,23 +63,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Segmentation", "- Manually Segmentation is now available.\n- Extract Bounding Boxes option is now available for extracting bounding box coordinates.\n- Labeling is now available.")
-            );
-
-            ReleaseNotes.Add(
-                new("Select Points", "- You can segment only that part by clicking on the part you want to segment with the mouse.\n- You can specify the class of the area to be segmented.")
-            );
-
-            ReleaseNotes.Add(
-                new("Labeling", "- You can specify a class for each bounding box area.\n- You can export the labeled file to a csv file.")
-            );
-
-            ReleaseNotes.Add(
-                new("History", "- You can save the result image file.\n- You can re-save the labeled csv file.\n- Fixed an issue where records would not display properly when the date was changed.\n- Records are now displayed in most recent order.")
-            );
-
-            ReleaseNotes.Add(
-                new("Settings", "- You can check and update each library version.")
+                new("Analytics", "- Class Analytics is now available.")
             );
         }
 

@@ -14,6 +14,46 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 {
     public class HistoryHelper
     {
+        public ObservableCollection<LabeledHistoryDataModel> GetAllLabeledHistory()
+        {
+            var history = new ObservableCollection<LabeledHistoryDataModel>();
+            var originalPath = @"C:\RomanowskyStainSlideAnalyzer";
+            var path = @"C:\RomanowskyStainSlideAnalyzer";
+
+            if (!Directory.Exists(path)) return history;
+
+            var csvFiles = Directory
+                .EnumerateFiles(path, "*.csv", SearchOption.AllDirectories);
+
+            foreach(var file in csvFiles)
+            {
+                var fileSplit = file.Split(@"\");
+                var id = fileSplit[2];
+                var imageFile = GetImage($@"{originalPath}\{id}");
+                
+                history.Add(
+                    new(imageFile, file, id)
+                );
+            }
+
+            return history;
+        }
+
+        private string GetImage(string path)
+        {
+            var jpgFiles = Directory.GetFiles($@"{path}\", "*.jpg");
+            var jpegFiles = Directory.GetFiles($@"{path}\", "*.jpeg");
+            var pngFiles = Directory.GetFiles($@"{path}\", "*.png");
+
+            var file = "";
+
+            if (jpgFiles.Length > 0) file = jpgFiles[0];
+            else if (jpegFiles.Length > 0) file = jpegFiles[0];
+            else file = pngFiles[0];
+
+            return file;
+        }
+
         public ObservableCollection<HistoryDataModel> GetHistory(string date)
         {
             var history = new ObservableCollection<HistoryDataModel>();
@@ -27,16 +67,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
             {
                 if(dir.Contains(date))
                 {
-                    var jpgFiles = Directory.GetFiles($@"{dir}\", "*.jpg");
-                    var jpegFiles = Directory.GetFiles($@"{dir}\", "*.jpeg");
-                    var pngFiles = Directory.GetFiles($@"{dir}\", "*.png");
-
-                    var file = "";
-
-                    if (jpgFiles.Length > 0) file = jpgFiles[0];
-                    else if(jpegFiles.Length > 0) file = jpegFiles[0];
-                    else file = pngFiles[0];
-
+                    var file = GetImage(dir);
                     var csvFiles = Directory.GetFiles($@"{dir}\", "*.csv");
 
                     var fullDate = dir.Split(@"\");
