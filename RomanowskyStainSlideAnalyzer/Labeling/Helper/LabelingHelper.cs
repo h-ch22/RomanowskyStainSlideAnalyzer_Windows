@@ -121,5 +121,20 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
                 throw e;
             }
         }
+
+        public string GetSource()
+        {
+            var jpgFiles = Directory.GetFiles($@"{path}\", "*.jpg");
+            var jpegFiles = Directory.GetFiles($@"{path}\", "*.jpeg");
+            var pngFiles = Directory.GetFiles($@"{path}\", "*.png");
+
+            var file = "";
+
+            if (jpgFiles.Length > 0) file = jpgFiles[0];
+            else if (jpegFiles.Length > 0) file = jpegFiles[0];
+            else file = pngFiles[0];
+
+            return file;
+        }
     }
 }

@@ -15,9 +15,13 @@ using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Provider;
+using Windows.Storage.Streams;
 using Windows.UI;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -93,6 +97,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
 
             CreateBBox();
+            CreateThumbnailBBox();
         }
 
         private void ShowAlert(string title, string message, bool exit=true)
@@ -176,6 +181,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         }
 
                         CreateBBox();
+                        CreateThumbnailBBox();
                     }
 
                     else
@@ -225,6 +231,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         IsEditMode = true;
 
                         CreateBBox();
+                        CreateThumbnailBBox();
+
                     }
 
                     break;
@@ -271,6 +279,67 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             canvas.Children.Add(bBox);
             bBox.SetValue(Canvas.LeftProperty, BoundingBoxes[viewModel.CurrentIndex - 1].X);
             bBox.SetValue(Canvas.TopProperty, BoundingBoxes[viewModel.CurrentIndex - 1].Y);
+        }
+
+        private void CreateThumbnailBBox()
+        {
+            foreach (var child in thumbnailCanvas.Children)
+            {
+                if (child.GetType() == typeof(Rectangle) && (child as Rectangle).Name != "ViewPortRect")
+                {
+                    thumbnailCanvas.Children.Remove(child);
+                }
+            }
+
+            Rectangle bBox = new()
+            {
+                Width = (BoundingBoxes[viewModel.CurrentIndex - 1].Width) * 0.25,
+                Height = (BoundingBoxes[viewModel.CurrentIndex - 1].Height) * 0.25,
+                Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 219, 66, 66)),
+                StrokeThickness = 2
+            };
+
+            thumbnailCanvas.Children.Add(bBox);
+            bBox.SetValue(Canvas.LeftProperty, (BoundingBoxes[viewModel.CurrentIndex - 1].X) * 0.25);
+            bBox.SetValue(Canvas.TopProperty, (BoundingBoxes[viewModel.CurrentIndex - 1].Y) * 0.25);
+        }
+
+        private void img_scrollView_ViewChanged(ScrollView sender, object args)
+        {
+            if (sender != null)
+            {
+                double zoomFactor = sender.ZoomFactor;
+                double scale = 128 / (512 * zoomFactor);
+
+                double offsetX = sender.HorizontalOffset * scale;
+                double offsetY = sender.VerticalOffset * scale;
+                double viewPortW = sender.ViewportWidth * scale;
+                double viewPortH = sender.ViewportHeight * scale;
+
+                Debug.WriteLine($"Zoomed: {offsetX}, {offsetY}, {viewPortW}, {viewPortH}");
+
+                foreach (var child in thumbnailCanvas.Children)
+                {
+                    if (child.GetType() == typeof(Rectangle) && (child as Rectangle).Name == "ViewPortRect")
+                    {
+                        thumbnailCanvas.Children.Remove(child);
+                    }
+                }
+
+                Rectangle viewPortBox = new()
+                {
+                    Width = viewPortW,
+                    Height = viewPortH,
+                    Stroke = new SolidColorBrush(Color.FromArgb(255, 52, 119, 235)),
+                    StrokeThickness = 2
+                };
+
+                viewPortBox.Name = "ViewPortRect";
+
+                thumbnailCanvas.Children.Add(viewPortBox);
+                viewPortBox.SetValue(Canvas.LeftProperty, offsetX);
+                viewPortBox.SetValue(Canvas.TopProperty, offsetY);
+            }
         }
     }
 }

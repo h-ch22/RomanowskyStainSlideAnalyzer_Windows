@@ -59,8 +59,8 @@
             </StackPanel>
         </StackPanel>
 
-        <ScrollView Grid.Row="3" Width="512" Height="512" ContentOrientation="None" ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTabStop="True" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <ScrollView x:Name="img_scrollView" Grid.Row="3" Width="512" Height="512" ContentOrientation="None" ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTabStop="True" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ViewChanged="img_scrollView_ViewChanged">
             <Canvas Opacity="1" x:Name="canvas" Width="512" Height="512">
                 <Image x:Name="img_source" Source="{x:Bind viewModel.Source, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="512" Height="512" Stretch="Fill">
                     <Image.RenderTransform>
@@ -68,15 +68,30 @@
                     </Image.RenderTransform>
                 </Image>
             </Canvas>
-
         </ScrollView>
 
-        <RadioButtons Margin="20" Grid.Row="4" Header="Select Class">
-            <RadioButton x:Name="radio_A" Content="A" IsChecked="True" Checked="OnClassSelected"/>
-            <RadioButton x:Name="radio_B" Content="B" Checked="OnClassSelected"/>
-            <RadioButton x:Name="radio_C" Content="C" Checked="OnClassSelected"/>
-        </RadioButtons>
+        <Grid Grid.Row="4" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="6*"/>
+            </Grid.ColumnDefinitions>
 
+            <RadioButtons Grid.Column="0" Header="Select Class">
+                <RadioButton x:Name="radio_A" Content="A" IsChecked="True" Checked="OnClassSelected"/>
+                <RadioButton x:Name="radio_B" Content="B" Checked="OnClassSelected"/>
+                <RadioButton x:Name="radio_C" Content="C" Checked="OnClassSelected"/>
+            </RadioButtons>
+
+            <Canvas HorizontalAlignment="Right" Grid.Column="1" Opacity="1" x:Name="thumbnailCanvas" Width="128" Height="128">
+                <Image Opacity="0.5" x:Name="img_thumbnail" Source="{x:Bind viewModel.Source, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="128" Height="128" Stretch="Fill">
+                    <Image.RenderTransform>
+                        <RotateTransform Angle="270" CenterX="64" CenterY="64"/>
+                    </Image.RenderTransform>
+                </Image>
+            </Canvas>
+
+        </Grid>
+        
         <StackPanel Grid.Row="5" Margin="20" HorizontalAlignment="Center">
             <Grid>
                 <Grid.ColumnDefinitions>
