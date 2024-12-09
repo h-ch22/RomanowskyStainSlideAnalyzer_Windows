@@ -70,8 +70,8 @@ namespace RomanowskyStainSlideAnalyzer.History.View
         {
             this.InitializeComponent();
             DataContext = this;
-            historyListView.ItemsSource = Datas;
             GetHistory();
+            historyListView.ItemsSource = Datas;
         }
 
         private void GetHistory()

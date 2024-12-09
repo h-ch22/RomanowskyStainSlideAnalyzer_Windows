@@ -703,7 +703,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     finalPostFix = radio_postfix.IsChecked == true ? FileName : "";
                     finalPreFix = radio_prefix.IsChecked == true ? FileName : "";
                     finalFileName = radio_newName.IsChecked == true ? FileName : "";
-                    finalExt = radio_newName.IsChecked == true ? FileName : "";
+                    finalExt = radio_newName.IsChecked == true ? Extension : "";
 
                     Thread thread = new Thread(Segment);
                     thread.Start();

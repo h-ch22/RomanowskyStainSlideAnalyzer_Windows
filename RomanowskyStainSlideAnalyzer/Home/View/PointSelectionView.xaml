@@ -58,9 +58,9 @@
         </ScrollView>
 
         <RadioButtons Margin="20" Grid.Row="4" Header="Select Class">
-            <RadioButton x:Name="radio_A" Content="A" IsChecked="True" Checked="OnClassSelected"/>
-            <RadioButton x:Name="radio_B" Content="B" Checked="OnClassSelected"/>
-            <RadioButton x:Name="radio_C" Content="C" Checked="OnClassSelected"/>
+            <RadioButton x:Name="radio_A" Content="None" IsChecked="True" Checked="OnClassSelected"/>
+            <RadioButton x:Name="radio_B" Content="Large Cell" Checked="OnClassSelected"/>
+            <RadioButton x:Name="radio_C" Content="Small Cell" Checked="OnClassSelected"/>
         </RadioButtons>
     </Grid>
 </Window>
