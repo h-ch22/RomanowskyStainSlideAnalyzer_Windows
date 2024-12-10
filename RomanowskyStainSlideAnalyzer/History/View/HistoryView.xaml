@@ -32,8 +32,10 @@
                             <StackPanel Margin="10 0 0 0" Orientation="Vertical" Grid.Column="1">
                                 <TextBlock Text="{x:Bind log, Mode=TwoWay}"/>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                    <Button x:Name="btn_saveImage" Click="OnClick">Save Result Image</Button>
+                                    <Button x:Name="btn_showData" Click="OnLabelingOptionClick" Visibility="{x:Bind showSaveButton, Mode=TwoWay}" Foreground="{StaticResource TextOnAccentAAFillColorPrimary}" Background="{StaticResource SystemAccentColor}">Analyze Bounding Box</Button>
+                                    <Button x:Name="btn_changeLabelingData" Margin="10 0 0 0" Click="ChangeLabelingData" Visibility="{x:Bind showSaveButton, Mode=TwoWay}">Change Labeling Data</Button>
                                     <Button x:Name="btn_saveLabelingData" Margin="10 0 0 0" Visibility="{x:Bind showSaveButton, Mode=TwoWay}" Click="OnClick">Save Labeling Data</Button>
+                                    <Button x:Name="btn_saveImage" Margin="10 0 0 0" Click="OnClick">Save Result Image</Button>
                                 </StackPanel>
                             </StackPanel>
                         </Grid>

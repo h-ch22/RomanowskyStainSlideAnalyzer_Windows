@@ -146,6 +146,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
         }
 
         public bool CreateHistory(
+            string filePath,
             string targetPath,
             string outputFileName,
             bool usePostProcess,
@@ -177,12 +178,18 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                     di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
                 }
 
+                var filePathSplit = filePath.Split(".");
+                var ext = filePathSplit[filePathSplit.Length - 1];
+
                 var finalPath = Path.Combine(rssaFolder, targetPath);
 
                 if (!Directory.Exists(finalPath))
                 {
                     Directory.CreateDirectory(finalPath);
                 }
+
+                Debug.WriteLine($@"Copying File from {filePath} to {finalPath}\input.{ext}");
+                File.Copy(filePath, $@"{finalPath}\input.{ext}");
 
                 var linuxPath = finalPath.Replace(@"\", "/").Replace("C:", "");
 

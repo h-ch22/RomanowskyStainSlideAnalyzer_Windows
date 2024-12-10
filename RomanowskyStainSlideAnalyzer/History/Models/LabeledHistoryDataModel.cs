@@ -8,9 +8,9 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
 {
     public class LabeledHistoryDataModel
     {
-        public string ImagePath;
-        public string LabeledDataPath;
-        public string Id;
+        public string ImagePath { get; set; }
+        public string LabeledDataPath { get; set; }
+        public string Id { get; set; }
 
         public LabeledHistoryDataModel(string ImagePath, string LabeledDataPath, string Id)
         {

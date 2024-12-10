@@ -25,6 +25,66 @@
                     </Grid>
                 </ItemContainer>
             </DataTemplate>
+
+            <DataTemplate x:Key="LabeledDataItemTemplate">
+                <ItemContainer AutomationProperties.Name="{Binding Id}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Image Width="120" Height="120" Grid.Column="0" Source="{Binding ImagePath}" Stretch="Uniform"/>
+
+                        <TextBlock Margin="10 0 0 0" Grid.Column="1" Text="{Binding Id}"/>
+                    </Grid>
+                </ItemContainer>
+            </DataTemplate>
+
+            <DataTemplate x:Key="LabelingDataPreviewListHeaderTemplate">
+                <ItemContainer>
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Index" Grid.Column="0" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="Class" Grid.Column="1" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="X" Grid.Column="2" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="Y" Grid.Column="3" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="Width" Grid.Column="4" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="Height" Grid.Column="5" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </ItemContainer>
+            </DataTemplate>
+
+            <DataTemplate x:Key="LabelingDataPreviewListContentsTemplate">
+                <ItemContainer AutomationProperties.Name="{Binding id}">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                            <ColumnDefinition Width="1.6*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="{Binding id}" Grid.Column="0" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding classId}" Grid.Column="1" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding x}" Grid.Column="2" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding y}" Grid.Column="3" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding width}" Grid.Column="4" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding height}" Grid.Column="5" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </ItemContainer>
+            </DataTemplate>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

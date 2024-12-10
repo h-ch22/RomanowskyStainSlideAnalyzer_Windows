@@ -690,6 +690,10 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     {
                         ShowAlert("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {filePath}");
                         return;
+                    } else if (FileName == "input")
+                    {
+                        ShowAlert("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.");
+                        return;
                     }
 
                     commandBar.IsEnabled = false;
@@ -800,6 +804,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             updateStatus("Finishing up...");
 
             var createHistoryResult = segmentationHelper.CreateHistory(
+                filePath,
                 targetPath,
                 outputFileName,
                 _UsePostProcess,

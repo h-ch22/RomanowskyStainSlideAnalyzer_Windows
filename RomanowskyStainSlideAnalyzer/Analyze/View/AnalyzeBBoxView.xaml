@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="RomanowskyStainSlideAnalyzer.Analyze.View.AnalyzeBBoxView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:RomanowskyStainSlideAnalyzer.Analyze.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Analyze Bounding Box">
+
+    <StackPanel x:Name="gridView" Orientation="Vertical">
+        <StackPanel Margin="20" x:Name="AppTitleBar" Orientation="Horizontal">
+            <SymbolIcon Symbol="Caption"
+                        x:Name="ic_titlebar"
+                        HorizontalAlignment="Left" 
+                        Grid.Column="0"
+                        VerticalAlignment="Center"/>
+
+            <TextBlock
+                    Margin="12,0,0,0"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="Analyze Bounding Box"/>
+        </StackPanel>
+
+        <CommandBar DefaultLabelPosition="Right">
+            <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Zoom Mode" Icon="Find"/>
+        </CommandBar>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="6*"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollView x:Name="img_scrollView" Grid.Row="0" Width="512" Height="512" ContentOrientation="None" ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTabStop="True" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <Canvas Opacity="1" x:Name="canvas" Width="512" Height="512">
+                            <Image x:Name="img_source" Source="{x:Bind viewModel.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="512" Height="512" Stretch="Fill">
+                                <Image.RenderTransform>
+                                    <RotateTransform Angle="270" CenterX="256" CenterY="256"/>
+                                </Image.RenderTransform>
+                            </Image>
+                        </Canvas>
+                    </ScrollView>
+
+                    <ProgressRing Grid.Row="1" IsIndeterminate="True" Visibility="{x:Bind viewModel.ShowProgress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+
+                    <ScrollView Visibility="Collapsed" x:Name="scrollView" Grid.Row="1" Margin="0 20" HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <ListView
+                            x:Name="listView"
+                            SelectionMode="Single"
+                            SelectionChanged="listView_SelectionChanged"
+                            HeaderTemplate="{StaticResource LabelingDataPreviewListHeaderTemplate}"
+                            ItemTemplate="{StaticResource LabelingDataPreviewListContentsTemplate}"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                            ScrollViewer.VerticalScrollMode="Auto"
+                            ScrollViewer.HorizontalScrollMode="Auto"/>
+                    </ScrollView>
+                </Grid>
+            </Grid>
+            
+            <Grid Grid.Column="1" Margin="20 0 0 0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Analyze" FontWeight="SemiBold" FontSize="24" Grid.Row="0"/>
+
+                <Image Grid.Row="1" x:Name="croppedImg" Source="{x:Bind viewModel.CroppedImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Height="80" Stretch="Uniform" Visibility="Collapsed"/>
+
+                <StackPanel Grid.Row="2" VerticalAlignment="Center" Orientation="Vertical" x:Name="NoSelectionPanel">
+                    <SymbolIcon Symbol="TouchPointer" Foreground="Gray"/>
+                    <TextBlock Text="Please select a label" HorizontalAlignment="Center" Foreground="Gray"/>
+                </StackPanel>
+
+                <ProgressRing Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind viewModel.ShowAnalyzeProgress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <StackPanel Margin="0 20" x:Name="avgPanel" Visibility="Collapsed" Orientation="Vertical" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <StackPanel x:Name="ZeroWHPanel" Visibility="Visible" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+
+                        <SymbolIcon Symbol="Cancel" Foreground="Gray"/>
+                        <TextBlock Foreground="Gray" TextAlignment="Center" Text="Color cannot be analyzed&#x0a;because one or more of the width and height values ​​are 0."/>
+
+                    </StackPanel>
+
+                    <StackPanel x:Name="colorPanel" Visibility="Collapsed" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (ARGB)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.Average, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (A)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgA, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (R)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (G)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgG, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (B)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgB, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (Hue)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (Saturation)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSaturation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="7*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average (Brightness)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBrightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 20 20 10" />
+
+                    <Grid Margin="0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="7*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Index" Grid.Column="0" Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind viewModel.Index, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Grid Margin="0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="7*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Class" Grid.Column="0" Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind viewModel.Class, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Grid Margin="0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="7*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="X" Grid.Column="0" Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind viewModel.X, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Grid Margin="0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="7*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Y" Grid.Column="0" Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind viewModel.Y, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Grid Margin="0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="7*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Width" Grid.Column="0" Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind viewModel.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Grid Margin="0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="7*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Height" Grid.Column="0" Foreground="Gray"/>
+                        <TextBlock Text="{x:Bind viewModel.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </StackPanel>
+</Window>

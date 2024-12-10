@@ -16,7 +16,7 @@
     <PackageOptionalProjectsInIdeBuilds>False</PackageOptionalProjectsInIdeBuilds>
   </PropertyGroup>
   <ItemGroup>
-    <Page Update="Analytics\View\AnalyticsView.xaml">
+    <Page Update="Analyze\View\AnalyzeBBoxView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <None Update="App.xaml">

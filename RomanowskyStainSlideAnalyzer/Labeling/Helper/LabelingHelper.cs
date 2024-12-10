@@ -3,6 +3,8 @@ using RomanowskyStainSlideAnalyzer.History.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +15,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
     public class LabelingHelper
     {
         private string path;
+
+        public LabelingHelper()
+        {
+
+        }
 
         public LabelingHelper(string path)
         {
@@ -122,19 +129,55 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             }
         }
 
-        public string GetSource()
+        public ObservableCollection<LabelingDataModel> GetData(string csvPath)
         {
-            var jpgFiles = Directory.GetFiles($@"{path}\", "*.jpg");
-            var jpegFiles = Directory.GetFiles($@"{path}\", "*.jpeg");
-            var pngFiles = Directory.GetFiles($@"{path}\", "*.png");
+            ObservableCollection<LabelingDataModel> datas = new();
 
-            var file = "";
+            try
+            {
+                StreamReader sr = new(csvPath);
+                int id = 0;
 
-            if (jpgFiles.Length > 0) file = jpgFiles[0];
-            else if (jpegFiles.Length > 0) file = jpegFiles[0];
-            else file = pngFiles[0];
+                while (!sr.EndOfStream)
+                {
+                    string line = sr.ReadLine();
 
-            return file;
+                    if (id > 0)
+                    {
+                        string[] data = line.Split(',');
+
+                        string classId = convertClassIdAsClass(data[0]);
+                        string X = data[1];
+                        string Y = data[2];
+                        string W = data[3];
+                        string H = data[4];
+
+                        datas.Add(new(id.ToString(), classId, X, Y, W, H));
+                    }
+
+                    id += 1;
+                }
+
+                sr.Close();
+                return datas;
+            }
+
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return datas;
+            }
+        }
+
+        private string convertClassIdAsClass(string classId)
+        {
+            switch(classId)
+            {
+                case "0": return "None";
+                case "1": return "Large Cell";
+                case "2": return "Small Cell";
+                default: return "Unknown";
+            }
         }
     }
 }

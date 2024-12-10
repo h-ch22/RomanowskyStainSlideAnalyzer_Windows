@@ -28,10 +28,10 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
     public sealed partial class MainWindow : Window
     {
         private EnvironmentHelper environmentHelper = new();
-
         public MainWindow()
         {
             this.InitializeComponent();
+
             Init();
         }
 
@@ -63,7 +63,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             }
         }
 
-        private void Navigate(
+        public void Navigate(
             Type navPageType,
             NavigationTransitionInfo transitionInfo
         )

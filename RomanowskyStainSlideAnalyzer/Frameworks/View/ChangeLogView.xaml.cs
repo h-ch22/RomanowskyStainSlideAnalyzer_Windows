@@ -63,7 +63,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Analytics", "- Class Analytics is now available.")
+                new("History", "- Labeled Data Review is now available.\n-Labeling Data Change is now available.\n- Analyze Bounding Box is now available.")    
             );
         }
 

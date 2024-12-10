@@ -36,7 +36,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                 );
             }
 
-            return history;
+            return new ObservableCollection<LabeledHistoryDataModel>(history.OrderByDescending(x => x.Id));
         }
 
         private string GetImage(string path)
@@ -47,9 +47,30 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
             var file = "";
 
-            if (jpgFiles.Length > 0) file = jpgFiles[0];
-            else if (jpegFiles.Length > 0) file = jpegFiles[0];
-            else file = pngFiles[0];
+            if (jpgFiles.Length == 1 && !jpgFiles[0].Contains(@"\input.jpg"))
+            {
+                file = jpgFiles[0];
+            }
+            else if (jpgFiles.Length == 2)
+            {
+                file = jpgFiles[0].Contains(@"\input.jpg") ? jpgFiles[1] : jpgFiles[0];
+            }
+            else if (jpegFiles.Length == 1 && !jpegFiles[0].Contains(@"\input.jpeg")) {
+                file = jpegFiles[0];
+            }
+            else if (jpegFiles.Length == 2)
+            {
+                file = jpegFiles[0].Contains(@"\input.jpeg") ? jpegFiles[1] : jpegFiles[0];
+            }
+
+            else if (pngFiles.Length == 1 && !pngFiles[0].Contains(@"\input.png"))
+            {
+                file = pngFiles[0];
+            }
+            else if (pngFiles.Length == 2)
+            {
+                file = pngFiles[0].Contains(@"\input.png") ? pngFiles[1] : pngFiles[0];
+            }
 
             return file;
         }

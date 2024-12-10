@@ -14,7 +14,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Analytics\View\AnalyticsView.xaml" />
+    <None Remove="Analyze\View\AnalyzeBBoxView.xaml" />
     <None Remove="Assets\ic_main.png" />
     <None Remove="Frameworks\View\ChangeLogView.xaml" />
     <None Remove="Frameworks\View\SettingsView.xaml" />
@@ -109,6 +109,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
     <PackageReference Include="System.Management" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
@@ -126,7 +127,7 @@
     <Page Update="Frameworks\View\ChangeLogView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Update="Analytics\View\AnalyticsView.xaml">
+    <Page Update="Analyze\View\AnalyzeBBoxView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <None Update="Include\main.py">
