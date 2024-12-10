@@ -9,8 +9,14 @@
     mc:Ignorable="d"
     Title="Analyze Bounding Box">
 
-    <StackPanel x:Name="gridView" Orientation="Vertical">
-        <StackPanel Margin="20" x:Name="AppTitleBar" Orientation="Horizontal">
+    <Grid x:Name="gridView">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Row="0" Margin="20 15 0 10" x:Name="AppTitleBar" Orientation="Horizontal">
             <SymbolIcon Symbol="Caption"
                         x:Name="ic_titlebar"
                         HorizontalAlignment="Left" 
@@ -25,11 +31,11 @@
                     Text="Analyze Bounding Box"/>
         </StackPanel>
 
-        <CommandBar DefaultLabelPosition="Right">
+        <CommandBar Grid.Row="1" DefaultLabelPosition="Right">
             <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Zoom Mode" Icon="Find"/>
         </CommandBar>
 
-        <Grid>
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="6*"/>
                 <ColumnDefinition Width="4*"/>
@@ -242,5 +248,5 @@
                 </StackPanel>
             </Grid>
         </Grid>
-    </StackPanel>
+    </Grid>
 </Window>
