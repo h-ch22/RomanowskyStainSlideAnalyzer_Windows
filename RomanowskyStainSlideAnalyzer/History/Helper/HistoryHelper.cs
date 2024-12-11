@@ -1,10 +1,13 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Shapes;
 using RomanowskyStainSlideAnalyzer.History.Models;
+using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -125,6 +128,48 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
             catch (Exception e)
             {
                 throw e;
+            }
+        }
+
+        public async Task<string> ExportWithBBoxes(Bitmap bmp, string csvFile, bool exportWithClasses, string dir, string fileName, bool isCSV)
+        {
+            try
+            {
+                await Task.Run(async () =>
+                {
+                    var labelingHelper = new LabelingHelper();
+                    var datas = labelingHelper.GetData(csvFile, isCSV);
+
+                    foreach (var d in datas)
+                    {
+                        using (Graphics g = Graphics.FromImage(bmp))
+                        {
+                            Color bBoxColor = Color.FromArgb(255, 235, 64, 52);
+
+                            if (exportWithClasses)
+                            {
+                                bBoxColor = LabelingHelper.GetBoundingBoxColor(d.classId);
+                            }
+
+                            using (Pen pen = new(bBoxColor, 2))
+                            {
+                                System.Drawing.Rectangle rect = new(Convert.ToInt32(float.Parse(d.x)) * 4, Convert.ToInt32(float.Parse(d.y)) * 4, Convert.ToInt32(float.Parse(d.width)) * 4, Convert.ToInt32(float.Parse(d.height)) * 4);
+                                g.DrawRectangle(pen, rect);
+                            }
+                        }
+                    }
+
+                    bmp.Save(@$"{dir}\{fileName}.png");
+                    bmp.Dispose();
+                });
+
+                return "";
+            }
+
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return ex.Message;
             }
         }
     }

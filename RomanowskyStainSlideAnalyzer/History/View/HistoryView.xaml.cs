@@ -20,6 +20,9 @@ using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using static System.Net.Mime.MediaTypeNames;
 using System.Threading.Tasks;
 using RomanowskyStainSlideAnalyzer.Analyze.View;
+using RomanowskyStainSlideAnalyzer.Labeling.Helper;
+using System.Drawing;
+using Microsoft.UI.Xaml.Media;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -150,6 +153,82 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                 {
                     ShowAlert("Error", $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}");
                 }
+            }
+        }
+
+        private async void SaveImageWithBBoxes(object sender, RoutedEventArgs e)
+        {
+            var contentDialog = new ContentDialog
+            {
+                Title = "Warning",
+                Content = "Is this file properly labeled?\nIf the labeling is interrupted or the file is not labeled, the bounding box may not be drawn properly.\nIf the file is not properly labeled, click the Export without class.\nExport without class directly uses the coordinates of the bounding box exported by the model, while Export with class uses the result file labeled by the user.",
+                PrimaryButtonText = "Export with Class",
+                SecondaryButtonText = "Export without Class",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = App.window.Content.XamlRoot,
+            };
+
+            var result = await contentDialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
+            {
+                var exportWithClasses = result == ContentDialogResult.Primary;
+                var postfix = exportWithClasses ? "with_classes" : "without_classes";
+
+                HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
+                var imageFile = GetOriginalImage(dataModel.root);
+                var csvFile = dataModel.labelingDataPath;
+                var csvSplit = csvFile.Split(@"\");
+                var txtFile = csvFile.Replace(".csv", ".txt");
+
+                var fileName = csvSplit[csvSplit.Length - 1].Split(".csv")[0];
+                dataModel.showProgress = Visibility.Visible;
+
+                if (imageFile == "")
+                {
+                    string[] allowedTypes = [".jpg", ".jpeg", ".png"];
+
+                    imageFile = await ShowFilePickerDialog("No Input File", "The input file could not be found.\nIt appears that segmentation was performed using an older version of Romanowsky Stain Slide Analyzer, or the file was deleted.\nWould you like to load the input file manually?", allowedTypes);
+
+                    if (imageFile == "")
+                    {
+                        dataModel.showProgress = Visibility.Collapsed;
+                        return;
+                    }
+
+                    await Task.Run(async () => {
+                        var filePathSplit = imageFile.Split(".");
+                        var ext = filePathSplit[filePathSplit.Length - 1];
+
+                        File.Copy(imageFile, $@"{dataModel.root}\input.{ext}");
+                    });
+                }
+
+                var folderPicker = new FolderPicker();
+                var window = App.window;
+                var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+                WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                var folder = await folderPicker.PickSingleFolderAsync();
+
+                if (folder != null)
+                {
+                    using (Bitmap _bmp = new(imageFile))
+                    {
+                        Bitmap bmp = new(_bmp, new Size(2048, 2048));
+
+                        var exportResult = await helper.ExportWithBBoxes(bmp, exportWithClasses ? csvFile : txtFile, exportWithClasses, folder.Path, $"{fileName}_{postfix}", exportWithClasses);
+
+                        ShowAlert(exportResult == "" ? "Done" : "Error", exportResult == "" ? $@"Image Saved to {folder.Path}\{fileName}_{postfix}.png" : $"An error occurred while exporting the image.\nError: {exportResult}");
+                    }
+                }
+
+                dataModel.showProgress = Visibility.Collapsed;
             }
         }
 

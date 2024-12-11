@@ -63,7 +63,15 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("History", "- Labeled Data Review is now available.\n-Labeling Data Change is now available.\n- Analyze Bounding Box is now available.")    
+                new("History", "- Labeling Data Change is now available.\n- Analyze Bounding Box is now available.\n- Export Image with Bounding Boxes is now available.")    
+            );
+
+            ReleaseNotes.Add(
+                new("Labeling", "- Toggle Bounding Box Show/Hide is now available.\n- Fixed an issue where blank spaces were appearing at the beginning of each piece of data.")    
+            );
+
+            ReleaseNotes.Add(
+                new("Analyze", "- The Analyze feature is now available to view and export Color, Hue, Saturation, Brightness by Bounding Box and\nthe overall Color, Hue, Saturation, Brightness average.")
             );
         }
 

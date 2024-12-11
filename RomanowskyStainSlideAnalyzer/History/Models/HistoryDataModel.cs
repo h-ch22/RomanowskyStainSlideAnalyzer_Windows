@@ -15,8 +15,9 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
         public string imagePath;
         public string log;
         public Visibility showSaveButton;
+        public Visibility showProgress { get; set; }
 
-        public HistoryDataModel(string date, string root, string labelingDataPath, string imagePath, string log, Visibility showSaveButton)
+        public HistoryDataModel(string date, string root, string labelingDataPath, string imagePath, string log, Visibility showSaveButton, Visibility showProgress = Visibility.Collapsed)
         {
             this.date = date;
             this.root = root;
@@ -24,6 +25,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             this.imagePath = imagePath;
             this.log = log;
             this.showSaveButton = showSaveButton;
+            this.showProgress = showProgress;
         }
     }
 }

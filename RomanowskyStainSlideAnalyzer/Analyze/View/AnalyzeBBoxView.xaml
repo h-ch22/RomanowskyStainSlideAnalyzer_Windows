@@ -15,23 +15,37 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
-        <StackPanel Grid.Row="0" Margin="20 15 0 10" x:Name="AppTitleBar" Orientation="Horizontal">
-            <SymbolIcon Symbol="Caption"
+
+        <Grid Grid.Row="0" x:Name="AppTitleBar" Height="48" Margin="20,0,0,0" VerticalAlignment="Top" Padding="0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <SymbolIcon Symbol="Crop"
                         x:Name="ic_titlebar"
                         HorizontalAlignment="Left" 
                         Grid.Column="0"
                         VerticalAlignment="Center"/>
 
             <TextBlock
-                    Margin="12,0,0,0"
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="Analyze Bounding Box"/>
-        </StackPanel>
+                Margin="12,0,0,0"
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="Analyze Bounding Box"/>
+        </Grid>
 
         <CommandBar Grid.Row="1" DefaultLabelPosition="Right">
+            <AppBarButton x:Name="btn_exportData" Click="btn_exportData_Click" IsEnabled="False" Label="Export Data" Icon="Upload"/>
+            
+            <AppBarButton Visibility="Collapsed" x:Name="appBarProgress" IsEnabled="False">
+                <ProgressRing></ProgressRing>
+            </AppBarButton>
+            
+            <AppBarToggleButton x:Name="btn_hideBBox" Checked="AppBarToggleButton_Checked" Unchecked="AppBarToggleButton_Checked" IsChecked="False" Label="Hide Bounding Box" Icon="ClearSelection"/>
+            <AppBarToggleButton x:Name="btn_toggleBBoxColor" Checked="ToggleBBoxColor" Unchecked="ToggleBBoxColor" IsChecked="True" Label="Show Bounding Box Color By Class" Icon="ViewAll"/>
             <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Zoom Mode" Icon="Find"/>
         </CommandBar>
 
@@ -75,178 +89,658 @@
                     </ScrollView>
                 </Grid>
             </Grid>
+
+            <ScrollView
+                Grid.Column="1"
+                VerticalScrollBarVisibility="Auto"
+                VerticalScrollMode="Auto"
+                HorizontalScrollBarVisibility="Auto"
+                HorizontalScrollMode="Auto">
+                
+                <Grid Margin="20 0 0 0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Analyze" FontWeight="SemiBold" FontSize="24" Grid.Row="0"/>
+
+                    <Image Grid.Row="1" x:Name="croppedImg" Source="{x:Bind viewModel.CroppedImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Height="80" Stretch="Uniform" Visibility="Collapsed"/>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" Orientation="Vertical" x:Name="NoSelectionPanel">
+                        <SymbolIcon Symbol="TouchPointer" Foreground="Gray"/>
+                        <TextBlock Text="Please select a label" HorizontalAlignment="Center" Foreground="Gray"/>
+                    </StackPanel>
+
+                    <ProgressRing Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind viewModel.ShowAnalyzeProgress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <StackPanel Grid.Row="2" Margin="0 20" x:Name="avgPanel" Visibility="Collapsed" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                        <StackPanel x:Name="ZeroWHPanel" Visibility="Collapsed" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+
+                            <SymbolIcon Symbol="Cancel" Foreground="Gray"/>
+                            <TextBlock Foreground="Gray" TextAlignment="Center" Text="Color cannot be analyzed&#x0a;because one or more of the width and height values ​​are 0."/>
+
+                        </StackPanel>
+
+                        <StackPanel x:Name="colorPanel" Visibility="Collapsed" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (ARGB)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.Average, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (A)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.AvgA, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (R)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.AvgR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (G)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.AvgG, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (B)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.AvgB, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (Hue)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.AvgHue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (Saturation)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.AvgSaturation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+
+                            <Grid Margin="0 10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Average (Brightness)" Grid.Column="0" Foreground="Gray"/>
+                                <TextBlock Text="{x:Bind viewModel.AvgBrightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 10 20 10" />
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Index" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.Index, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Class" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.Class, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="X" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.X, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Y" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.Y, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Width" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Height" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Size" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" Orientation="Vertical" x:Name="statisticsProgressPanel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 10 20 10" />
+                        
+                        <ProgressRing Margin="0 10" x:Name="statisticsProgressRing" IsIndeterminate="True"/>
+                        <TextBlock Margin="0 5" Text="Computing overall statistics for Bounding Box..." Foreground="Gray" TextAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Vertical" Grid.Row="3" x:Name="statisticsPanel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 0 20 10" />
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (ARGB)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AverageAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (A)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgAAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (R)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgRAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (G)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgGAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (B)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (Hue)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHueAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (Saturation)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSaturationAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (Brightness)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBrightnessAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (Width)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgWidthAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (Height)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHeightAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of All (Size)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSizeAll, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 10 20 10" />
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (ARGB)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AverageNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (A)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgANone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (R)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgRNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (G)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgGNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (B)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (Hue)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHueNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (Saturation)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSaturationNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (Brightness)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBrightnessNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (Width)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgWidthNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (Height)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHeightNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of None (Size)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSizeNone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+
+                        <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 10 20 10" />
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (ARGB)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AverageLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (A)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgALCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (R)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgRLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (G)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgGLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (B)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (Hue)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHueLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (Saturation)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSaturationLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (Brightness)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBrightnessLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (Width)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgWidthLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (Height)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHeightLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of L.Cell (Size)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSizeLCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 10 20 10" />
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (ARGB)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AverageSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (A)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgASCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (R)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgRSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (G)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgGSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (B)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (Hue)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHueSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (Saturation)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSaturationSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (Brightness)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgBrightnessSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (Width)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgWidthSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (Height)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgHeightSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <Grid Margin="0 10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Average of S.Cell (Size)" Grid.Column="0" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind viewModel.AvgSizeSCell, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+
+            </ScrollView>
             
-            <Grid Grid.Column="1" Margin="20 0 0 0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Text="Analyze" FontWeight="SemiBold" FontSize="24" Grid.Row="0"/>
-
-                <Image Grid.Row="1" x:Name="croppedImg" Source="{x:Bind viewModel.CroppedImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Height="80" Stretch="Uniform" Visibility="Collapsed"/>
-
-                <StackPanel Grid.Row="2" VerticalAlignment="Center" Orientation="Vertical" x:Name="NoSelectionPanel">
-                    <SymbolIcon Symbol="TouchPointer" Foreground="Gray"/>
-                    <TextBlock Text="Please select a label" HorizontalAlignment="Center" Foreground="Gray"/>
-                </StackPanel>
-
-                <ProgressRing Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind viewModel.ShowAnalyzeProgress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-                <StackPanel Margin="0 20" x:Name="avgPanel" Visibility="Collapsed" Orientation="Vertical" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                    <StackPanel x:Name="ZeroWHPanel" Visibility="Visible" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-
-                        <SymbolIcon Symbol="Cancel" Foreground="Gray"/>
-                        <TextBlock Foreground="Gray" TextAlignment="Center" Text="Color cannot be analyzed&#x0a;because one or more of the width and height values ​​are 0."/>
-
-                    </StackPanel>
-
-                    <StackPanel x:Name="colorPanel" Visibility="Collapsed" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (ARGB)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.Average, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (A)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.AvgA, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (R)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.AvgR, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (G)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.AvgG, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (B)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.AvgB, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (Hue)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.AvgHue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (Saturation)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.AvgSaturation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-
-                        <Grid Margin="0 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <ColumnDefinition Width="7*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Average (Brightness)" Grid.Column="0" Foreground="Gray"/>
-                            <TextBlock Text="{x:Bind viewModel.AvgBrightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                        </Grid>
-                    </StackPanel>
-
-                    <Border BorderThickness="0,1,0,0" BorderBrush="LightGray" Margin="0 20 20 10" />
-
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="7*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="Index" Grid.Column="0" Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind viewModel.Index, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                    </Grid>
-
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="7*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="Class" Grid.Column="0" Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind viewModel.Class, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                    </Grid>
-
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="7*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="X" Grid.Column="0" Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind viewModel.X, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                    </Grid>
-
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="7*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="Y" Grid.Column="0" Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind viewModel.Y, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                    </Grid>
-
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="7*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="Width" Grid.Column="0" Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind viewModel.Width, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                    </Grid>
-
-                    <Grid Margin="0 10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="7*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="Height" Grid.Column="0" Foreground="Gray"/>
-                        <TextBlock Text="{x:Bind viewModel.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" FontWeight="SemiBold"/>
-                    </Grid>
-                </StackPanel>
-            </Grid>
         </Grid>
     </Grid>
 </Window>

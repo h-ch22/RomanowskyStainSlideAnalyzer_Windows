@@ -694,6 +694,10 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     {
                         ShowAlert("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.");
                         return;
+                    } else if(FileName.Contains("."))
+                    {
+                        ShowAlert("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.");
+                        return;
                     }
 
                     commandBar.IsEnabled = false;

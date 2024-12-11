@@ -96,7 +96,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             viewModel.CurrentIndex = 1;
             viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
 
-            CreateBBox();
+            if (btn_hideBBox.IsChecked == false)
+            {
+                CreateBBox();
+            }
+
             CreateThumbnailBBox();
         }
 
@@ -180,7 +184,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                             btn_next.Content = "Done";
                         }
 
-                        CreateBBox();
+                        if (btn_hideBBox.IsChecked == false)
+                        {
+                            CreateBBox();
+                        }
+
                         CreateThumbnailBBox();
                     }
 
@@ -230,7 +238,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         btn_previous.IsEnabled = viewModel.CurrentIndex > 1;
                         IsEditMode = true;
 
-                        CreateBBox();
+                        if (btn_hideBBox.IsChecked == false)
+                        {
+                            CreateBBox();
+                        }
+
                         CreateThumbnailBBox();
 
                     }
@@ -339,6 +351,24 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 thumbnailCanvas.Children.Add(viewPortBox);
                 viewPortBox.SetValue(Canvas.LeftProperty, offsetX);
                 viewPortBox.SetValue(Canvas.TopProperty, offsetY);
+            }
+        }
+
+        private void AppBarToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if(btn_hideBBox.IsChecked == true)
+            {
+                foreach (var child in canvas.Children)
+                {
+                    if (child.GetType() == typeof(Rectangle))
+                    {
+                        canvas.Children.Remove(child);
+                    }
+                }
+            }
+            else
+            {
+                CreateBBox();
             }
         }
     }
