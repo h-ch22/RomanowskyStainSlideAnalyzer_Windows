@@ -195,8 +195,6 @@ namespace FeatureInstaller
                         return false;
                     }
 
-                    Debug.WriteLine($"Executing command: {command} {arguments}");
-
                     if(redirectInput)
                     {
                         process.BeginOutputReadLine();
@@ -204,7 +202,6 @@ namespace FeatureInstaller
                     }
 
                     process.WaitForExit();
-                    Debug.WriteLine($"Process exited with code: {process.ExitCode}");
 
                     return process.ExitCode == 0;
                 }

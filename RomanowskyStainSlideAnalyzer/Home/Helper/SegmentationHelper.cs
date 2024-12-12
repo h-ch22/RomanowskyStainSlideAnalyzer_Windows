@@ -119,7 +119,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             }
 
             cli += $" -p {usePostProcess} -pps {pointsPerSide} -ppb {pointsPerBatch} -pit {predIoUThresh} -sst {stabilityScoreThresh} -sso {stabilityScoreOffset} -mt {maskThreshold} -bnt {boxNMSThresh} -cnl {cropNLayers} -cnt {cropNMSThresh} -cor {cropOverlapRatio} -cnp {cropNPointsDownscaleFactor} -mmr {minMaskRegionArea}";
-            Debug.WriteLine(cli);
+
             try
             {
                 Process process = new Process
@@ -188,7 +188,6 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                     Directory.CreateDirectory(finalPath);
                 }
 
-                Debug.WriteLine($@"Copying File from {filePath} to {finalPath}\input.{ext}");
                 File.Copy(filePath, $@"{finalPath}\input.{ext}");
 
                 var linuxPath = finalPath.Replace(@"\", "/").Replace("C:", "");
@@ -199,8 +198,6 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                 {
                     cli += $" && cp ./{outputFileName}.txt /mnt/c{linuxPath}/";
                 }
-
-                Debug.WriteLine(cli);
 
                 string points = "";
                 string labels = "";

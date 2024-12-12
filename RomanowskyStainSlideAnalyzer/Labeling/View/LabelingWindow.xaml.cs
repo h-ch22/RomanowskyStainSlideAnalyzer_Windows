@@ -75,33 +75,46 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                     XamlRoot = App.window.Content.XamlRoot
                 };
 
-                contentDialog.SecondaryButtonClick += (_s, _e) => {
-                    this.Close();
-                };
+                var result = await contentDialog.ShowAsync();
 
-                await contentDialog.ShowAsync();
+                if (result == ContentDialogResult.Secondary)
+                {
+                    Close();
+                    return;
+                }
             }
 
-            try
-            {
-                helper.CreateCSVFile();
-            }
-            catch (Exception ex) {
-                ShowAlert("Error", $"An error occurred while creating the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
-            }
+            await Task.Run(() => {
+                try
+                {
+                    helper.CreateCSVFile();
+                }
+                catch (Exception ex)
+                {
+                    ShowAlert("Error", $"An error occurred while creating the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
+                }
 
-            BoundingBoxes = helper.GetBoundingBox();
+                BoundingBoxes = helper.GetBoundingBox();
 
-            viewModel.AllIndex = BoundingBoxes.Count;
-            viewModel.CurrentIndex = 1;
-            viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    viewModel.AllIndex = BoundingBoxes.Count;
+                    viewModel.CurrentIndex = 1;
+                    viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
 
-            if (btn_hideBBox.IsChecked == false)
-            {
-                CreateBBox();
-            }
+                    if (btn_hideBBox.IsChecked == false)
+                    {
+                        CreateBBox();
+                    }
 
-            CreateThumbnailBBox();
+                    CreateThumbnailBBox();
+
+                    img_scrollView.Loaded += (s, e) =>
+                    {
+                        scrollTo();
+                    };
+                });
+            });
         }
 
         private void ShowAlert(string title, string message, bool exit=true)
@@ -189,6 +202,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                             CreateBBox();
                         }
 
+                        scrollTo();
                         CreateThumbnailBBox();
                     }
 
@@ -244,10 +258,30 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         }
 
                         CreateThumbnailBBox();
-
+                        scrollTo();
                     }
 
                     break;
+            }
+        }
+
+        private void scrollTo()
+        {
+            if (viewModel.IsZoomModeEnabled && img_scrollView.ZoomFactor <= 1F)
+            {
+                img_scrollView.ZoomTo(3F, new((float) BoundingBoxes[viewModel.CurrentIndex - 1].X, (float) BoundingBoxes[viewModel.CurrentIndex - 1].Y));
+            }
+            else if(viewModel.IsZoomModeEnabled)
+            {
+                double zoomFactor = img_scrollView.ZoomFactor;
+
+                double viewportWidth = img_scrollView.ViewportWidth;
+                double viewportHeight = img_scrollView.ViewportHeight;
+
+                double scrollOffsetX = BoundingBoxes[viewModel.CurrentIndex - 1].X * zoomFactor - (viewportWidth / 2);
+                double scrollOffsetY = BoundingBoxes[viewModel.CurrentIndex - 1].Y * zoomFactor - (viewportHeight / 2);
+
+                img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
             }
         }
 
@@ -327,8 +361,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 double offsetY = sender.VerticalOffset * scale;
                 double viewPortW = sender.ViewportWidth * scale;
                 double viewPortH = sender.ViewportHeight * scale;
-
-                Debug.WriteLine($"Zoomed: {offsetX}, {offsetY}, {viewPortW}, {viewPortH}");
 
                 foreach (var child in thumbnailCanvas.Children)
                 {

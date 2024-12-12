@@ -108,8 +108,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
                 var allFilePath = $@"{to}\{fileName}_Average_of_All.csv";
                 var filePath = $@"{to}\{fileName}_Average_by_Class.csv";
 
-                Debug.WriteLine($"allFilePath: {allFilePath}, filePath: {filePath}, csvPath: {csvFilePath}, fileName: {fileName}");
-
                 var allCsv = new StringBuilder();
                 var csv = new StringBuilder();
 

@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Shapes;
 using RomanowskyStainSlideAnalyzer.History.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.Helper;
+using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,31 +18,6 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 {
     public class HistoryHelper
     {
-        public ObservableCollection<LabeledHistoryDataModel> GetAllLabeledHistory()
-        {
-            var history = new ObservableCollection<LabeledHistoryDataModel>();
-            var originalPath = @"C:\RomanowskyStainSlideAnalyzer";
-            var path = @"C:\RomanowskyStainSlideAnalyzer";
-
-            if (!Directory.Exists(path)) return history;
-
-            var csvFiles = Directory
-                .EnumerateFiles(path, "*.csv", SearchOption.AllDirectories);
-
-            foreach(var file in csvFiles)
-            {
-                var fileSplit = file.Split(@"\");
-                var id = fileSplit[2];
-                var imageFile = GetImage($@"{originalPath}\{id}");
-                
-                history.Add(
-                    new(imageFile, file, id)
-                );
-            }
-
-            return new ObservableCollection<LabeledHistoryDataModel>(history.OrderByDescending(x => x.Id));
-        }
-
         private string GetImage(string path)
         {
             var jpgFiles = Directory.GetFiles($@"{path}\", "*.jpg");
@@ -106,9 +82,37 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                         }
                     }
 
+                    var canItLabeled = CanItLabeling(file);
+                    Symbol symbol;
+                    string statusText;
+
+                    if(csvFiles.Length > 0)
+                    {
+                        symbol = Symbol.Accept;
+                        statusText = "Labeling Data Included";
+                    } else if(canItLabeled)
+                    {
+                        symbol = Symbol.ImportAll;
+                        statusText = "Labeling data can be imported";
+                    } else
+                    {
+                        symbol = Symbol.Cancel;
+                        statusText = "Not Labeled";
+                    }
+
                     history.Add(
                         new HistoryDataModel(
-                            fullDate[fullDate.Length - 1], dir, csvFiles.Length > 0 ? csvFiles[0] : "", file, fullLog, csvFiles.Length > 0 ? Visibility.Visible : Visibility.Collapsed
+                            fullDate[fullDate.Length - 1],
+                            dir,
+                            csvFiles.Length > 0 ? csvFiles[0] : "",
+                            file,
+                            fullLog,
+                            csvFiles.Length > 0 ? Visibility.Visible : Visibility.Collapsed,
+                            symbol: symbol,
+                            statusText: statusText,
+                            canItLabeled: canItLabeled,
+                            showChangeButton: canItLabeled ? Visibility.Visible : Visibility.Collapsed,
+                            imgFile: file
                         )
                     ); 
                 }
@@ -116,6 +120,41 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
             return new ObservableCollection<HistoryDataModel>(history.OrderByDescending(x => x.date));
         }
+
+        public bool ValidateLabeledData(string file)
+        {
+            try
+            {
+                StreamReader sr = new(file);
+                int id = 0;
+                List<BoundingBoxDataModel> boundingBoxes = new();
+                var line = sr.ReadLine();
+                var lineSplited = line.Split(",");
+
+                if (lineSplited.Length != 5) return false;
+                else if (
+                    (lineSplited[0] != "Class" && lineSplited[0] != " Class") ||
+                    (lineSplited[1] != "X" && lineSplited[1] != " X") ||
+                    (lineSplited[2] != "Y" && lineSplited[2] != " Y") ||
+                    (lineSplited[3] != "W" && lineSplited[3] != " W") ||
+                    (lineSplited[4] != "H" && lineSplited[4] != " H")
+                ) return false;
+
+                return true;
+            }
+
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return false;
+            }
+        }
+
+        private bool CanItLabeling(string path)
+        {
+            return File.Exists($@"{path}.txt");
+        }
+
         public void Copy(string from, string to)
         {
             var splitPath = from.Split(@"\");

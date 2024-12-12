@@ -112,7 +112,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             {
                 img_scrollView.ZoomTo(3F, new(float.Parse(dataModel.x), float.Parse(dataModel.y)));
             }
-            else
+            else if (viewModel.IsZoomModeEnabled)
             {
                 double zoomFactor = img_scrollView.ZoomFactor;
 

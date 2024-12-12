@@ -67,7 +67,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             );
 
             ReleaseNotes.Add(
-                new("Labeling", "- Toggle Bounding Box Show/Hide is now available.\n- Fixed an issue where blank spaces were appearing at the beginning of each piece of data.")    
+                new("Labeling", "- Toggle Bounding Box Show/Hide is now available.\n- Fixed an issue where blank spaces were appearing at the beginning of each piece of data.\n- Automatic Zoom & Scroll is now available.\n- Fixed an issue where labeling would be reset even if the Cancel button was pressed in the dialog that appears\nwhen there are already labeled files.")    
             );
 
             ReleaseNotes.Add(

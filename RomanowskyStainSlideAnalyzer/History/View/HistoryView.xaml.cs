@@ -83,7 +83,7 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             historyListView.ItemsSource = Datas;
         }
 
-        private void GetHistory()
+        private async void GetHistory()
         {
             if(Datas.Count > 0) Datas.Clear();
 
@@ -95,8 +95,11 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
             var date = $"{month}_{day}_{year}";
 
-            Thread thread = new(() => GetHistory(date));
-            thread.Start();
+            await Task.Run(() =>
+            {
+                GetHistory(date);
+
+            });
 
             DispatcherQueue.TryEnqueue(async () =>
             {
@@ -124,7 +127,6 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             {
                 historyListView.ItemsSource = Datas;
             });
-
         }
 
         private async void OnClick(object sender, RoutedEventArgs e)
@@ -148,6 +150,7 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                 try
                 {
                     helper.Copy((sender as Button).Name == "btn_saveLabelingData" ? dataModel.labelingDataPath : file, folder.Path);
+                    ShowAlert("Done", "The requested task has been completed.");
                 }
                 catch (Exception ex)
                 {
@@ -158,31 +161,61 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
         private async void SaveImageWithBBoxes(object sender, RoutedEventArgs e)
         {
-            var contentDialog = new ContentDialog
-            {
-                Title = "Warning",
-                Content = "Is this file properly labeled?\nIf the labeling is interrupted or the file is not labeled, the bounding box may not be drawn properly.\nIf the file is not properly labeled, click the Export without class.\nExport without class directly uses the coordinates of the bounding box exported by the model, while Export with class uses the result file labeled by the user.",
-                PrimaryButtonText = "Export with Class",
-                SecondaryButtonText = "Export without Class",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = App.window.Content.XamlRoot,
-            };
+            HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
+            ContentDialogResult result;
 
-            var result = await contentDialog.ShowAsync();
+            if (dataModel.labelingDataPath != "")
+            {
+                var contentDialog = new ContentDialog
+                {
+                    Title = "Warning",
+                    Content = "Is this file properly labeled?\nIf the labeling is interrupted or the file is not labeled, the bounding box may not be drawn properly.\nIf the file is not properly labeled, click the Export without class.\nExport without class directly uses the coordinates of the bounding box exported by the model, while Export with class uses the result file labeled by the user.",
+                    PrimaryButtonText = "Export with Class",
+                    SecondaryButtonText = "Export without Class",
+                    CloseButtonText = "Cancel",
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = App.window.Content.XamlRoot,
+                };
+
+                result = await contentDialog.ShowAsync();
+            }
+            else
+            {
+                var contentDialog = new ContentDialog
+                {
+                    Title = "Warning",
+                    Content = "It appears that there is no labeling data for this file.\nIn this case, the bounding boxes for each class will not be displayed, and only the bounding boxes for the coordinates output directly from the model will be displayed.\r\nTo display bounding boxes for each class, replace the labeling data.\r\nDo you want to continue?",
+                    SecondaryButtonText = "Yes",
+                    CloseButtonText = "No",
+                    DefaultButton = ContentDialogButton.Secondary,
+                    XamlRoot = App.window.Content.XamlRoot,
+                };
+
+                result = await contentDialog.ShowAsync();
+            }
 
             if (result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
             {
                 var exportWithClasses = result == ContentDialogResult.Primary;
                 var postfix = exportWithClasses ? "with_classes" : "without_classes";
 
-                HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
                 var imageFile = GetOriginalImage(dataModel.root);
-                var csvFile = dataModel.labelingDataPath;
-                var csvSplit = csvFile.Split(@"\");
-                var txtFile = csvFile.Replace(".csv", ".txt");
 
-                var fileName = csvSplit[csvSplit.Length - 1].Split(".csv")[0];
+                var csvFile = dataModel.labelingDataPath;
+
+                var resultFileName = "";
+                var imgFileSplit = dataModel.imgFile.Split(@"\");
+                var imgFileWithOutExt = imgFileSplit[imgFileSplit.Length - 1].Split(dataModel.imgFile.Contains(".jpg") ? ".jpg" : ".jpeg");
+
+                if (imgFileWithOutExt.Length == 1)
+                {
+                    imgFileWithOutExt = imgFileSplit[imgFileSplit.Length - 1].Split(".png");
+                }
+
+                resultFileName = imgFileWithOutExt[0];
+
+                var txtFile = $@"{dataModel.root}\{imgFileSplit[imgFileSplit.Length - 1]}.txt";
+
                 dataModel.showProgress = Visibility.Visible;
 
                 if (imageFile == "")
@@ -222,9 +255,9 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                     {
                         Bitmap bmp = new(_bmp, new Size(2048, 2048));
 
-                        var exportResult = await helper.ExportWithBBoxes(bmp, exportWithClasses ? csvFile : txtFile, exportWithClasses, folder.Path, $"{fileName}_{postfix}", exportWithClasses);
+                        var exportResult = await helper.ExportWithBBoxes(bmp, exportWithClasses ? csvFile : txtFile, exportWithClasses, folder.Path, $"{resultFileName}_{postfix}", exportWithClasses);
 
-                        ShowAlert(exportResult == "" ? "Done" : "Error", exportResult == "" ? $@"Image Saved to {folder.Path}\{fileName}_{postfix}.png" : $"An error occurred while exporting the image.\nError: {exportResult}");
+                        ShowAlert(exportResult == "" ? "Done" : "Error", exportResult == "" ? $@"Image Saved to {folder.Path}\{resultFileName}_{postfix}.png" : $"An error occurred while exporting the image.\nError: {exportResult}");
                     }
                 }
 
@@ -313,13 +346,22 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             
             if(newCSVPath != "")
             {
-                var originalCSVFileSplit = dataModel.labelingDataPath.Split(@"\");
+                var originalCSVFileSplit = dataModel.imgFile.Split(@"\");
                 var fileName = originalCSVFileSplit[originalCSVFileSplit.Length - 1];
+                var validateResult = helper.ValidateLabeledData(newCSVPath);
+
+                if(!validateResult)
+                {
+                    ShowAlert("Error", "This file is either not in the same format as the csv file generated by Romanowsky Stain Slide Analyzer, or the file may be in use.\nCSV files with different formats can cause problems with various functions such as Analyze, Export, etc.\nIf the file is in use, close the file and try again.\nIf this file is not in the same format as the file generated by Romanowsky Stain Slide Analyzer, export the data from another labeled file and re-create the csv file using that file's format as reference.");
+                    return;
+                }
 
                 try
                 {
-                    File.Copy(newCSVPath, $@"{dataModel.root}\{fileName}", true);
+                    File.Copy(newCSVPath, $@"{dataModel.root}\{fileName}.csv", true);
                     ShowAlert("Done", "The file has been copied.");
+
+                    GetHistory();
                 }
                 catch (Exception ex)
                 {

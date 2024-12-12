@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +16,27 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
         public string imagePath;
         public string log;
         public Visibility showSaveButton;
+        public Symbol symbol;
+        public string statusText;
+        public bool canItLabeled;
+        public string imgFile;
+        public Visibility showChangeButton;
         public Visibility showProgress { get; set; }
 
-        public HistoryDataModel(string date, string root, string labelingDataPath, string imagePath, string log, Visibility showSaveButton, Visibility showProgress = Visibility.Collapsed)
+        public HistoryDataModel(
+            string date,
+            string root,
+            string labelingDataPath,
+            string imagePath,
+            string log,
+            Visibility showSaveButton,
+            Visibility showProgress = Visibility.Collapsed,
+            Symbol symbol = Symbol.Accept,
+            string statusText = "",
+            bool canItLabeled = false,
+            Visibility showChangeButton = Visibility.Collapsed,
+            string imgFile = ""
+        )
         {
             this.date = date;
             this.root = root;
@@ -26,6 +45,11 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             this.log = log;
             this.showSaveButton = showSaveButton;
             this.showProgress = showProgress;
+            this.symbol = symbol;
+            this.statusText = statusText;
+            this.canItLabeled = canItLabeled;
+            this.showChangeButton = showChangeButton;
+            this.imgFile = imgFile;
         }
     }
 }
