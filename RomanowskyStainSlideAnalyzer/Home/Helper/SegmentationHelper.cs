@@ -145,6 +145,22 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             }
         }
 
+        private bool DeleteDirectory(string path)
+        {
+            DirectoryInfo di = new DirectoryInfo(path);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+
+            return Directory.Exists(path);
+        }
+
         public bool CreateHistory(
             string filePath,
             string targetPath,
@@ -168,20 +184,19 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string minMaskRegionArea
         )
         {
+            var rssaFolder = @"C:\RomanowskyStainSlideAnalyzer";
+            var filePathSplit = filePath.Split(".");
+            var ext = filePathSplit[filePathSplit.Length - 1];
+
+            var finalPath = Path.Combine(rssaFolder, targetPath);
+
             try
             {
-                var rssaFolder = @"C:\RomanowskyStainSlideAnalyzer";
-
                 if (!Directory.Exists(rssaFolder))
                 {
                     DirectoryInfo di = Directory.CreateDirectory(rssaFolder);
                     di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
                 }
-
-                var filePathSplit = filePath.Split(".");
-                var ext = filePathSplit[filePathSplit.Length - 1];
-
-                var finalPath = Path.Combine(rssaFolder, targetPath);
 
                 if (!Directory.Exists(finalPath))
                 {
@@ -258,11 +273,24 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                 process.Start();
                 process.WaitForExit();
 
-                return process.ExitCode == 0;
+                var exitCode = process.ExitCode;
+
+                if(exitCode != 0 && Directory.Exists(finalPath))
+                {
+                    DeleteDirectory(finalPath);
+                }
+
+                return exitCode == 0;
             }
             catch (Exception e)
             {
                 Debug.Write(e.Message);
+
+                if (Directory.Exists(finalPath))
+                {
+                    DeleteDirectory(finalPath);
+                }
+
                 return false;
             }
         }

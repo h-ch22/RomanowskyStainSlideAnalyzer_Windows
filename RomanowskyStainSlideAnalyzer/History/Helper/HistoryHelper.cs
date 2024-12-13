@@ -86,15 +86,22 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                     Symbol symbol;
                     string statusText;
 
-                    if(csvFiles.Length > 0)
+                    if (csvFiles.Length > 0)
                     {
                         symbol = Symbol.Accept;
                         statusText = "Labeling Data Included";
-                    } else if(canItLabeled)
+                    }
+                    else if (canItLabeled)
                     {
                         symbol = Symbol.ImportAll;
                         statusText = "Labeling data can be imported";
-                    } else
+                    }
+                    else if (fullLog.Contains("Use Automatic Segmentation: False"))
+                    {
+                        symbol = Symbol.TouchPointer;
+                        statusText = "Manually Segmented";
+                    }
+                    else
                     {
                         symbol = Symbol.Cancel;
                         statusText = "Not Labeled";
