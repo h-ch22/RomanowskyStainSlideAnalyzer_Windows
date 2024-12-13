@@ -63,6 +63,10 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
+                new("Select Points", "- Fixed an issue where points were not displayed properly in Manually Segmentation mode")
+            );
+
+            ReleaseNotes.Add(
                 new("History", "- Labeling Data Change is now available.\n- Analyze Bounding Box is now available.\n- Export Image with Bounding Boxes is now available.")    
             );
 
