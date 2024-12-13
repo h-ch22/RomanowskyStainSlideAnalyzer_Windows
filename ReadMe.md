@@ -1,6 +1,114 @@
 <img src="./Docs/Images/Mockup_RomanowskyStainSlideAnalyzer.png"/><br>
-<img src="./Docs/Images/ic_main.png" width="150px"/>
+<img src="./Docs/Images/ic_main.png" width="150px"/><br>
 
-# Romanowsky Stain Slide Analyzer for Windows
-> Ha's list of Android class assignments and answers
+# Romanowsky Stain Slide Analyzer for Windows<br>
+> Segmentation & Labeling Tool for Data Learning and Verification Exclusive to Romanowsky Stain Slide Analyzer<br>
+ⓒ 2024 Changjin Ha. All Rights Reserved.<br>
 ---
+## Segmentation<br>
+<img src="./Docs/Images/img_segmentation.png"><br>
+> Just load the image, name the file, and segmentation is complete.<br>
+
+### Customize Parameters<br>
+<img src="./Docs/Images/img_customize_Parameters.png"><br>
+> If you proceed with Automatic Segmentation, you can also modify SAM parameters.<br>
+
+### Select Points<br>
+<img src="./Docs/Images/img_selectPoints.png"><br>
+> Segment only the parts you want accurately through Manual Segmentation.<br>
+
+### Segmentation Result<br>
+<img src="./Docs/Images/img_segmentationResult.png"><br>
+> Just wait a moment and the segmentation results will be right before your eyes.<br>
+
+## Labeling<br>
+<img src="./Docs/Images/img_labeling.png"><br>
+> If you selected the Extract Bounding Boxes option, try labeling using the Labeling function.<br>
+
+### Export<br>
+<img src="./Docs/Images/img_exportLabels.png"><br>
+> From labeling to exporting, all in one go.<br>
+
+## History<br>
+<img src="./Docs/Images/img_history.png"><br>
+> A strong assistant that not only checks and saves past results, but also replaces and exports labeling data, and analyzes and saves bounding boxes.<br>
+
+## Analyze<br>
+<img src="./Docs/Images/img_analyze.png"><br>
+> Once labeling is complete, try using the Analyze function, which analyzes ARGB, Hue, Saturation, and Brightness by class.<br>
+
+### Export<br>
+<img src="./Docs/Images/img_analyze_export.png"><br>
+> Of course, the Export function is built in as standard.<br>
+
+## Settings<br>
+<img src="./Docs/Images/img_settings.png"><br>
+> A smart friend that checks everything from history initialization to plugin version management and even environment status.<br>
+
+## Configure Environment<br>
+<img src="./Docs/Images/img_environmentConfigure.png"><br>
+> A solid feature that handles all environments at once, from checking WSL status to installation, Linux installation, SAM download, CUDA and cuDNN, Python installation, and even copying entry points.<br>
+
+## Feature Activator<br>
+<img src="./Docs/Images/img_featureActivator.png"><br>
+> Are you having trouble installing Windows Additional Features and Linux? Feature Activator takes care of it all.<br>
+
+## Compatibility<br>
+> Romanowsky Stain Slide Analyzer for Windows is compatible with these devices.<br>
+
+||Minimum Requirements|Recommended Requirements|
+|-----|-----|-----|
+|CPU|7th Gen. Intel Core i3|9th Gen. Intel Core i7|
+|RAM|8GB|16GB|
+|GPU|None|NVIDIA Geforce RTX 3060|
+|Operating System|Windows 10 (x64, 22H2)|Windows 11|
+|Storage|4GB HDD|8GB SSD|
+
+## Release Note<br>
+> Here are the release notes for each version of Romanowsky Stain Slide Analyzer for Windows.<br>
+
+- ### Romanowsky Stain Slide Analyzer 1.2.0.0 Release Note
+> #### Select Points<br>
+> - Fixed an issue where points were not displayed properly in Manually Segmentation mode<br>
+> #### History<br>
+> - Labeling Data Change is now available.<br>
+> - Analyze Bounding Box is now available.<br>
+> - Export Image with Bounding Boxes is now available.<br>
+> #### Labeling<br>
+> - Toggle Bounding Box Show/Hide is now available.<br>
+> - Fixed an issue where blank spaces were appearing at the beginning of each piece of data.<br>
+> - Automatic Zoom & Scroll is now available.<br>
+> - Fixed an issue where labeling would be reset even if the Cancel button was pressed in the dialog that appears when there are already labeled files.<br>
+> #### Analyze<br>
+> - The Analyze feature is now available to view and export Color, Hue, Saturation, Brightness by Bounding Box and the overall Color, Hue, Saturation, Brightness average.<br>
+
+- ### Romanowsky Stain Slide Analyzer 1.1.0.0 Release Note
+> #### Segmentation<br>
+> - Manually Segmentation is now available.<br>
+> - Extract Bounding Boxes option is now available for extracting bounding box coordinates.<br>
+> - Labeling is now available.<br>
+> #### Select Points<br>
+> - You can segment only that part by clicking on the part you want to segment with the mouse.<br>
+> - You can specify the class of the area to be segmented.<br>
+> #### Labeling<br>
+> - You can specify a class for each bounding box area.<br>
+> - You can export the labeled file to a csv file.<br>
+> #### History<br>
+> - You can save the result image file.<br>
+> - You can re-save the labeled csv file.<br>
+> - Fixed an issue where records would not display properly when the date was changed.<br>
+> - Records are now displayed in most recent order.<br>
+> #### Settings<br>
+> - You can check and update each library version.<br>
+
+- ### Romanowsky Stain Slide Analyzer 1.0.0.0 Release Note
+> #### Segmentation<br>
+> - Automatic Segmentation is now available.<br>
+> - Customize Parameters is now available.<br>
+> #### History<br>
+> - History is now available.<br>
+> #### Settings<br>
+> - Check Environment configure status is now available.<br>
+> #### Environment<br>
+> - Romanowsky Stain Slide Analyzer Feature Activator is now available.<br>
+> - Automatic configure environment is now available.<br>
