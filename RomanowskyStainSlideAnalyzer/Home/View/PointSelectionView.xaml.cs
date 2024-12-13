@@ -86,6 +86,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             Pointer ptr = e.Pointer;
             PointerPoint ptrPoint = e.GetCurrentPoint(img_source);
             var point = ptrPoint.Position;
+            var transformedPoint = new Point(point.Y, 512-point.X);
 
             switch (ptr.PointerDeviceType)
             {
@@ -94,7 +95,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                     if (ptrPoint.Properties.IsLeftButtonPressed)
                     {
-                        CreatePoint(point.X, point.Y);
+                        CreatePoint(transformedPoint.X, transformedPoint.Y);
                     }
 
                     break;
@@ -157,8 +158,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             };
 
             canvas.Children.Add(point);
-            point.SetValue(Canvas.LeftProperty, x);
-            point.SetValue(Canvas.TopProperty, y);
+            point.SetValue(Canvas.LeftProperty, x - point.Width / 2);
+            point.SetValue(Canvas.TopProperty, y - point.Height / 2);
             point.PointerPressed += RemovePoint;
 
             viewModel.Points.Add(
