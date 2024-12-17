@@ -63,19 +63,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Select Points", "- Fixed an issue where points were not displayed properly in Manually Segmentation mode")
+                new("Feature Activator", "- Fixed an issue where environment configuration was not performed properly on Windows 10.")
             );
 
             ReleaseNotes.Add(
-                new("History", "- Labeling Data Change is now available.\n- Analyze Bounding Box is now available.\n- Export Image with Bounding Boxes is now available.")    
-            );
-
-            ReleaseNotes.Add(
-                new("Labeling", "- Toggle Bounding Box Show/Hide is now available.\n- Fixed an issue where blank spaces were appearing at the beginning of each piece of data.\n- Automatic Zoom & Scroll is now available.\n- Fixed an issue where labeling would be reset even if the Cancel button was pressed in the dialog that appears\nwhen there are already labeled files.")    
-            );
-
-            ReleaseNotes.Add(
-                new("Analyze", "- The Analyze feature is now available to view and export Color, Hue, Saturation, Brightness by Bounding Box and\nthe overall Color, Hue, Saturation, Brightness average.")
+                new("Framework", "- Improved environment configuration and segmentation to allow for drives other than C drive.")
             );
         }
 

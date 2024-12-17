@@ -81,8 +81,12 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string minMaskRegionArea
         )
         {
-            var path = filePath.Replace(@"\", "/").Replace("C:", "");
-            var cli = $"cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && python main.py -f /mnt/c{path}";
+            var pathSplitByDrive = filePath.Split(@":\");
+            var drive = pathSplitByDrive[0].ToLower();
+
+            var path = pathSplitByDrive[1].Replace(@"\", "/").Replace(":/", "/");
+
+            var cli = $"cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && python main.py -f /mnt/{drive}/{path}";
 
             if(prefix != "")
             {

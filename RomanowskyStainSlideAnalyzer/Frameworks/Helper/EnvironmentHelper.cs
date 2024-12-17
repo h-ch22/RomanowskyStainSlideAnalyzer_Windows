@@ -26,11 +26,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
             {
                 string featureName = (string)objMO.Properties["Caption"].Value;
 
-                if (featureName.ToLower().Contains("linux") || featureName.ToLower() == "virtual machine platform")
+                if (featureName.ToLower().Contains("linux") || featureName.ToLower().Replace(" ", "") == "virtualmachineplatform" || featureName.Replace(" ", "") == "가상머신플랫폼")
                 {
                     bool isEnabled = objMO.Properties["InstallState"].Value.ToString() == "1";
 
-                    if(featureName.ToLower() == "virtual machine platform")
+                    if(featureName.ToLower().Replace(" ", "") == "virtualmachineplatform" || featureName.Replace(" ", "") == "가상머신플랫폼")
                     {
                         isVirtualMachinePlatformActivated = isEnabled;
                     } else if(featureName.ToLower().Contains("linux"))
@@ -279,10 +279,12 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
             if (!result) { return false; }
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Include");
+            var pathSplitByDrive = path.Split(@":\");
+            var drive = pathSplitByDrive[0].ToLower();
 
-            path = path.Replace(@"\", "/").Replace(@"C:/", "c/").Replace("Program Files", @"Program\ Files");
+            path = pathSplitByDrive[1].Replace(@"\", "/").Replace(@":/", "/").Replace("Program Files", @"Program\ Files");
 
-            var cpResult = runLinux($"cp /mnt/{path}/main.py ~/RomanowskyStainSlideAnalyzer/");
+            var cpResult = runLinux($"cp /mnt/{drive}/{path}/main.py ~/RomanowskyStainSlideAnalyzer/");
 
             if (!cpResult)
             {
@@ -298,9 +300,12 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
         public bool UpdateEntryPoint()
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Include");
-            path = path.Replace(@"\", "/").Replace(@"C:/", "c/").Replace("Program Files", @"Program\ Files");
+            var pathSplitByDrive = path.Split(@":\");
+            var drive = pathSplitByDrive[0].ToLower();
 
-            var cpResult = runLinux($"cp /mnt/{path}/main.py ~/RomanowskyStainSlideAnalyzer/");
+            path = pathSplitByDrive[1].Replace(@"\", "/").Replace(@":/", "/").Replace("Program Files", @"Program\ Files");
+
+            var cpResult = runLinux($"cp /mnt/{drive}/{path}/main.py ~/RomanowskyStainSlideAnalyzer/");
 
             if (!cpResult)
             {

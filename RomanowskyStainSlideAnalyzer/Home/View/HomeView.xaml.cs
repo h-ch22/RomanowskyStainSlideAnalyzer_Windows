@@ -114,12 +114,16 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 {
                     btn_usePostProcess.IsEnabled = false;
                     btn_extractBBoxes.IsEnabled = false;
+                    //btn_extractMasks.IsEnabled = false;
+
                     ExtractBBoxes = false;
+                    ExtractMasks = false;
                 }
                 else
                 {
                     btn_usePostProcess.IsEnabled = true;
                     btn_extractBBoxes.IsEnabled = true;
+                    //btn_extractMasks.IsEnabled = true;
                 }
             }
         }
@@ -139,6 +143,17 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 }
 
                 OnPropertyChanged(nameof(ExtractBBoxes));
+            }
+        }
+
+        private bool _ExtractMasks = true;
+        public bool ExtractMasks
+        {
+            get => _ExtractMasks;
+            set
+            {
+                _ExtractMasks = value;
+                OnPropertyChanged(nameof(ExtractMasks));
             }
         }
 
