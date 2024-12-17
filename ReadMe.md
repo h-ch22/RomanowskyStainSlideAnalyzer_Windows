@@ -67,6 +67,12 @@
 ## Release Note<br>
 > Here are the release notes for each version of Romanowsky Stain Slide Analyzer for Windows.<br>
 
+- ### Romanowsky Stain Slide Analyzer 1.2.1.0 Release Note
+> #### Feature Activator<br>
+> - Fixed an issue where environment configuration was not performed properly on Windows 10.<br>
+> #### Framework<br>
+> - Improved environment configuration and segmentation to allow for drives other than C drive.<br>
+
 - ### Romanowsky Stain Slide Analyzer 1.2.0.0 Release Note
 > #### Select Points<br>
 > - Fixed an issue where points were not displayed properly in Manually Segmentation mode<br>
