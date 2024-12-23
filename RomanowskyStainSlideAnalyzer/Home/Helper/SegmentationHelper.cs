@@ -64,6 +64,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string ext,
             bool useAutomaticSegmentation,
             bool extractBoundingBoxes,
+            bool extractMasks,
             List<double> inputCoords,
             List<int> inputLabels,
             bool usePostProcess,
@@ -104,6 +105,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                 cli += " -a y";
 
                 if (!extractBoundingBoxes) cli += " -b n";
+                if (!extractMasks) cli += " -m n";
             }
             else
             {
@@ -172,6 +174,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             bool usePostProcess,
             bool useAutomaticSegmentation,
             bool extractBoundingBoxes,
+            bool extractMasks,
             List<double> inputCoords,
             List<int> inputLabels,
             string pointsPerSide,
@@ -193,6 +196,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             var ext = filePathSplit[filePathSplit.Length - 1];
 
             var finalPath = Path.Combine(rssaFolder, targetPath);
+            var maskPath = Path.Combine(finalPath, "Masks");
 
             try
             {
@@ -207,15 +211,26 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                     Directory.CreateDirectory(finalPath);
                 }
 
+                if(!Directory.Exists(maskPath))
+                {
+                    Directory.CreateDirectory(maskPath);
+                }
+
                 File.Copy(filePath, $@"{finalPath}\input.{ext}");
 
                 var linuxPath = finalPath.Replace(@"\", "/").Replace("C:", "");
+                var maskLinuxPath = maskPath.Replace(@"\", "/").Replace("C:", "");
 
                 var cli = $"cd ~/RomanowskyStainSlideAnalyzer/outputs && cp ./{outputFileName} /mnt/c{linuxPath}/";
 
                 if(extractBoundingBoxes)
                 {
                     cli += $" && cp ./{outputFileName}.txt /mnt/c{linuxPath}/";
+                }
+
+                if(extractMasks)
+                {
+                    cli += $" && cp -r ./Masks/{outputFileName} /mnt/c{maskLinuxPath}";  
                 }
 
                 string points = "";
@@ -235,6 +250,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                 {
                     $"Use Automatic Segmentation: {useAutomaticSegmentation}",
                     $"Extract Bounding Box: {extractBoundingBoxes}",
+                    $"Extract Masks: {extractMasks}",
                     $"Points: {points}",
                     $"Labels: {labels}",
                     $"Points Per Side: {pointsPerSide}",

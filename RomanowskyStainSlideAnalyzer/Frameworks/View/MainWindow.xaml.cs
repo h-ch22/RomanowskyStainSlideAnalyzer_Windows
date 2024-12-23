@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -28,11 +30,90 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
     public sealed partial class MainWindow : Window
     {
         private EnvironmentHelper environmentHelper = new();
+        private static SemaphoreSlim dialogSemaphore = new SemaphoreSlim(1, 1);
+
         public MainWindow()
         {
             this.InitializeComponent();
 
             Init();
+        }
+
+        public static async Task<bool> ShowContentDialogAsync(string title, string content, string closeButtonText)
+        {
+            try
+            {
+                await dialogSemaphore.WaitAsync();
+
+                var contentDialog = new ContentDialog
+                {
+                    Title = title,
+                    Content = content,
+                    PrimaryButtonText = closeButtonText,
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = App.window.Content.XamlRoot,
+                };
+
+                var result = await contentDialog.ShowAsync();
+
+                return result == ContentDialogResult.Primary;
+            }
+            finally
+            {
+                dialogSemaphore.Release();
+            }
+        }
+
+        public static async Task<ContentDialogResult> ShowContentDialogAsync(string title, string content, string primaryButtonText, string secondaryButtonText, string closeButtonText)
+        {
+            try
+            {
+                await dialogSemaphore.WaitAsync();
+
+                var contentDialog = new ContentDialog
+                {
+                    Title = title,
+                    Content = content,
+                    PrimaryButtonText = primaryButtonText,
+                    SecondaryButtonText = secondaryButtonText,
+                    CloseButtonText = closeButtonText,
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = App.window.Content.XamlRoot,
+                };
+
+                var result = await contentDialog.ShowAsync();
+
+                return result;
+            }
+            finally
+            {
+                dialogSemaphore.Release();
+            }
+        }
+
+        public static async Task<bool> ShowContentDialogAsync(string title, string content, string primaryButtonText, string closeButtonText)
+        {
+            try
+            {
+                await dialogSemaphore.WaitAsync();
+
+                var contentDialog = new ContentDialog
+                {
+                    Title = title,
+                    Content = content,
+                    PrimaryButtonText = primaryButtonText,
+                    CloseButtonText = closeButtonText,
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = App.window.Content.XamlRoot,
+                };
+
+                var result = await contentDialog.ShowAsync();
+                return result == ContentDialogResult.Primary;
+            }
+            finally
+            {
+                dialogSemaphore.Release();
+            }
         }
 
         private void Init()

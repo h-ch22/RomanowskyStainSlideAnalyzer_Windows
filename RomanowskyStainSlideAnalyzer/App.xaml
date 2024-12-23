@@ -19,9 +19,24 @@
                             <RowDefinition Height="8*"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Text="{Binding Key}" FontWeight="SemiBold" FontSize="18" />
+                        <TextBlock Grid.Row="0" Text="{Binding Key}" FontWeight="SemiBold" FontSize="18" />
 
-                        <TextBlock Grid.Column="1" TextAlignment="Left" HorizontalAlignment="Left" HorizontalTextAlignment="Left" Margin="0 25" Text="{Binding Values}"/>
+                        <TextBlock Grid.Row="1" TextAlignment="Left" HorizontalAlignment="Left" HorizontalTextAlignment="Left" Margin="0 25" Text="{Binding Values}"/>
+                    </Grid>
+                </ItemContainer>
+            </DataTemplate>
+
+            <DataTemplate x:Key="SegmentationSettingItemTplate">
+                <ItemContainer AutomationProperties.Name="{Binding header}">
+                    <Grid VerticalAlignment="Top" Margin="0 10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="6*"/>
+                            <ColumnDefinition Width="4*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding header}" FontSize="14" />
+
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Grid.Column="1" TextAlignment="Left" HorizontalAlignment="Left" HorizontalTextAlignment="Left" Text="{Binding contents}"/>
                     </Grid>
                 </ItemContainer>
             </DataTemplate>

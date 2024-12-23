@@ -132,6 +132,7 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--file", required=True, help='Target Image File')
     parser.add_argument("-a", "--automatic_segmentation", default='y')
     parser.add_argument("-b", "--extract_bounding_boxes", default='y')
+    parser.add_argument("-m", "--extract_masks", default='y')
     parser.add_argument("-ip", "--input_points", nargs='+')
     parser.add_argument("-il", "--input_labels", nargs='+')
     parser.add_argument("-prefix", "--prefix", type=str, default="")
@@ -161,6 +162,7 @@ if __name__ == '__main__':
 
     automatic_segmentation = args.automatic_segmentation == 'y'
     extract_bounding_boxes = args.extract_bounding_boxes == 'y'
+    extract_masks = args.extract_masks == 'y'
     use_post_process = args.usePostProcess
     points_per_side = args.points_per_side
     points_per_batch = args.points_per_batch
@@ -248,6 +250,22 @@ if __name__ == '__main__':
                 file.write(f'{bbox}\n')
 
             file.close()
+
+        if extract_masks:
+            masks = (item['segmentation'] for item in mask)
+
+            if not os.path.exists(f'{OUTPUT_DIR}/Masks'):
+                os.makedirs(f'{OUTPUT_DIR}/Masks')
+
+            if not os.path.exists(f'{OUTPUT_DIR}/Masks/{filename}'):
+                os.makedirs(f'{OUTPUT_DIR}/Masks/{filename}')
+
+            for i in range(0, len(mask)):
+                file = f'{OUTPUT_DIR}/Masks/{filename}/mask_{i}.csv'
+
+                if isinstance(mask[i]['segmentation'], np.ndarray):
+                    np.savetxt(file, mask[i]['segmentation'], fmt='%d', delimiter=",")
+
 
         plt.axis('off')
         plt.savefig(f'{OUTPUT_DIR}/{filename}', dpi=300)

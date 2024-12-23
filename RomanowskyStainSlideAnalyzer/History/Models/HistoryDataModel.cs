@@ -22,6 +22,9 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
         public string imgFile;
         public Visibility showChangeButton;
         public Visibility showProgress { get; set; }
+        public Visibility showMaskButton;
+        public bool includeAllMaskInOneFile { get; set; }
+        public string checkBoxContent { get; set; }
 
         public HistoryDataModel(
             string date,
@@ -35,7 +38,11 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             string statusText = "",
             bool canItLabeled = false,
             Visibility showChangeButton = Visibility.Collapsed,
-            string imgFile = ""
+            string imgFile = "",
+            Visibility showMaskButton = Visibility.Collapsed,
+            bool includeAllMaskInOneFile = true,
+            string checkBoxContent = "Include all masks in one file"
+
         )
         {
             this.date = date;
@@ -50,6 +57,9 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             this.canItLabeled = canItLabeled;
             this.showChangeButton = showChangeButton;
             this.imgFile = imgFile;
+            this.showMaskButton = showMaskButton;
+            this.includeAllMaskInOneFile = includeAllMaskInOneFile;
+            this.checkBoxContent = checkBoxContent;
         }
     }
 }

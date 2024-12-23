@@ -147,23 +147,33 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             }
         }
 
-        private void Button_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
             switch((sender as Button).Name)
             {
                 case "btn_clearHistory":
-                    DirectoryInfo di = new DirectoryInfo(@"C:\RomanowskyStainSlideAnalyzer");
+                    var isDelete = await MainWindow.ShowContentDialogAsync(
+                        "Clear History",
+                        "Clearing History will remove all records and this action cannot be undone or recovered.\nDo you want to continue?",
+                        "Yes",
+                        "No"
+                    );
 
-                    foreach (FileInfo file in di.GetFiles())
+                    if(isDelete)
                     {
-                        file.Delete();
-                    }
-                    foreach (DirectoryInfo dir in di.GetDirectories())
-                    {
-                        dir.Delete(true);
-                    }
+                        DirectoryInfo di = new DirectoryInfo(@"C:\RomanowskyStainSlideAnalyzer");
 
-                    ShowAlert("Done", "All history has been removed.");
+                        foreach (FileInfo file in di.GetFiles())
+                        {
+                            file.Delete();
+                        }
+                        foreach (DirectoryInfo dir in di.GetDirectories())
+                        {
+                            dir.Delete(true);
+                        }
+
+                        await MainWindow.ShowContentDialogAsync("Done", "All history has been removed.", "OK");
+                    }
 
                     break;
             }
@@ -304,23 +314,6 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
                 dataModel.ProgressBarVisibility = Visibility.Collapsed;
                 IsEnvironmentSet = helper.GetFinalStatus() ? "Set" : "Not Set";
                 Init();
-            });
-        }
-
-        private void ShowAlert(string title, string message)
-        {
-            DispatcherQueue.TryEnqueue(async () =>
-            {
-                var contentDialog = new ContentDialog
-                {
-                    Title = title,
-                    Content = message,
-                    CloseButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = App.window.Content.XamlRoot
-                };
-
-                await contentDialog.ShowAsync();
             });
         }
     }

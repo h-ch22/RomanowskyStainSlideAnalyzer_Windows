@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.20348.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.20348.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>RomanowskyStainSlideAnalyzer</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -19,6 +19,7 @@
     <None Remove="Frameworks\View\ChangeLogView.xaml" />
     <None Remove="Frameworks\View\SettingsView.xaml" />
     <None Remove="History\View\HistoryView.xaml" />
+    <None Remove="History\View\SegmentationLogView.xaml" />
     <None Remove="Home\View\HomeView.xaml" />
     <None Remove="Home\View\PointSelectionView.xaml" />
     <None Remove="Labeling\View\LabelingWindow.xaml" />
@@ -116,6 +117,9 @@
     <Folder Include="Frameworks\Helper\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="Assets\ic_main.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="Assets\ic_main.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
@@ -128,6 +132,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="Analyze\View\AnalyzeBBoxView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="History\View\SegmentationLogView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <None Update="Include\main.py">
@@ -185,7 +192,7 @@
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <FileVersion>1.2.1.0</FileVersion>
-    <AssemblyVersion>1.2.1.0</AssemblyVersion>
+    <FileVersion>1.3.0.0</FileVersion>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
   </PropertyGroup>
 </Project>

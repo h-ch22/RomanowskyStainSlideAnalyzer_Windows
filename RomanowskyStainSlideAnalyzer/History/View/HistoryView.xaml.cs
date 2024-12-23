@@ -23,6 +23,8 @@ using RomanowskyStainSlideAnalyzer.Analyze.View;
 using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using System.Drawing;
 using Microsoft.UI.Xaml.Media;
+using RomanowskyStainSlideAnalyzer.Frameworks.View;
+using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -98,10 +100,9 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             await Task.Run(() =>
             {
                 GetHistory(date);
-
             });
 
-            DispatcherQueue.TryEnqueue(async () =>
+            DispatcherQueue.TryEnqueue(() =>
             {
                 ShowProgress = Visibility.Collapsed;
 
@@ -129,9 +130,16 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             });
         }
 
-        private async void OnClick(object sender, RoutedEventArgs e)
+        private void ShowLog(object sender, RoutedEventArgs e)
         {
-            HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
+            HistoryDataModel dataModel = (sender as MenuFlyoutItem).DataContext as HistoryDataModel;
+
+            SegmentationLogView logView = new(dataModel.log);
+            logView.Activate();
+        }
+
+        private async Task Save(int type, HistoryDataModel dataModel)
+        {
             var file = GetImage(dataModel.root);
 
             var folderPicker = new FolderPicker();
@@ -149,49 +157,137 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             {
                 try
                 {
-                    helper.Copy((sender as Button).Name == "btn_saveLabelingData" ? dataModel.labelingDataPath : file, folder.Path);
-                    ShowAlert("Done", "The requested task has been completed.");
+                    var splitPath = (type == 0 ? dataModel.labelingDataPath : file).Split(@"\");
+                    var fileName = splitPath[splitPath.Length - 1];
+
+                    if (File.Exists($@"{folder.Path}\{fileName.Split(".txt")[0]}"))
+                    {
+                        DispatcherQueue.TryEnqueue(async () =>
+                        {
+                            var isCopy = await MainWindow.ShowContentDialogAsync(
+                                "File Already Exists",
+                                $@"The file {folder.Path}\{fileName.Split(".txt")[0]} already exists.\nDo you want to overwrite it?",
+                                "Yes",
+                                "No"
+                            );
+
+                            if(isCopy)
+                            {
+                                helper.Copy(type == 0 ? dataModel.labelingDataPath : file, folder.Path);
+                            }
+                        });
+                    }
+                    else
+                    {
+                        helper.Copy(type == 0 ? dataModel.labelingDataPath : file, folder.Path);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    ShowAlert("Error", $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}");
+                    await MainWindow.ShowContentDialogAsync(
+                        "Error", $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}", "OK"
+                    );
                 }
             }
         }
 
-        private async void SaveImageWithBBoxes(object sender, RoutedEventArgs e)
+        private async void OnSaveImageClick(object sender, RoutedEventArgs e)
         {
             HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
+            await Save(1, dataModel);
+        }
+
+        private async void OnSaveLabelingDataClick(object sender, RoutedEventArgs e)
+        {
+            HistoryDataModel dataModel = (sender as MenuFlyoutItem).DataContext as HistoryDataModel;
+
+            var folderPicker = new FolderPicker();
+            var window = App.window;
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            StorageFolder? folder = null;
+
+            switch ((sender as MenuFlyoutItem).Name)
+            {
+                case "btn_saveLabelingData":
+                    await Task.Run(async () => {
+                        await Save(0, dataModel);
+                        await MainWindow.ShowContentDialogAsync(
+                            "Done", "The requested task has been completed.", "OK"
+                        );
+                    });
+
+                    break;
+
+                case "btn_saveMaskData":
+                    WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                    folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                    folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                    folder = await folderPicker.PickSingleFolderAsync();
+
+                    if (folder != null)
+                    {
+                        var imgFile = dataModel.imgFile.Split(@"\");
+                        helper.CopyMaskLabelingData($@"{dataModel.root}\Masks\{imgFile[imgFile.Length - 1]}", folder.Path);
+                        LabelingHelper.writePythonFile(helper.IsSingleLabeled($@"{dataModel.root}\Masks\{imgFile[imgFile.Length - 1]}"), folder.Path);
+
+                        await MainWindow.ShowContentDialogAsync(
+                            "Done", "The requested task has been completed.", "OK"
+                        );
+                    }
+
+                    break;
+
+                case "btn_saveOriginalMask":
+                    WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                    folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                    folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                    folder = await folderPicker.PickSingleFolderAsync();
+
+                    if (folder != null)
+                    {
+                        var imgFile = dataModel.imgFile.Split(@"\");
+                        helper.CopyMaskLabelingData($@"{dataModel.root}\Masks\{imgFile[imgFile.Length - 1]}", folder.Path, false);
+
+                        await MainWindow.ShowContentDialogAsync(
+                            "Done", "The requested task has been completed.", "OK"
+                        );
+                    }
+
+                    break;
+
+            }
+
+        }
+
+        private async void SaveImageWithBBoxes(object sender, RoutedEventArgs e)
+        {
+            HistoryDataModel dataModel = (sender as MenuFlyoutItem).DataContext as HistoryDataModel;
             ContentDialogResult result;
 
             if (dataModel.labelingDataPath != "")
             {
-                var contentDialog = new ContentDialog
-                {
-                    Title = "Warning",
-                    Content = "Is this file properly labeled?\nIf the labeling is interrupted or the file is not labeled, the bounding box may not be drawn properly.\nIf the file is not properly labeled, click the Export without class.\nExport without class directly uses the coordinates of the bounding box exported by the model, while Export with class uses the result file labeled by the user.",
-                    PrimaryButtonText = "Export with Class",
-                    SecondaryButtonText = "Export without Class",
-                    CloseButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = App.window.Content.XamlRoot,
-                };
-
-                result = await contentDialog.ShowAsync();
+                result = await MainWindow.ShowContentDialogAsync(
+                    "Warning",
+                    "Is this file properly labeled?\nIf the labeling is interrupted or the file is not labeled, the bounding box may not be drawn properly.\nIf the file is not properly labeled, click the Export without class.\nExport without class directly uses the coordinates of the bounding box exported by the model, while Export with class uses the result file labeled by the user.",
+                    "Export with Class",
+                    "Export without Class",
+                    "Cancel"
+                );
             }
             else
             {
-                var contentDialog = new ContentDialog
-                {
-                    Title = "Warning",
-                    Content = "It appears that there is no labeling data for this file.\nIn this case, the bounding boxes for each class will not be displayed, and only the bounding boxes for the coordinates output directly from the model will be displayed.\r\nTo display bounding boxes for each class, replace the labeling data.\r\nDo you want to continue?",
-                    SecondaryButtonText = "Yes",
-                    CloseButtonText = "No",
-                    DefaultButton = ContentDialogButton.Secondary,
-                    XamlRoot = App.window.Content.XamlRoot,
-                };
+                var isYes = await MainWindow.ShowContentDialogAsync(
+                    "Warning",
+                    "It appears that there is no labeling data for this file.\nIn this case, the bounding boxes for each class will not be displayed, and only the bounding boxes for the coordinates output directly from the model will be displayed.\r\nTo display bounding boxes for each class, replace the labeling data.\r\nDo you want to continue?",
+                    "Yes",
+                    "No"
+                );
 
-                result = await contentDialog.ShowAsync();
+                result = isYes ? ContentDialogResult.Secondary : ContentDialogResult.None;
             }
 
             if (result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
@@ -230,7 +326,7 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                         return;
                     }
 
-                    await Task.Run(async () => {
+                    await Task.Run(() => {
                         var filePathSplit = imageFile.Split(".");
                         var ext = filePathSplit[filePathSplit.Length - 1];
 
@@ -257,7 +353,11 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
                         var exportResult = await helper.ExportWithBBoxes(bmp, exportWithClasses ? csvFile : txtFile, exportWithClasses, folder.Path, $"{resultFileName}_{postfix}", exportWithClasses);
 
-                        ShowAlert(exportResult == "" ? "Done" : "Error", exportResult == "" ? $@"Image Saved to {folder.Path}\{resultFileName}_{postfix}.png" : $"An error occurred while exporting the image.\nError: {exportResult}");
+                        await MainWindow.ShowContentDialogAsync(
+                            exportResult == "" ? "Done" : "Error",
+                            exportResult == "" ? $@"Image Saved to {folder.Path}\{resultFileName}_{postfix}.png" : $"An error occurred while exporting the image.\nError: {exportResult}",
+                            "OK"
+                        );
                     }
                 }
 
@@ -270,6 +370,9 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
             var imageFile = GetOriginalImage(dataModel.root);
             var csvFile = dataModel.labelingDataPath;
+
+            var csvFileSplit = csvFile.Split(@"\");
+            var outputFile = csvFileSplit[csvFileSplit.Length - 1].Split(".csv")[0];
 
             if (imageFile == "")
             {
@@ -287,29 +390,28 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
                 File.Copy(imageFile, $@"{dataModel.root}\input.{ext}");
 
-                ActivateAnalyzeWindow(imageFile, csvFile);
+                ActivateAnalyzeWindow(imageFile, csvFile, helper.IsMaskAvailable(dataModel.root, outputFile));
             }
             else
             {
-                ActivateAnalyzeWindow(imageFile, csvFile);
+                ActivateAnalyzeWindow(imageFile, csvFile, helper.IsMaskAvailable(dataModel.root, outputFile));
             }
         }
 
         private async Task<string> ShowFilePickerDialog(string title, string message, string[] allowedTypes)
         {
             var filePath = "";
+            ContentDialogResult result;
 
-            var contentDialog = new ContentDialog
-            {
-                Title = title,
-                Content = message,
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "No",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = App.window.Content.XamlRoot,
-            };
+            var dialogResult = await MainWindow.ShowContentDialogAsync
+            (
+                title,
+                message,
+                "Yes",
+                "No"
+            );
 
-            var result = await contentDialog.ShowAsync();
+            result = dialogResult ? ContentDialogResult.Primary : ContentDialogResult.Secondary;
 
             if (result == ContentDialogResult.Primary)
             {
@@ -340,37 +442,189 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
         private async void ChangeLabelingData(object sender, RoutedEventArgs e)
         {
-            HistoryDataModel dataModel = (sender as Button).DataContext as HistoryDataModel;
+            HistoryDataModel dataModel = (sender as MenuFlyoutItem).DataContext as HistoryDataModel;
             string[] allowedType = [".csv"];
-            var newCSVPath = await ShowFilePickerDialog("Change Labeling Data", "Changing the labeling data file can cause unexpected errors.\nIf possible, use a modified copy of the file generated by Romanowsky Stain Slide Analyzer, or use a file of the same format as that file.\nDo you want to continue?", allowedType);
-            
-            if(newCSVPath != "")
+            var originalCSVFileSplit = dataModel.imgFile.Split(@"\");
+            var fileName = originalCSVFileSplit[originalCSVFileSplit.Length - 1];
+
+            switch ((sender as MenuFlyoutItem).Name)
             {
-                var originalCSVFileSplit = dataModel.imgFile.Split(@"\");
-                var fileName = originalCSVFileSplit[originalCSVFileSplit.Length - 1];
-                var validateResult = helper.ValidateLabeledData(newCSVPath);
+                case "btn_changeLabelingData":
+                    var newCSVPath = await ShowFilePickerDialog("Change Labeling Data", "Changing the labeling data file can cause unexpected errors.\nIf possible, use a modified copy of the file generated by Romanowsky Stain Slide Analyzer, or use a file of the same format as that file.\nDo you want to continue?", allowedType);
 
-                if(!validateResult)
-                {
-                    ShowAlert("Error", "This file is either not in the same format as the csv file generated by Romanowsky Stain Slide Analyzer, or the file may be in use.\nCSV files with different formats can cause problems with various functions such as Analyze, Export, etc.\nIf the file is in use, close the file and try again.\nIf this file is not in the same format as the file generated by Romanowsky Stain Slide Analyzer, export the data from another labeled file and re-create the csv file using that file's format as reference.");
-                    return;
-                }
+                    if (newCSVPath != "")
+                    {
+                        var validateResult = helper.ValidateLabeledData(newCSVPath);
 
-                try
-                {
-                    File.Copy(newCSVPath, $@"{dataModel.root}\{fileName}.csv", true);
-                    ShowAlert("Done", "The file has been copied.");
+                        if (!validateResult)
+                        {
+                            await MainWindow.ShowContentDialogAsync(
+                                "Error",
+                                "This file is either not in the same format as the csv file generated by Romanowsky Stain Slide Analyzer, or the file may be in use.\nCSV files with different formats can cause problems with various functions such as Analyze, Export, etc.\nIf the file is in use, close the file and try again.\nIf this file is not in the same format as the file generated by Romanowsky Stain Slide Analyzer, export the data from another labeled file and re-create the csv file using that file's format as reference.",
+                                "OK"
+                            );
 
-                    GetHistory();
-                }
-                catch (Exception ex)
-                {
-                    ShowAlert("Error", $"An error occurred while copying the file.\n{ex.Message}");
-                }
+                            return;
+                        }
+
+                        try
+                        {
+                            File.Copy(newCSVPath, $@"{dataModel.root}\{fileName}.csv", true);
+                            await MainWindow.ShowContentDialogAsync("Done", "The file has been copied.", "OK");
+
+                            GetHistory();
+                        }
+                        catch (Exception ex)
+                        {
+                            await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while copying the file.\n{ex.Message}", "OK");
+                        }
+                    }
+
+                    break;
+                case "btn_changeLabelingMaskData":
+                    var type = await MainWindow.ShowContentDialogAsync(
+                        "Select Import Type",
+                        "Choose how to load the Mask data.",
+                        "Single File",
+                        "Multiple Files",
+                        "Cancel"
+                    );
+
+                    if (type == ContentDialogResult.Primary)
+                    {
+                        var newData = await ShowFilePickerDialog("Change Labeled Mask Data", "Changing the Mask Data may cause unexpected errors.\nIf possible, import the Mask Data automatically generated by Romanowsky Stain Slide Analyzer.\nIf the file name of the Mask Data is modified, the Mask Data will not be copied.\nThe file name format of the Mask Data should be as follows:\nMask_Labeled.csv", allowedType);
+                        
+                        try
+                        {
+                            helper.ChangeMaskData(newData, dataModel.root, fileName);
+                            await MainWindow.ShowContentDialogAsync(
+                                "Change Labeled Mask Data",
+                                "The requested task has been completed.",
+                                "OK"
+                            );
+
+                            GetHistory();
+                        }
+
+                        catch (Exception ex)
+                        {
+                            await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while copying the file.\nRestart the software or, if the file is in use, close it and try again.\nError: {ex.Message}", "OK");
+                        }
+                    }
+                    else if (type == ContentDialogResult.Secondary)
+                    {
+                        var isContinue = await MainWindow.ShowContentDialogAsync(
+                            "Change Mask Data", "Changing the Mask Data may cause unexpected errors.\nIf possible, import the Mask Data automatically generated by Romanowsky Stain Slide Analyzer.\nIf the file name of the Mask Data is modified, the Mask Data will not be copied.\nThe file name format of the Mask Data should be as follows:\nMask_Labeled_index.csv", "OK", "Cancel"
+                        );
+
+                        if(isContinue)
+                        {
+                            var folderPicker = new FolderPicker();
+                            var window = App.window;
+                            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                            StorageFolder? folder = null;
+
+                            try
+                            {
+                                WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                                folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                                folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                                folder = await folderPicker.PickSingleFolderAsync();
+
+                                if(folder != null)
+                                {
+                                    await helper.ChangeMaskData(folder.Path, dataModel.root, fileName, true);
+                                    await MainWindow.ShowContentDialogAsync(
+                                        "Change Labeled Mask Data",
+                                        "The requested task has been completed.",
+                                        "OK"
+                                    );
+
+                                    GetHistory();
+                                }
+                            }
+
+                            catch (Exception ex)
+                            {
+                                await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while copying the file.\nRestart the software or, if the file is in use, close it and try again.\nError: {ex.Message}", "OK");
+                            }
+                        }
+                    }
+                    break;
+
+                case "btn_changeMaskData":
+                    var isChange = await MainWindow.ShowContentDialogAsync(
+                        "Change Mask Data",
+                        "Changing the Mask Data may cause unexpected errors.\nIf possible, import the Mask Data automatically generated by Romanowsky Stain Slide Analyzer.\nIf the file name of the Mask Data is modified, the Mask Data will not be copied.\nThe file name format of the Mask Data should be as follows:\nmask_index.csv",
+                        "Continue",
+                        "Cancel"
+                    );
+
+                    if(isChange)
+                    {
+                        var folderPicker = new FolderPicker();
+                        var window = App.window;
+                        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                        StorageFolder? folder = null;
+
+                        try
+                        {
+                            WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                            folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                            folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                            folder = await folderPicker.PickSingleFolderAsync();
+
+                            if (folder != null)
+                            {
+                                await helper.ChangeMaskData(folder.Path, dataModel.root, fileName, false);
+                                await MainWindow.ShowContentDialogAsync(
+                                    "Change Mask Data",
+                                    "The requested task has been completed.",
+                                    "OK"
+                                );
+
+                                GetHistory();
+                            }
+                        }
+
+                        catch(Exception exe)
+                        {
+                            await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while copying the file.\nRestart the software or, if the file is in use, close it and try again.\nError: {exe.Message}", "OK");
+                        }
+                    }
+
+                    break;
             }
+
+            
         }
 
-        private void ActivateAnalyzeWindow(string imageFile, string csvFile)
+        private async void OnRelabelingOptionClick(object sender, RoutedEventArgs e)
+        {
+            HistoryDataModel dataModel = (sender as MenuFlyoutItem).DataContext as HistoryDataModel;
+
+            var labelingViewModel = new LabelingViewModel();
+            string originalImage = GetOriginalImage(dataModel.root);
+            var imgFileSplit = dataModel.imgFile.Split(@"\");
+
+            var isMaskAvailable = helper.IsMaskAvailable(dataModel.root, imgFileSplit[imgFileSplit.Length - 1]);
+            var isBBoxAvailable = helper.IsBBoxAvailable(dataModel.root, imgFileSplit[imgFileSplit.Length - 1]);
+
+            labelingViewModel.Source = new BitmapImage(new Uri(originalImage));
+            LabelingWindow labelingWindow = new(labelingViewModel, $@"{dataModel.root}\{imgFileSplit[imgFileSplit.Length - 1]}.txt", isMaskAvailable, isBBoxAvailable);
+            labelingWindow.Activate();
+        }
+
+        private void Refresh(object sender, RoutedEventArgs e)
+        {
+            GetHistory();
+        }
+
+        private void ActivateAnalyzeWindow(string imageFile, string csvFile, bool IsMaskAvailable)
         {
             AnalyzeBBoxView bBoxView = new(imageFile, csvFile);
             bBoxView.Activate();
@@ -423,23 +677,6 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             }
 
             return file;
-        }
-
-        private void ShowAlert(string title, string message)
-        {
-            DispatcherQueue.TryEnqueue(async () =>
-            {
-                var contentDialog = new ContentDialog
-                {
-                    Title = title,
-                    Content = message,
-                    CloseButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = App.window.Content.XamlRoot
-                };
-
-                await contentDialog.ShowAsync();
-            });
         }
     }
 }

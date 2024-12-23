@@ -80,6 +80,39 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Models
             }
         }
 
+        private bool _EnableUseBBoxButton = false;
+        public bool EnableUseBBoxButton
+        {
+            get => _EnableUseBBoxButton;
+            set
+            {
+                _EnableUseBBoxButton = value;
+                OnPropertyChanged(nameof(EnableUseBBoxButton));
+            }
+        }
+
+        private bool _UseBBoxAsTarget = false;
+        public bool UseBBoxAsTarget
+        {
+            get => _UseBBoxAsTarget;
+            set
+            {
+                _UseBBoxAsTarget = value;
+                OnPropertyChanged(nameof(UseBBoxAsTarget));
+            }
+        }
+
+        private bool _IsAppBarEnabled = true;
+        public bool IsAppBarEnabled
+        {
+            get => _IsAppBarEnabled;
+            set
+            {
+                _IsAppBarEnabled = value;
+                OnPropertyChanged(nameof(IsAppBarEnabled));
+            }
+        }
+
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

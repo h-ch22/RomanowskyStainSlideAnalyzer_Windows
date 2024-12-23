@@ -25,9 +25,10 @@
             <AppBarSeparator/>
             <AppBarToggleButton x:Name="btn_useAutomaticSegmentation" Icon="ViewAll" Label="Use Automatic Segmentation" IsChecked="{Binding UseAutomaticSegmentation, Mode=TwoWay}"/>
             <AppBarToggleButton x:Name="btn_usePostProcess" Icon="Find" Label="Use Post-Process" IsChecked="{Binding UsePostProcess, Mode=TwoWay}"/>
-<!--            <AppBarToggleButton x:Name="btn_extractMasks" Icon="Pictures" Label="Extract Masks" IsChecked="{Binding ExtractMasks, Mode=TwoWay}"/> -->
+            <AppBarToggleButton x:Name="btn_extractMasks" Icon="Pictures" Label="Extract Masks" IsChecked="{Binding ExtractMasks, Mode=TwoWay}"/>
             <AppBarToggleButton x:Name="btn_extractBBoxes" Icon="Crop" Label="Extract Bounding Boxes" IsChecked="{Binding ExtractBBoxes, Mode=TwoWay}"/>
             <AppBarSeparator/>
+            <AppBarButton x:Name="btn_save" Icon="Download" Label="Save Result" Click="OnClick" Visibility="Collapsed"/>
             <AppBarButton x:Name="btn_segment" Icon="Accept" Label="Segment" Click="OnClick"/>
         </CommandBar>
 

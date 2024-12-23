@@ -12,81 +12,121 @@
     <Page.Resources>
         <DataTemplate x:Key="HistoryListItemTemplate" x:DataType="model:HistoryDataModel">
             <ItemContainer AutomationProperties.Name="{x:Bind date, Mode=TwoWay}">
-                <Expander
-                    IsExpanded="False"
-                    ExpandDirection="Down"
-                    VerticalAlignment="Top"
-                    HorizontalAlignment="Stretch"
-                    Margin="0 0 0 10"
-                    HorizontalContentAlignment="Stretch">
+                <Grid Width="350" Background="{StaticResource ListBoxBackgroundThemeBrush}" Padding="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                    <Expander.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Vertical" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <Image Width="256" Height="256" Source="{x:Bind imagePath, Mode=TwoWay}" Stretch="Uniform"/>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" Text="{x:Bind date, Mode=TwoWay}"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 10 0 0">
+                            <SymbolIcon Symbol="{x:Bind symbol, Mode=TwoWay}" Foreground="Gray"/>
+                            <TextBlock Text="{x:Bind statusText, Mode=TwoWay}" Margin="5 0 0 0" Foreground="Gray" FontSize="12"/>
+                        </StackPanel>
+                    </StackPanel>
 
-                            <TextBlock Text="{x:Bind date, Mode=TwoWay}" Grid.Column="0"/>
-                            <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
-                                <SymbolIcon Symbol="{x:Bind symbol}"/>
-                                <TextBlock Margin="10 0 0 0" Text="{x:Bind statusText}"/>
+                    <StackPanel HorizontalAlignment="Center" Margin="0 10 0 0" Orientation="Horizontal" Grid.Row="1">
+                        <Button Height="40" x:Name="btn_saveImage" Click="OnSaveImageClick" Foreground="{StaticResource TextOnAccentAAFillColorPrimary}" Background="{StaticResource SystemAccentColor}">
+                            <StackPanel Orientation="Horizontal">
+                                <SymbolIcon Symbol="Pictures"/>
+                                <TextBlock Text="Save Image" Margin="10 0 0 0"/>
                             </StackPanel>
-                        </Grid>
-                    </Expander.Header>
-                    
-                    <Expander.Content>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="512"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                        </Button>
 
-                            <Image Width="512" Height="512" Grid.Column="0" Source="{x:Bind imagePath, Mode=TwoWay}" Stretch="Uniform"/>
-
-                            <StackPanel Margin="10 0 0 0" Orientation="Vertical" Grid.Column="1">
-                                <TextBlock Text="{x:Bind log, Mode=TwoWay}"/>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                    <Button x:Name="btn_showData" Click="OnLabelingOptionClick" Visibility="{x:Bind showSaveButton, Mode=TwoWay}" Foreground="{StaticResource TextOnAccentAAFillColorPrimary}" Background="{StaticResource SystemAccentColor}">Analyze Bounding Box</Button>
-                                    <Button x:Name="btn_changeLabelingData" Margin="10 0 0 0" Click="ChangeLabelingData" Visibility="{x:Bind showChangeButton, Mode=TwoWay}">Change Labeling Data</Button>
-                                    <Button x:Name="btn_saveLabelingData" Margin="10 0 0 0" Visibility="{x:Bind showSaveButton, Mode=TwoWay}" Click="OnClick">Save Labeling Data</Button>
-                                    <Button x:Name="btn_saveImageWithBBox" Margin="10 0 0 0" Visibility="{x:Bind showChangeButton, Mode=TwoWay}" Click="SaveImageWithBBoxes">Save Image with Bounding Boxes</Button>
-                                    <ProgressRing x:Name="progressRing" IsIndeterminate="True" Visibility="{x:Bind showProgress, Mode=TwoWay}" Margin="10 0 0 0"/>
-                                    <Button x:Name="btn_saveImage" Margin="10 0 0 0" Click="OnClick">Save Result Image</Button>
-                                </StackPanel>
+                        <Button Margin="10 0 0 0" Height="40" x:Name="btn_showData" Click="OnLabelingOptionClick" Visibility="{x:Bind showSaveButton, Mode=TwoWay}">
+                            <StackPanel Orientation="Horizontal">
+                                <SymbolIcon Symbol="AllApps"/>
+                                <TextBlock Text="Analyze" Margin="10 0 0 0"/>
                             </StackPanel>
-                        </Grid>
-                    </Expander.Content>
+                        </Button>
 
-                </Expander>
+                        <ProgressRing x:Name="progressRing" IsIndeterminate="True" Visibility="{x:Bind showProgress, Mode=TwoWay}" Margin="10 0 0 0"/>
+
+                        <Button Margin="10 0 0 0" x:Name="btn_more" Height="40">
+                            <Button.Content>
+                                <SymbolIcon Symbol="More"/>
+                            </Button.Content>
+
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Click="OnRelabelingOptionClick" x:Name="btn_relabel" Text="Re-labeling" Visibility="{x:Bind showChangeButton, Mode=TwoWay}">
+                                        <MenuFlyoutItem.Icon>
+                                            <SymbolIcon Symbol="Caption"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+
+                                    <MenuFlyoutSubItem Text="Change Data">
+                                        <MenuFlyoutSubItem.Icon>
+                                            <SymbolIcon Symbol="MoveToFolder"/>
+                                        </MenuFlyoutSubItem.Icon>
+
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingData" Text="Change Labeling Data" Visibility="{x:Bind showChangeButton, Mode=TwoWay}"/>
+
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingMaskData" Text="Change Labeled Mask Data" Visibility="{x:Bind showChangeButton, Mode=TwoWay}"/>
+
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeMaskData" Text="Change Mask Data" Visibility="{x:Bind showChangeButton, Mode=TwoWay}"/>
+                                    
+                                    </MenuFlyoutSubItem>
+
+                                    <MenuFlyoutSubItem Text="Save Data" Visibility="{x:Bind showSaveButton, Mode=TwoWay}">
+                                        <MenuFlyoutSubItem.Icon>
+                                            <SymbolIcon Symbol="Download"/>
+                                        </MenuFlyoutSubItem.Icon>
+
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveLabelingData" Text="Save Labeling Data" Visibility="{x:Bind showSaveButton, Mode=TwoWay}"/>
+
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveMaskData" Text="Save Labeled Mask Data" Visibility="{x:Bind showMaskButton, Mode=TwoWay}"/>
+
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveOriginalMask" Text="Save Original Mask Data" Visibility="{x:Bind showMaskButton, Mode=TwoWay}"/>
+
+                                    </MenuFlyoutSubItem>
+
+                                    <MenuFlyoutItem Click="SaveImageWithBBoxes" x:Name="btn_saveImageWithBBox" Text="Save Image with Bounding Boxes" Visibility="{x:Bind showChangeButton, Mode=TwoWay}">
+                                        <MenuFlyoutItem.Icon>
+                                            <SymbolIcon Symbol="Crop"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+
+                                    <MenuFlyoutItem Click="ShowLog" x:Name="btn_showLog" Text="Show Segmentation Settings">
+                                        <MenuFlyoutItem.Icon>
+                                            <SymbolIcon Symbol="Setting"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </ItemContainer>
         </DataTemplate>
     </Page.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <DatePicker Grid.Row="0" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>
+        <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
+            <AppBarButton Click="Refresh" Label="Refresh" Icon="Refresh"/>
+        </CommandBar>
 
-        <ProgressRing Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ShowProgress, Mode=TwoWay}" IsIndeterminate="True"/>
+        <DatePicker Grid.Row="1" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>
 
-        <ScrollView Grid.Row="1" x:Name="listView" VerticalAlignment="Stretch" Margin="0 10 0 0">
-            <StackPanel Orientation="Vertical">
-                <ListView
-                    x:Name="historyListView"
-                    SelectionMode="None"
-                    ItemTemplate="{StaticResource HistoryListItemTemplate}"
-                    BorderThickness="0"
-                    BorderBrush="{ThemeResource SystemControlTransparentBrush}"
-                    HorizontalContentAlignment="Stretch"
-                    Margin="0 20 0 10"/>
-            </StackPanel>
+        <ProgressRing Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ShowProgress, Mode=TwoWay}" IsIndeterminate="True"/>
+
+        <ScrollView Grid.Row="2" x:Name="listView" VerticalAlignment="Stretch" Margin="0 10 0 0">
+            <GridView x:Name="historyListView"
+                      ItemTemplate="{StaticResource HistoryListItemTemplate}"
+                      IsItemClickEnabled="False"
+                      SelectionMode="None"
+                      Margin="10"/>
         </ScrollView>
-        
-        <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="emptyPanel" Grid.Row="1">
+
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" x:Name="emptyPanel" Grid.Row="2">
             <SymbolIcon Symbol="Cancel" Foreground="Gray"/>
             <TextBlock Text="There are no records for the selected date." Foreground="Gray"/>
         </StackPanel>

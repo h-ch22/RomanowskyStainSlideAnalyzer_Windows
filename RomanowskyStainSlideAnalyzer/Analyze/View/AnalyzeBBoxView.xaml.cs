@@ -20,6 +20,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Windows.UI;
+using RomanowskyStainSlideAnalyzer.Analyze.Helper;
+using RomanowskyStainSlideAnalyzer.Home.Helper;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Numerics;
+using RomanowskyStainSlideAnalyzer.Frameworks.View;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -33,18 +38,16 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
     {
         private AnalyzeBBoxViewModel viewModel = new();
         private LabelingHelper helper = new();
+        private AnalyzeHelper analyzeHelper = new();
         private ObservableCollection<LabelingDataModel> Datas;
-        private string csvPath;
-        private string imagePath;
-        private string path;
+
+        private string path = "";
+        private string maskPath = "";
         private bool showBBoxColor = true;
 
         public AnalyzeBBoxView(string ImagePath, string CSVPath)
         {
-            this.InitializeComponent();
-
-            csvPath = CSVPath;
-            imagePath = ImagePath;
+            InitializeComponent();
 
             gridView.DataContext = viewModel;
             viewModel.ImagePath = ImagePath;
@@ -63,21 +66,40 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             ExtendsContentIntoTitleBar = true;
             SystemBackdrop = new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
             SetTitleBar(AppTitleBar);
-            SetData();
+            await SetData();
         }
 
-        private void SetData()
+        private async Task SetData()
         {
-            Thread thread = new Thread(GetData);
-            thread.Start();
-
-            Thread viewThread = new Thread(GetAllAvg);
-            viewThread.Start();
+            await Task.Run(() => GetData());
+            GetAllAvg();
         }
 
-        private void GetData()
+        private async void GetData()
         {
-            var data = helper.GetData(csvPath);
+            var data = helper.GetData(viewModel.CSVPath);
+
+            if(!viewModel.UseBoundingBoxAsTarget)
+            {
+                await Task.Run(() =>
+                {
+                    for (var i = 0; i < data.Count - 1; i++)
+                    {
+                        var csvPathSplit = viewModel.CSVPath.Split(@"\");
+                        var fileName = csvPathSplit[csvPathSplit.Length - 1].Split(".csv")[0];
+                        var root = csvPathSplit[csvPathSplit.Length - 2];
+                        maskPath = $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{fileName}";
+
+                        var maskData = AnalyzeHelper.GetMaskData(maskPath, i.ToString());
+                        var calculatedData = AnalyzeHelper.CalculateMaskSize(maskData);
+
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            Datas[i] = new(Datas[i].id, Datas[i].classId, calculatedData.Item3.ToString(), calculatedData.Item4.ToString(), calculatedData.Item1.ToString(), calculatedData.Item2.ToString());
+                        });
+                    }
+                });
+            }
 
             DispatcherQueue.TryEnqueue(() =>
             {
@@ -91,42 +113,58 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             int idx = (sender as ListView).SelectedIndex;
-            LabelingDataModel dataModel = Datas[idx];
 
-            viewModel.Index = dataModel.id;
-            viewModel.Class = dataModel.classId;
-            viewModel.X = dataModel.x;
-            viewModel.Y = dataModel.y;
-            viewModel.Size = (float.Parse(dataModel.width) * float.Parse(dataModel.height)).ToString();
-            viewModel.Width = dataModel.width;
-            viewModel.Height = dataModel.height;
-
-            if(btn_hideBBox.IsChecked == false)
+            if(idx > -1)
             {
-                CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
-            }
+                LabelingDataModel dataModel = Datas[idx];
 
-            Analyze(dataModel.x, dataModel.y, dataModel.width, dataModel.height);
+                viewModel.Index = dataModel.id;
+                viewModel.Class = dataModel.classId;
+                viewModel.X = dataModel.x;
+                viewModel.Y = dataModel.y;
 
-            if (viewModel.IsZoomModeEnabled && img_scrollView.ZoomFactor <= 1F)
-            {
-                img_scrollView.ZoomTo(3F, new(float.Parse(dataModel.x), float.Parse(dataModel.y)));
-            }
-            else if (viewModel.IsZoomModeEnabled)
-            {
-                double zoomFactor = img_scrollView.ZoomFactor;
+                Analyze(dataModel.x, dataModel.y, dataModel.width, dataModel.height);
 
-                double viewportWidth = img_scrollView.ViewportWidth;
-                double viewportHeight = img_scrollView.ViewportHeight;
+                if (btn_hideBBox.IsChecked == false)
+                {
+                    if (viewModel.UseBoundingBoxAsTarget)
+                    {
+                        CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
+                    }
 
-                double scrollOffsetX = (double.Parse(dataModel.x)) * zoomFactor - (viewportWidth / 2);
-                double scrollOffsetY = (double.Parse(dataModel.y)) * zoomFactor - (viewportHeight / 2);
+                    else
+                    {
+                        var data = AnalyzeHelper.GetMask(maskPath, listView.SelectedIndex.ToString());
+                        DrawContours(data);
+                    }
+                }
 
-                img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+                if (viewModel.IsZoomModeEnabled && img_scrollView.ZoomFactor <= 1F)
+                {
+                    img_scrollView.ZoomTo(3F, new(float.Parse(dataModel.x), float.Parse(dataModel.y)));
+                }
+                else if (viewModel.IsZoomModeEnabled)
+                {
+                    double zoomFactor = img_scrollView.ZoomFactor;
+
+                    double viewportWidth = img_scrollView.ViewportWidth;
+                    double viewportHeight = img_scrollView.ViewportHeight;
+
+                    double scrollOffsetX = (double.Parse(dataModel.x)) * zoomFactor - (viewportWidth / 2);
+                    double scrollOffsetY = (double.Parse(dataModel.y)) * zoomFactor - (viewportHeight / 2);
+
+                    img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+                }
             }
         }
 
-        private void Analyze(string x, string y, string width, string height)
+        private bool IsContour(int[,] data, int x, int y)
+        {
+            return data[y - 1, x] == 0 || data[y + 1, x] == 0 ||
+                   data[y, x - 1] == 0 || data[y, x + 1] == 0;
+        }
+
+        private async void Analyze(string x, string y, string width, string height)
         {
             NoSelectionPanel.Visibility = Visibility.Collapsed;
 
@@ -146,382 +184,80 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
                 using (Bitmap _bmp = new(viewModel.ImagePath))
                 {
-                    Bitmap bmp = new(_bmp, new Size(512, 512));
-                    Rectangle cropRect = new(int.Parse(x), int.Parse(y), int.Parse(width), int.Parse(height));
+                    var bmpImage = new BitmapImage();
 
-                    using (Bitmap croppedImage = bmp.Clone(cropRect, bmp.PixelFormat))
+                    if (viewModel.UseBoundingBoxAsTarget)
                     {
-                        var avgData = GetAvg(croppedImage);
-                        var croppedBmp = bmp.Clone(cropRect, bmp.PixelFormat);
-                        var bmpImage = new BitmapImage();
+                        Rectangle cropRect = new(int.Parse(x), int.Parse(y), int.Parse(width), int.Parse(height));
 
-                        using (MemoryStream ms = new())
+                        var analyzeData = await analyzeHelper.Analyze(x, y, width, height, viewModel.ImagePath);
+
+                        using (var croppedBmp = analyzeData.Item2)
                         {
-                            croppedBmp.Save(ms, ImageFormat.Png);
-                            ms.Position = 0;
-                            bmpImage.SetSource(ms.AsRandomAccessStream());
-                        }
-
-                        viewModel.Average = avgData.Item1.ToString();
-                        viewModel.AvgA = avgData.Item2.ToString();
-                        viewModel.AvgR = avgData.Item3.ToString();
-                        viewModel.AvgG = avgData.Item4.ToString();
-                        viewModel.AvgB = avgData.Item5.ToString();
-                        viewModel.AvgBrightness = avgData.Item6.ToString();
-                        viewModel.AvgHue = avgData.Item7.ToString();
-                        viewModel.AvgSaturation = avgData.Item8.ToString();
-
-                        viewModel.CroppedImage = bmpImage;
-                        viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
-                        NoSelectionPanel.Visibility = Visibility.Collapsed;
-                        croppedImg.Visibility = Visibility.Visible;
-                        avgPanel.Visibility = Visibility.Visible;
-                    }
-                }
-            }
-        }
-
-        private void GetAllAvg()
-        {
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                statisticsProgressPanel.Visibility = Visibility.Visible;
-                statisticsPanel.Visibility = Visibility.Collapsed;
-            });
-
-            float a = 0f;
-            float r = 0f;
-            float g = 0f;
-            float b = 0f;
-
-            float brightness = 0.0f;
-            float hue = 0.0f;
-            float saturation = 0.0f;
-            float total = 0f;
-
-            float widthAll = 0f;
-            float heightAll = 0f;
-            float sizeAll = 0f;
-
-            float aNone = 0f;
-            float rNone = 0f;
-            float gNone = 0f;
-            float bNone = 0f;
-
-            float brightnessNone = 0.0f;
-            float hueNone = 0.0f;
-            float saturationNone = 0.0f;
-            float totalNone = 0f;
-
-            float widthNone = 0f;
-            float heightNone = 0f;
-            float sizeNone = 0f;
-
-            float aLCell = 0f;
-            float rLCell = 0f;
-            float gLCell = 0f;
-            float bLCell = 0f;
-
-            float brightnessLCell = 0.0f;
-            float hueLCell = 0.0f;
-            float saturationLCell = 0.0f;
-            float totalLCell = 0f;
-
-            float widthLCell = 0f;
-            float heightLCell = 0f;
-            float sizeLCell = 0f;
-
-            float aSCell = 0f;
-            float rSCell = 0f;
-            float gSCell = 0f;
-            float bSCell = 0f;
-
-            float brightnessSCell = 0.0f;
-            float hueSCell = 0.0f;
-            float saturationSCell = 0.0f;
-            float totalSCell = 0f;
-
-            float widthSCell = 0f;
-            float heightSCell = 0f;
-            float sizeSCell = 0f;
-
-
-            using (Bitmap _bmp = new(viewModel.ImagePath))
-            {
-                Bitmap bmp = new(_bmp, new Size(512, 512));
-
-                foreach(var data in Datas)
-                {
-                    var x = int.Parse(data.x);
-                    var y = int.Parse(data.y);
-                    var width = int.Parse(data.width);
-                    var height = int.Parse(data.height);
-
-                    widthAll += float.Parse(data.width);
-                    heightAll += float.Parse(data.height);
-                    sizeAll += float.Parse(data.width) * float.Parse(data.height);
-
-                    if(width == 0 || height == 0)
-                    {
-                        continue;
-                    }
-
-                    Rectangle cropRect = new(x, y, width, height);
-
-                    using (Bitmap croppedImage = bmp.Clone(cropRect, bmp.PixelFormat))
-                    {
-                        for (int _x = 0; _x < bmp.Width; _x++)
-                        {
-                            for (int _y = 0; _y < bmp.Height; _y++)
+                            using (MemoryStream ms = new())
                             {
-                                System.Drawing.Color clr = bmp.GetPixel(_x, _y);
-                                a += clr.A;
-                                r += clr.R;
-                                g += clr.G;
-                                b += clr.B;
-                                brightness += clr.GetBrightness();
-                                hue += clr.GetHue();
-                                saturation += clr.GetSaturation();
-
-                                total++;
-
-                                switch(data.classId)
-                                {
-                                    case "None":
-                                        aNone += clr.A;
-                                        rNone += clr.R;
-                                        gNone += clr.G;
-                                        bNone += clr.B;
-                                        brightnessNone += clr.GetBrightness();
-                                        hueNone += clr.GetHue();
-                                        saturationNone += clr.GetSaturation();
-
-                                        widthNone += float.Parse(data.width);
-                                        heightNone += float.Parse(data.height);
-                                        sizeNone += (float.Parse(data.width) * float.Parse(data.height));
-
-                                        totalNone++;
-
-                                        break;
-
-                                    case "Large Cell":
-                                        aLCell += clr.A;
-                                        rLCell += clr.R;
-                                        gLCell += clr.G;
-                                        bLCell += clr.B;
-                                        brightnessLCell += clr.GetBrightness();
-                                        hueLCell += clr.GetHue();
-                                        saturationLCell += clr.GetSaturation();
-
-                                        widthLCell += float.Parse(data.width);
-                                        heightLCell += float.Parse(data.height);
-                                        sizeLCell += (float.Parse(data.width) * float.Parse(data.height));
-
-                                        totalLCell++;
-
-                                        break;
-
-                                    case "Small Cell":
-                                        aSCell += clr.A;
-                                        rSCell += clr.R;
-                                        gSCell += clr.G;
-                                        bSCell += clr.B;
-                                        brightnessSCell += clr.GetBrightness();
-                                        hueSCell += clr.GetHue();
-                                        saturationSCell += clr.GetSaturation();
-
-                                        widthSCell += float.Parse(data.width);
-                                        heightSCell += float.Parse(data.height);
-                                        sizeSCell += (float.Parse(data.width) * float.Parse(data.height));
-
-                                        totalSCell++;
-
-                                        break;
-
-                                    default: break;
-                                }
+                                croppedBmp.Save(ms, ImageFormat.Png);
+                                ms.Position = 0;
+                                bmpImage.SetSource(ms.AsRandomAccessStream());
+                                croppedBmp.Dispose();
                             }
                         }
+
+                        viewModel.Average = analyzeData.Item1;
                     }
+
+                    else
+                    {
+                        var maskData = AnalyzeHelper.GetMask(maskPath, listView.SelectedIndex.ToString());
+                        var analyzeData = await analyzeHelper.Analyze(maskData, viewModel.ImagePath);
+
+                        if(analyzeData.Item1 == null || analyzeData.Item2 == null)
+                        {
+                            Debug.WriteLine("Returned Item is null");
+                        }
+                        
+                        using (var croppedBmp = analyzeData.Item2)
+                        {
+                            using (MemoryStream ms = new())
+                            {
+                                croppedBmp.Save(ms, ImageFormat.Png);
+                                ms.Position = 0;
+                                bmpImage.SetSource(ms.AsRandomAccessStream());
+                                croppedBmp.Dispose();
+                            }
+                        }
+
+                        viewModel.Average = analyzeData.Item1;
+                    }
+
+                    viewModel.CroppedImage = bmpImage;
+                    viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
+                    NoSelectionPanel.Visibility = Visibility.Collapsed;
+                    croppedImg.Visibility = Visibility.Visible;
+                    avgPanel.Visibility = Visibility.Visible;
                 }
-
-                brightness /= total;
-                hue /= total;
-                saturation /= total;
-
-                brightnessNone /= totalNone;
-                hueNone /= totalNone;
-                saturationNone /= totalNone;
-
-                brightnessLCell /= totalLCell;
-                hueLCell /= totalLCell;
-                saturationLCell /= totalLCell;
-
-                brightnessSCell /= totalSCell;
-                hueSCell /= totalSCell;
-                saturationSCell /= totalSCell;
-
-                sizeAll /= Datas.Count;
-                sizeNone /= totalNone;
-                sizeLCell /= totalLCell;
-                sizeSCell /= totalSCell;
-
-                widthAll /= Datas.Count;
-                heightAll /= Datas.Count;
-
-                widthNone /= totalNone;
-                heightNone /= totalNone;
-
-                widthLCell /= totalLCell;
-                heightLCell /= totalLCell;
-
-                widthSCell /= totalSCell;
-                heightSCell /= totalSCell;
-
-                int aAsInt = GetAvg(a, total);
-                int rAsInt = GetAvg(r, total);
-                int gAsInt = GetAvg(g, total);
-                int bAsInt = GetAvg(b, total);
-
-                int aNoneAsInt = GetAvg(aNone, totalNone);
-                int rNoneAsInt = GetAvg(rNone, totalNone);
-                int gNoneAsInt = GetAvg(gNone, totalNone);
-                int bNoneAsInt = GetAvg(bNone, totalNone);
-
-                int aLCellAsInt = GetAvg(aLCell, totalLCell);
-                int rLCellAsInt = GetAvg(rLCell, totalLCell);
-                int gLCellAsInt = GetAvg(gLCell, totalLCell);
-                int bLCellAsInt = GetAvg(bLCell, totalLCell);
-
-                int aSCellAsInt = GetAvg(aSCell, totalSCell);
-                int rSCellAsInt = GetAvg(rSCell, totalSCell);
-                int gSCellAsInt = GetAvg(gSCell, totalSCell);
-                int bSCellAsInt = GetAvg(bSCell, totalSCell);
-
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    viewModel.AverageAll = System.Drawing.Color.FromArgb(aAsInt, rAsInt, gAsInt, bAsInt).ToString();
-                    viewModel.AvgAAll = aAsInt.ToString();
-                    viewModel.AvgRAll = rAsInt.ToString();
-                    viewModel.AvgGAll = gAsInt.ToString();
-                    viewModel.AvgBAll = bAsInt.ToString();
-
-                    viewModel.AvgBrightnessAll = brightness.ToString();
-                    viewModel.AvgHueAll = hue.ToString();
-                    viewModel.AvgSaturationAll = saturation.ToString();
-
-                    viewModel.AverageNone = System.Drawing.Color.FromArgb(aNoneAsInt, rNoneAsInt, gNoneAsInt, bNoneAsInt).ToString();
-                    viewModel.AvgANone = aNoneAsInt.ToString();
-                    viewModel.AvgRNone = rNoneAsInt.ToString();
-                    viewModel.AvgGNone = gNoneAsInt.ToString();
-                    viewModel.AvgBNone = bNoneAsInt.ToString();
-
-                    viewModel.AvgBrightnessNone = brightnessNone.ToString();
-                    viewModel.AvgHueNone = hueNone.ToString();
-                    viewModel.AvgSaturationNone = saturationNone.ToString();
-
-                    viewModel.AverageLCell = System.Drawing.Color.FromArgb(aLCellAsInt, rLCellAsInt, gLCellAsInt, bLCellAsInt).ToString();
-                    viewModel.AvgALCell = aLCellAsInt.ToString();
-                    viewModel.AvgRLCell = rLCellAsInt.ToString();
-                    viewModel.AvgGLCell = gLCellAsInt.ToString();
-                    viewModel.AvgBLCell = bLCellAsInt.ToString();
-
-                    viewModel.AvgBrightnessLCell = brightnessLCell.ToString();
-                    viewModel.AvgHueLCell = hueLCell.ToString();
-                    viewModel.AvgSaturationLCell = saturationLCell.ToString();
-
-                    viewModel.AverageSCell = System.Drawing.Color.FromArgb(aSCellAsInt, rSCellAsInt, gSCellAsInt, bSCellAsInt).ToString();
-                    viewModel.AvgASCell = aSCellAsInt.ToString();
-                    viewModel.AvgRSCell = rSCellAsInt.ToString();
-                    viewModel.AvgGSCell = gSCellAsInt.ToString();
-                    viewModel.AvgBSCell = bSCellAsInt.ToString();
-
-                    viewModel.AvgBrightnessSCell = brightnessSCell.ToString();
-                    viewModel.AvgHueSCell = hueSCell.ToString();
-                    viewModel.AvgSaturationSCell = saturationSCell.ToString();
-
-                    viewModel.AvgWidthAll = widthAll.ToString();
-                    viewModel.AvgHeightAll = heightAll.ToString();
-                    viewModel.AvgSizeAll = sizeAll.ToString();
-
-                    viewModel.AvgWidthNone = widthNone.ToString();
-                    viewModel.AvgHeightNone = heightNone.ToString();
-                    viewModel.AvgSizeNone = sizeNone.ToString();
-
-                    viewModel.AvgWidthLCell = widthLCell.ToString();
-                    viewModel.AvgHeightLCell = heightLCell.ToString();
-                    viewModel.AvgSizeLCell = sizeLCell.ToString();
-
-                    viewModel.AvgWidthSCell = widthSCell.ToString();
-                    viewModel.AvgHeightSCell = heightSCell.ToString();
-                    viewModel.AvgSizeSCell = sizeSCell.ToString();
-
-                    statisticsProgressPanel.Visibility = Visibility.Collapsed;
-                    statisticsPanel.Visibility = Visibility.Visible;
-                    btn_exportData.IsEnabled = true;
-                });
             }
         }
 
-        private (System.Drawing.Color, int, int, int, int, float, float, float) GetAvg(Bitmap bmp)
+        private async void GetAllAvg()
         {
-            int a = 0;
-            int r = 0;
-            int g = 0;
-            int b = 0;
+            statisticsProgressPanel.Visibility = Visibility.Visible;
+            statisticsPanel.Visibility = Visibility.Collapsed;
+            var avgData = await Task.Run(() => analyzeHelper.Analyze(viewModel.ImagePath, Datas.ToList()));
 
-            float brightness = 0.0f;
-            float hue = 0.0f;
-            float saturation = 0.0f;
-            int total = 0;
+            viewModel.AllAvg = avgData;
 
-            for(int x = 0; x < bmp.Width; x++)
-            {
-                for(int y = 0; y < bmp.Height; y++)
-                {
-                    System.Drawing.Color clr = bmp.GetPixel(x, y);
-                    a += clr.A;
-                    r += clr.R;
-                    g += clr.G;
-                    b += clr.B;
-                    brightness += clr.GetBrightness();
-                    hue += clr.GetHue();
-                    saturation += clr.GetSaturation();
-
-                    total++;
-                }
-            }
-
-            a /= total;
-            r /= total;
-            g /= total;
-            b /= total;
-
-            brightness /= total;
-            hue /= total;
-            saturation /= total;
-
-            return (System.Drawing.Color.FromArgb(a, r, g, b), a, r, g, b, brightness, hue, saturation);
-        }
-
-        private int GetAvg(float target, float total)
-        {
-            if (target == 0f || total == 0f) return 0;
-
-            var result = target / total;
-            var resultAsInt = Convert.ToInt32(result);
-
-            resultAsInt = resultAsInt > 255 ? 255 : resultAsInt;
-            resultAsInt = resultAsInt < 0 ? 0 : resultAsInt;
-
-            return resultAsInt;
+            statisticsProgressPanel.Visibility = Visibility.Collapsed;
+            statisticsPanel.Visibility = Visibility.Visible;
+            btn_exportData.IsEnabled = true;
+            btn_useBBox.IsEnabled = true;
         }
 
         private void DeleteBBox()
         {
             foreach (var child in canvas.Children)
             {
-                if (child.GetType() == typeof(Microsoft.UI.Xaml.Shapes.Rectangle))
+                if (child.GetType() == typeof(Microsoft.UI.Xaml.Shapes.Rectangle) && (child as Microsoft.UI.Xaml.Shapes.Rectangle).Name == "boundingBox")
                 {
                     canvas.Children.Remove(child);
                 }
@@ -539,9 +275,55 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                 Stroke = new SolidColorBrush(showBBoxColor ? ToMediaColor(LabelingHelper.GetBoundingBoxColor(className)) : Windows.UI.Color.FromArgb(255, 219, 66, 66))
             };
 
+            bBox.Name = "boundingBox";
+
             canvas.Children.Add(bBox);
             bBox.SetValue(Canvas.LeftProperty, Double.Parse(x));
             bBox.SetValue(Canvas.TopProperty, Double.Parse(y));
+        }
+
+        private void DrawContours(int[,] data)
+        {
+            DeleteContours();
+
+            for (int y = 1; y < 511; y++)
+            {
+                for (int x = 1; x < 511; x++)
+                {
+                    if (data[y, x] == 1 && IsContour(data, x, y))
+                    {
+                        DrawContourPixel(x, y);
+                    }
+                }
+            }
+        }
+
+        private void DrawContourPixel(int x, int y)
+        {
+            var rect = new Microsoft.UI.Xaml.Shapes.Rectangle
+            {
+                Width = 1,
+                Height = 1,
+                Stroke = new SolidColorBrush(showBBoxColor ? ToMediaColor(LabelingHelper.GetBoundingBoxColor(viewModel.Class)) : Windows.UI.Color.FromArgb(255, 219, 66, 66))
+            };
+
+            Canvas.SetLeft(rect, x);
+            Canvas.SetTop(rect, y);
+            rect.Name = "contour";
+
+            canvas.Children.Add(rect);
+        }
+
+        private void DeleteContours()
+        {
+            var toRemove = canvas.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>()
+                                          .Where(rect => rect.Name == "contour")
+                                          .ToList();
+
+            foreach (var rect in toRemove)
+            {
+                canvas.Children.Remove(rect);
+            }
         }
 
         private Windows.UI.Color ToMediaColor(System.Drawing.Color color)
@@ -555,24 +337,67 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             {
                 if(canvas != null)
                 {
+                    DeleteContours();
                     DeleteBBox();
                 }
 
-                btn_toggleBBoxColor.IsEnabled = false;
             }
 
-            else
+            else if(btn_hideBBox.IsChecked == false)
             {
-                btn_toggleBBoxColor.IsEnabled = true;
-
                 if (listView.SelectedIndex > -1)
                 {
                     int idx = listView.SelectedIndex;
-                    LabelingDataModel dataModel = Datas[idx];
 
-                    CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
+                    if(viewModel.UseBoundingBoxAsTarget)
+                    {
+                        LabelingDataModel dataModel = Datas[idx];
+                        CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
+                    }
+
+                    else
+                    {
+                        var data = AnalyzeHelper.GetMask(maskPath, idx.ToString());
+                        DrawContours(data);
+                    }
                 }
             }
+
+            btn_toggleBBoxColor.IsEnabled = btn_hideBBox.IsChecked == false;
+        }
+
+        private async void ToggleDataTarget(object sender, RoutedEventArgs e)
+        {
+            DeleteBBox();
+            DeleteContours();
+
+            listView.SelectedItem = null;
+            ToggleVisibility();
+
+            await SetData();
+
+            appBarProgress.Visibility = Visibility.Collapsed;
+            btn_useBBox.Visibility = Visibility.Visible;
+            viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
+
+            NoSelectionPanel.Visibility = Visibility.Visible;
+            avgPanel.Visibility = Visibility.Collapsed;
+            croppedImg.Visibility = Visibility.Collapsed;
+        }
+
+        private void ToggleVisibility()
+        {
+            viewModel.ShowAnalyzeProgress = Visibility.Visible;
+            viewModel.ShowProgress = Visibility.Visible;
+            appBarProgress.Visibility = Visibility.Visible;
+            statisticsProgressPanel.Visibility = Visibility.Visible;
+
+            btn_useBBox.Visibility = Visibility.Collapsed;
+            scrollView.Visibility = Visibility.Collapsed;
+            NoSelectionPanel.Visibility = Visibility.Collapsed;
+            avgPanel.Visibility = Visibility.Collapsed;
+            statisticsProgressPanel.Visibility = Visibility.Collapsed;
+            statisticsPanel.Visibility = Visibility.Collapsed;
         }
 
         private void ToggleBBoxColor(object sender, RoutedEventArgs e)
@@ -580,6 +405,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             if (canvas != null)
             {
                 DeleteBBox();
+                DeleteContours();
             }
 
             showBBoxColor = btn_toggleBBoxColor.IsChecked == true;
@@ -587,9 +413,19 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             if (listView != null && listView.SelectedIndex > -1)
             {
                 int idx = listView.SelectedIndex;
-                LabelingDataModel dataModel = Datas[idx];
 
-                CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
+                if(viewModel.UseBoundingBoxAsTarget)
+                {
+                    LabelingDataModel dataModel = Datas[idx];
+
+                    CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
+                }
+
+                else
+                {
+                    var data = AnalyzeHelper.GetMask(maskPath, idx.ToString());
+                    DrawContours(data);
+                }
             }
         }
 
@@ -615,14 +451,22 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                     appBarProgress.Visibility = Visibility.Visible;
 
                     await Export();
-                    ShowAlert("Done", $"Analyze data was exported to {folder.Path}.");
+                    await MainWindow.ShowContentDialogAsync(
+                        "Done",
+                        $"Analyze data was exported to {folder.Path}.",
+                        "OK"
+                    );
 
                     btn_exportData.Visibility = Visibility.Visible;
                     appBarProgress.Visibility = Visibility.Collapsed;
                 }
                 catch (Exception ex)
                 {
-                    ShowAlert("Error", $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}");
+                    await MainWindow.ShowContentDialogAsync(
+                        "Error",
+                        $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}",
+                        "OK"
+                    );
                     btn_exportData.Visibility = Visibility.Visible;
                     appBarProgress.Visibility = Visibility.Collapsed;
                 }
@@ -631,62 +475,9 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
         private async Task Export()
         {
-            AnalyzeByClassDataModel[] data = [
-                new("All", viewModel.AvgAAll, viewModel.AvgRAll, viewModel.AvgGAll, viewModel.AvgBAll, viewModel.AvgHueAll, viewModel.AvgSaturationAll, viewModel.AvgBrightnessAll, viewModel.AvgWidthAll, viewModel.AvgHeightAll, viewModel.AvgSizeAll),
-                new("None", viewModel.AvgANone, viewModel.AvgRNone, viewModel.AvgGNone, viewModel.AvgBNone, viewModel.AvgHueNone, viewModel.AvgSaturationNone, viewModel.AvgBrightnessNone, viewModel.AvgWidthNone, viewModel.AvgHeightNone, viewModel.AvgSizeNone),
-                new("Large Cell", viewModel.AvgALCell, viewModel.AvgRLCell, viewModel.AvgGLCell, viewModel.AvgBLCell, viewModel.AvgHueLCell, viewModel.AvgSaturationLCell, viewModel.AvgBrightnessLCell, viewModel.AvgWidthLCell, viewModel.AvgHeightLCell, viewModel.AvgSizeLCell),
-                new("Small Cell", viewModel.AvgASCell, viewModel.AvgRSCell, viewModel.AvgGSCell, viewModel.AvgBSCell, viewModel.AvgHueSCell, viewModel.AvgSaturationSCell, viewModel.AvgBrightnessSCell, viewModel.AvgWidthSCell, viewModel.AvgHeightSCell, viewModel.AvgSizeSCell)
-            ];
+            var dataToExport = await analyzeHelper.Export(viewModel.AllAvg, Datas, viewModel.ImagePath);
 
-            List<AnalyzeDataModel> allData = new();
-
-            var tasks = Datas.Select(async d =>
-            {
-                return await Task.Run(async () =>
-                {
-                    using (Bitmap _bmp = new(imagePath))
-                    {
-                        Bitmap bmp = new(_bmp, new Size(512, 512));
-                        Rectangle cropRect = new(int.Parse(d.x), int.Parse(d.y), int.Parse(d.width), int.Parse(d.height));
-
-                        if (int.Parse(d.width) != 0 && int.Parse(d.height) != 0)
-                        {
-                            using (Bitmap croppedImage = bmp.Clone(cropRect, bmp.PixelFormat))
-                            {
-                                var avgData = GetAvg(croppedImage);
-
-                                return new AnalyzeDataModel(d.x, d.y, d.width, d.height, new(d.classId, avgData.Item2.ToString(), avgData.Item3.ToString(), avgData.Item4.ToString(), avgData.Item5.ToString(), avgData.Item7.ToString(), avgData.Item8.ToString(), avgData.Item6.ToString(), avgOfSize: (int.Parse(d.width) * int.Parse(d.height)).ToString()));
-                            }
-                        }
-                        else
-                        {
-                            return new AnalyzeDataModel(d.x, d.y, d.width, d.height, new(d.classId, "", "", "", "", "", "", "", avgOfSize: "0"));
-                        }
-                    }
-
-                });
-            });
-
-            allData.AddRange(await Task.WhenAll(tasks));
-
-            await Task.Run(() => helper.CreateCSVFile(csvPath, path, data, allData));
-        }
-
-        private void ShowAlert(string title, string message)
-        {
-            DispatcherQueue.TryEnqueue(async () =>
-            {
-                var contentDialog = new ContentDialog
-                {
-                    Title = title,
-                    Content = message,
-                    CloseButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = App.window.Content.XamlRoot
-                };
-
-                await contentDialog.ShowAsync();
-            });
+            await Task.Run(() => helper.CreateCSVFile(viewModel.CSVPath, path, dataToExport.Item1, dataToExport.Item2));
         }
     }
 }

@@ -8,6 +8,8 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using RomanowskyStainSlideAnalyzer.Frameworks.Helper;
+using RomanowskyStainSlideAnalyzer.Frameworks.View;
+using RomanowskyStainSlideAnalyzer.History.Models;
 using RomanowskyStainSlideAnalyzer.Home.Helper;
 using RomanowskyStainSlideAnalyzer.Home.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.Helper;
@@ -114,7 +116,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 {
                     btn_usePostProcess.IsEnabled = false;
                     btn_extractBBoxes.IsEnabled = false;
-                    //btn_extractMasks.IsEnabled = false;
+                    btn_extractMasks.IsEnabled = false;
 
                     ExtractBBoxes = false;
                     ExtractMasks = false;
@@ -123,7 +125,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 {
                     btn_usePostProcess.IsEnabled = true;
                     btn_extractBBoxes.IsEnabled = true;
-                    //btn_extractMasks.IsEnabled = true;
+                    btn_extractMasks.IsEnabled = true;
                 }
             }
         }
@@ -153,6 +155,12 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             set
             {
                 _ExtractMasks = value;
+
+                if (value)
+                {
+                    UseAutomaticSegmentation = true;
+                    UsePostProcess = false;
+                }
                 OnPropertyChanged(nameof(ExtractMasks));
             }
         }
@@ -221,6 +229,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 if(value)
                 {
                     ExtractBBoxes = false;
+                    ExtractMasks = false;
                 }
 
                 OnPropertyChanged(nameof(UsePostProcess));
@@ -537,60 +546,28 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         {
             DispatcherQueue.TryEnqueue(async () =>
             {
-                var contentDialog = new ContentDialog
-                {
-                    Title = "Reboot Required",
-                    Content = "A new Windows feature has been added and requires a reboot to continue installing.",
-                    PrimaryButtonText = "Reboot now",
-                    SecondaryButtonText = "Reboot 1 hour later",
-                    CloseButtonText = "Reboot Manually",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = App.window.Content.XamlRoot
-                };
+                var result = await MainWindow.ShowContentDialogAsync(
+                    "Reboot Required",
+                    "A new Windows additional feature has been added and requires a reboot to continue installing.",
+                    "Reboot now",
+                    "Reboot 1 hour later",
+                    "Reboot manually"
+                );
 
-                contentDialog.PrimaryButtonClick += (_s, _e) => { helper.reboot(); };
-                contentDialog.SecondaryButtonClick += (_s, _e) => {
+                if(result == ContentDialogResult.Primary)
+                {
+                    helper.reboot();
+                } 
+                else if(result == ContentDialogResult.Secondary)
+                {
                     helper.reboot(3600);
                     ShowRebootScreen();
-                };
-
-                contentDialog.CloseButtonClick += (_s, _e) => {
-                    ShowRebootScreen();
-                };
-
-                await contentDialog.ShowAsync();
-            });
-        }
-
-        private void ShowAlert(string title, string message)
-        {
-            DispatcherQueue.TryEnqueue(async () =>
-            {
-                var contentDialog = new ContentDialog
+                }
+                else
                 {
-                    Title = title,
-                    Content = message,
-                    CloseButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = App.window.Content.XamlRoot
-                };
-
-                await contentDialog.ShowAsync();
+                    ShowRebootScreen();
+                }
             });
-        }
-
-        private async void ShowNonAsyncAlert(string title, string message)
-        {
-            var contentDialog = new ContentDialog
-            {
-                Title = title,
-                Content = message,
-                CloseButtonText = "OK",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = App.window.Content.XamlRoot
-            };
-
-            await contentDialog.ShowAsync();
         }
 
         private void ShowRebootScreen()
@@ -635,7 +612,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
-        private void OnClick(object sender, RoutedEventArgs e) {
+        private async void OnClick(object sender, RoutedEventArgs e) {
             switch((sender as Button).Name)
             {
                 case "btn_reboot":
@@ -662,6 +639,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     btn_useAutomaticSegmentation.IsEnabled = true;
                     btn_selectPoint.IsEnabled = true;
                     progressView.Visibility = Visibility.Collapsed;
+                    btn_save.Visibility = Visibility.Collapsed;
 
                     SegmentHelpText = "Click the Segment button to start segmentation.";
                     FileName = "output";
@@ -676,7 +654,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 case "btn_selectPoint":
                     if(filePath == "")
                     {
-                        ShowNonAsyncAlert("No Image", "Please select an image.");
+                        await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
                         return;
                     }
 
@@ -686,32 +664,62 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     break;
 
                 case "btn_labeling":
-                    LabelingWindow labelingWindow = new(labelingViewModel, $@"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}.txt");
+                    LabelingWindow labelingWindow = new(labelingViewModel, $@"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}.txt", btn_extractMasks.IsChecked == true, btn_extractBBoxes.IsChecked == true);
                     labelingWindow.Activate();
+                    break;
+
+                case "btn_save":
+                    var folderPicker = new FolderPicker();
+                    var window = App.window;
+                    var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+                    WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                    folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                    folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                    var folder = await folderPicker.PickSingleFolderAsync();
+
+                    if (folder != null)
+                    {
+                        try
+                        {
+                            File.Copy($@"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}", $@"{folder.Path}\{outputFileName}");
+                            await MainWindow.ShowContentDialogAsync("Done", "The requested task has been completed.", "OK");
+                        }
+                        catch (Exception ex)
+                        {
+                            await MainWindow.ShowContentDialogAsync(
+                                "Error",
+                                $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}",
+                                "OK"
+                            );
+                        }
+                    }
                     break;
 
                 case "btn_segment":
                     if (filePath == "")
                     {
-                        ShowNonAsyncAlert("No Image", "Please select an image.");
+                        await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
                         return;
                     }
                     else if (FileName == "" || (radio_newName.IsChecked == true && Extension == ""))
                     {
-                        ShowAlert("Warning", "Please enter all fields.");
+                        await MainWindow.ShowContentDialogAsync("Warning", "Please enter file name.", "OK");
                         return;
                     }
                     else if (filePath.Contains(" "))
                     {
-                        ShowAlert("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {filePath}");
+                        await MainWindow.ShowContentDialogAsync("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {filePath}", "OK");
                         return;
                     } else if (FileName == "input")
                     {
-                        ShowAlert("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.");
+                        await MainWindow.ShowContentDialogAsync("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.", "OK");
                         return;
                     } else if(FileName.Contains("."))
                     {
-                        ShowAlert("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.");
+                        await MainWindow.ShowContentDialogAsync("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.", "OK");
                         return;
                     }
 
@@ -740,7 +748,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             if (!isGPUInstalled)
             {
-                ShowAlert("No GPU Installed", "Windows cannot detect your GPU.\nIf you have a GPU installed, make sure that it is connected and that the GPU drivers are properly installed. If you do not have a GPU installed, segmentation speed may be very slow.\nSkipping GPU configuration.");
+                MainWindow.ShowContentDialogAsync(
+                    "No GPU Installed",
+                    "Windows cannot detect your GPU.\nIf you have a GPU installed, make sure that it is connected and that the GPU drivers are properly installed. If you do not have a GPU installed, segmentation speed may be very slow.",
+                    "OK"
+                );
             }
 
             List<double> coords = new();
@@ -764,6 +776,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 finalExt,
                 _UseAutomaticSegmentation,
                 _ExtractBBoxes,
+                _ExtractMasks,
                 coords,
                 labels,
                 _UsePostProcess,
@@ -797,7 +810,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
                 });
 
-                ShowAlert("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.");
+                MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
                 return;
             }
 
@@ -829,6 +842,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 _UsePostProcess,
                 _UseAutomaticSegmentation,
                 _ExtractBBoxes,
+                _ExtractMasks,
                 coords,
                 labels,
                 viewModel.PointsPerSide.Value,
@@ -857,7 +871,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     resultImageView.Visibility = Visibility.Collapsed;
                 });
 
-                ShowAlert("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.");
+                MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
                 return;
             }
 
@@ -876,6 +890,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             
                 if(_ExtractBBoxes)
                 {
+                    btn_save.Visibility = Visibility.Visible;
                     btn_labeling.Visibility = Visibility.Visible;
                     SegmentHelpText += "\nYou can use the extracted Bounding Boxes to label the data.";
                 }

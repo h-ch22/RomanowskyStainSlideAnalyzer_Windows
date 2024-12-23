@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
 {
@@ -173,6 +175,14 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             }
         }
 
+        public bool IsDestinationFileExists(string folder)
+        {
+            var splitPath = path.Split(@"\");
+            var fileName = splitPath[splitPath.Length - 1];
+
+            return File.Exists($@"{folder}\{fileName.Split(@".txt")[0]}.csv");
+        }
+
         public void Copy(string folder)
         {
             var splitPath = path.Split(@"\");
@@ -180,11 +190,84 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             
             try
             {
-                File.Copy($"{path.Split(".txt")[0]}.csv", $@"{folder}\{fileName.Split(@".txt")[0]}.csv");
+                File.Copy($"{path.Split(".txt")[0]}.csv", $@"{folder}\{fileName.Split(@".txt")[0]}.csv", true);
             }
             catch(Exception e)
             {
                 throw e;
+            }
+        }
+
+        public static void Copy(string from, string to, bool isSingleFile)
+        {
+            var allFiles = Directory.GetFiles($@"{from}\", "*.csv");
+            var csvFiles = allFiles.Where(file => file.Contains("Labeled")).ToArray();
+
+            try
+            {
+                if(isSingleFile)
+                {
+                    File.Copy($@"{from}\Mask_Labeled.csv", $@"{to}\Mask_Labeled.csv");
+                }
+
+                else
+                {
+                    foreach (var f in csvFiles)
+                    {
+                        var fSplit = f.Split(@"\");
+                        File.Copy(f, $@"{to}\{fSplit[fSplit.Length - 1]}");
+                    }
+                }
+            } catch(Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public static void CreateMaskLabelingData(string path, bool exportAsOneFile, List<int> labeledDatas)
+        {
+            var allFiles = Directory.GetFiles($@"{path}\", "*.csv");
+            var csvFiles = allFiles.Where(file => !file.Contains("Labeled")).ToArray();
+
+            for (var i = 0; i < csvFiles.Length; i++)
+            {
+                var file = csvFiles[i];
+
+                try
+                {
+                    string filePath = "";
+                    List<string> mergedLines = new();
+
+                    var lines = File.ReadAllLines(file);
+                    mergedLines.Add($"{labeledDatas[i].ToString()};");
+                    mergedLines.AddRange(lines[1..]);
+
+                    if (exportAsOneFile)
+                    {
+                        filePath = $@"{path}\Mask_Labeled.csv";
+
+                        if(!File.Exists(filePath))
+                        {
+                            File.WriteAllLines(filePath, mergedLines);
+                        }
+
+                        else
+                        {
+                            File.AppendAllLines(filePath, mergedLines);
+                        }
+                    }
+
+                    else
+                    {
+                        filePath = $@"{path}\Mask_Labeled_{i}.csv";
+                        File.WriteAllLines(filePath, mergedLines);
+                    }
+                }
+
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
         }
 
@@ -267,6 +350,72 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
                 case "Large Cell": return "1";
                 case "Small Cell": return "2";
                 default: return className;
+            }
+        }
+
+        public static void writePythonFile(bool isSingleFile, string path)
+        {
+            string pyPath = $@"{path}\main.py";
+            var pythonStylePath = path.Replace(@"\", "/");
+
+            List<string> singleCodeLines = new()
+            {
+                "import numpy as np\n",
+                "classes = []\n",
+                "data_rows = []\n",
+                $"segmentation_data = '{pythonStylePath}/Mask_Labeled.csv'\n\n",
+                "with open(segmentation_data, 'r') as file:\n",
+                "\tfor line in file:\n",
+                "\t\tline = line.strip()\n\n",
+                "\t\tif ';' in line:\n",
+                "\t\t\tclass_value = int(line.replace(';', '').strip())",
+                "\t\t\tclasses.append(class_value)\n",
+                "\t\telse:\n",
+                "\t\t\tdata_row = list(map(int, line.split(',')))\n",
+                "\t\t\tdata_rows.append(data_row)\n\n",
+                "data_array = np.array(data_rows)\n"
+            };
+
+            List<string> multipleCodeLines = new()
+            {
+                "import numpy as np\n",
+                "from glob import glob\n\n",
+                "classes = []\n",
+                "data_rows = []\n",
+                $"segmentation_datas = '{pythonStylePath}/Mask_Labeled_*.csv'\n\n",
+                "for file in glob(segmentation_datas):\n",
+                "\twith open(file, 'r') as f:\n",
+                "\t\tfor line in f:\n",
+                "\t\t\tline = line.strip()\n\n",
+                "\t\t\tif ';' in line:\n",
+                "\t\t\t\tclass_value = int(line.replace(';', '').strip())\n",
+                "\t\t\t\tclasses.append(class_value)\n\n",
+                "\t\t\telse:\n",
+                "\t\t\t\tdata_row = list(map(int, line.split(',')))\n",
+                "\t\t\t\tdata_rows.append(data_row)\n",
+                "data_array = np.array(data_rows)"
+            };
+
+            if (isSingleFile)
+            {
+                using (StreamWriter writer = new StreamWriter(pyPath))
+                {
+                    foreach (var line in singleCodeLines)
+                    {
+                        writer.WriteLine(line);
+                    }
+                }
+            }
+
+            else
+            {
+                using (StreamWriter writer = new StreamWriter(pyPath))
+                {
+                    foreach (var line in multipleCodeLines)
+                    {
+                        writer.WriteLine(line);
+                    }
+                }
             }
         }
     }

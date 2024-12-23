@@ -22,6 +22,9 @@
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="History\View\SegmentationLogView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Frameworks\View\ChangeLogView.xaml">
       <SubType>Designer</SubType>
     </Page>

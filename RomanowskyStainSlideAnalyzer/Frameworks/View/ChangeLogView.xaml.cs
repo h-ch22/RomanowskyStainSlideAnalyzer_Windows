@@ -63,11 +63,19 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Feature Activator", "- Fixed an issue where environment configuration was not performed properly on Windows 10.")
+                new("Segmentation", "- Extract Masks is now available.\n- An option is available to save the image immediately after segmentation is complete.")
             );
 
             ReleaseNotes.Add(
-                new("Framework", "- Improved environment configuration and segmentation to allow for drives other than C drive.")
+                new("History", "- A completely new design for History View is now available.\n- Re-labeling is now available.\n- Save Mask Labeling Data is now available.\n- Label Mask Data is now available.")
+            );
+
+            ReleaseNotes.Add(
+                new("Labeling", "- Toggle Bounding Box / Mask option is now available.")
+            );
+
+            ReleaseNotes.Add(
+                new("Analyze", "- The ability to analyze segmentation mask data is now available.\n- Toggle Bounding Box / Mask option is now available.")
             );
         }
 

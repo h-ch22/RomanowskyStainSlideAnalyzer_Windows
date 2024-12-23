@@ -9,6 +9,8 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
+using RomanowskyStainSlideAnalyzer.Analyze.Helper;
+using RomanowskyStainSlideAnalyzer.Frameworks.View;
 using RomanowskyStainSlideAnalyzer.Home.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using RomanowskyStainSlideAnalyzer.Labeling.Models;
@@ -16,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
@@ -37,18 +40,45 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         private LabelingViewModel viewModel;
         private LabelingHelper helper;
         private List<BoundingBoxDataModel> BoundingBoxes;
+        private List<int> labeledDatas = new();
+        private BoundingBoxDataModel currentData;
+        private int[,] currentMask;
+
         private string path;
+        private string root;
+        private string inputFile;
+
         private ClassTypeModel classType = ClassTypeModel.TYPE_A;
         private bool IsEditMode = false;
         private bool IsDone = false;
         private int EditModeEndIndex = 0;
+        private bool isMaskAvailable;
+        private bool isBBoxAvailable;
 
-        public LabelingWindow(LabelingViewModel viewModel, string path)
+        public LabelingWindow(LabelingViewModel viewModel, string path, bool isMaskAvailable, bool isBBoxAvailable)
         {
             this.InitializeComponent();
 
             this.viewModel = viewModel;
+            this.isMaskAvailable = isMaskAvailable;
+            this.isBBoxAvailable = isBBoxAvailable;
+
+            if(isMaskAvailable && isBBoxAvailable)
+            {
+                this.viewModel.EnableUseBBoxButton = true;
+            } else
+            {
+                this.viewModel.EnableUseBBoxButton = false;
+
+                if (isMaskAvailable) this.viewModel.UseBBoxAsTarget = false;
+                else this.viewModel.UseBBoxAsTarget = true;
+            }
+
             this.path = path;
+            var pathSplit = path.Split(@"\");
+            root = pathSplit[pathSplit.Length - 2];
+            inputFile = pathSplit[pathSplit.Length - 1].Split(".txt")[0];
+
             helper = new(path);
             IntPtr hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
@@ -65,77 +95,86 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
             if (helper.GetFileAlreadyExists())
             {
-                var contentDialog = new ContentDialog
-                {
-                    Title = "File Already Exist",
-                    Content = $"{path.Split(".txt")[0]}.csv The file already exists.\nClick OK to overwrite the file and continue.\nClick Cancel to take further action, such as renaming or moving the file and trying again.",
-                    PrimaryButtonText = "OK",
-                    SecondaryButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Secondary,
-                    XamlRoot = App.window.Content.XamlRoot
-                };
+                var isContinue = await MainWindow.ShowContentDialogAsync(
+                    "File Already Exists",
+                    $"{path.Split(".txt")[0]}.csv The file already exists.\nClick OK to overwrite the file and continue.\nClick Cancel to take further action, such as renaming or moving the file and trying again.",
+                    "OK",
+                    "Cancel"
+                );
 
-                var result = await contentDialog.ShowAsync();
-
-                if (result == ContentDialogResult.Secondary)
+                if (!isContinue)
                 {
                     Close();
                     return;
                 }
             }
 
-            await Task.Run(() => {
+            try
+            {
+                helper.CreateCSVFile();
+            }
+            catch (Exception ex)
+            {
+                await MainWindow.ShowContentDialogAsync(
+                    "Error",
+                    $"An error occurred while creating the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}",
+                    "OK"
+                );
+            }
+
+            await LoadData();
+        }
+
+        private void WriteLabelingData()
+        {
+            if (IsEditMode)
+            {
                 try
                 {
-                    helper.CreateCSVFile();
+                    helper.ChangeLine(
+                        (int)classType,
+                        currentData.X.ToString(),
+                        currentData.Y.ToString(),
+                        currentData.Width.ToString(),
+                        currentData.Height.ToString(),
+                        viewModel.CurrentIndex
+                    );
+
+                    labeledDatas[viewModel.CurrentIndex - 1] = (int)classType;
                 }
                 catch (Exception ex)
                 {
-                    ShowAlert("Error", $"An error occurred while creating the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
+                    MainWindow.ShowContentDialogAsync(
+                        "Error",
+                        $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}",
+                        "OK"
+                    );
                 }
-
-                BoundingBoxes = helper.GetBoundingBox();
-
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    viewModel.AllIndex = BoundingBoxes.Count;
-                    viewModel.CurrentIndex = 1;
-                    viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
-
-                    if (btn_hideBBox.IsChecked == false)
-                    {
-                        CreateBBox();
-                    }
-
-                    CreateThumbnailBBox();
-
-                    img_scrollView.Loaded += (s, e) =>
-                    {
-                        scrollTo();
-                    };
-                });
-            });
-        }
-
-        private void ShowAlert(string title, string message, bool exit=true)
-        {
-            var contentDialog = new ContentDialog
-            {
-                Title = title,
-                Content = message,
-                PrimaryButtonText = "OK",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = App.window.Content.XamlRoot
-            };
-
-            if(exit)
-            {
-                contentDialog.PrimaryButtonClick += (_s, _e) => {
-                    this.Close();
-                };
             }
 
-            contentDialog.ShowAsync();
+            else
+            {
+                try
+                {
+                    helper.AppendText(
+                        (int)classType,
+                        currentData.X.ToString(),
+                        currentData.Y.ToString(),
+                        currentData.Width.ToString(),
+                        currentData.Height.ToString()
+                    );
+
+                    labeledDatas.Add((int)classType);
+                }
+                catch (Exception ex)
+                {
+                    MainWindow.ShowContentDialogAsync(
+                        "Error",
+                         $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}",
+                         "OK"
+                    );
+                }
+            }
         }
 
         private async void OnClick(object sender, RoutedEventArgs e)
@@ -145,42 +184,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 case "btn_next":
                     if(!IsDone)
                     {
-                        if (IsEditMode)
-                        {
-                            try
-                            {
-                                helper.ChangeLine(
-                                (int)classType,
-                                BoundingBoxes[viewModel.CurrentIndex - 1].X.ToString(),
-                                BoundingBoxes[viewModel.CurrentIndex - 1].Y.ToString(),
-                                BoundingBoxes[viewModel.CurrentIndex - 1].Width.ToString(),
-                                BoundingBoxes[viewModel.CurrentIndex - 1].Height.ToString(),
-                                viewModel.CurrentIndex
-                            );
-                            }
-                            catch (Exception ex)
-                            {
-                                ShowAlert("Error", $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
-                            }
-                        }
-
-                        else
-                        {
-                            try
-                            {
-                                helper.AppendText(
-                                (int)classType,
-                                BoundingBoxes[viewModel.CurrentIndex - 1].X.ToString(),
-                                BoundingBoxes[viewModel.CurrentIndex - 1].Y.ToString(),
-                                BoundingBoxes[viewModel.CurrentIndex - 1].Width.ToString(),
-                                BoundingBoxes[viewModel.CurrentIndex - 1].Height.ToString()
-                            );
-                            }
-                            catch (Exception ex)
-                            {
-                                ShowAlert("Error", $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}");
-                            }
-                        }
+                        WriteLabelingData();
                     }
 
                     if (viewModel.CurrentIndex < viewModel.AllIndex)
@@ -189,7 +193,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                         if (viewModel.CurrentIndex == EditModeEndIndex) IsEditMode = false;
 
-                        viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
+                        viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
                         btn_previous.IsEnabled = viewModel.CurrentIndex > 1;
 
                         if (viewModel.CurrentIndex >= viewModel.AllIndex)
@@ -197,9 +201,12 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                             btn_next.Content = "Done";
                         }
 
+                        LoadData();
+
                         if (btn_hideBBox.IsChecked == false)
                         {
-                            CreateBBox();
+                            if (viewModel.UseBBoxAsTarget) CreateBBox();
+                            else DrawContours();
                         }
 
                         scrollTo();
@@ -224,15 +231,94 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         {
                             try
                             {
-                                helper.Copy(folder.Path);
-                                this.Close();
+                                if(helper.IsDestinationFileExists(folder.Path))
+                                {
+                                    var splitPath = path.Split(@"\");
+                                    var fileName = splitPath[splitPath.Length - 1];
+
+                                    var dialogResult = await MainWindow.ShowContentDialogAsync(
+                                        "File Already Exists",
+                                        $@"The file {folder.Path}\{fileName.Split(@".txt")[0]}.csv already exists.\nDo you want to overwrite it?",
+                                        "Yes",
+                                        "No"
+                                    );
+
+                                    if(dialogResult)
+                                    {
+                                        helper.Copy(folder.Path);
+                                    }
+                                }
+
+                                else
+                                {
+                                    helper.Copy(folder.Path);
+                                }
                             }
                             catch(Exception ex)
                             {
-                                ShowAlert("Error", $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}", false);
+                                await MainWindow.ShowContentDialogAsync(
+                                    "Error",
+                                    $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}",
+                                    "OK"
+                                );
+
+                                return;
                             }
                         }
 
+                        if(isMaskAvailable)
+                        {
+                            folder = null;
+
+                            var result = await MainWindow.ShowContentDialogAsync(
+                                "Export Data",
+                                "How do you want to export the labeled mask data?",
+                                "One file",
+                                "Multiple files",
+                                "Skip"
+                            );
+
+                            if(result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
+                            {
+                                folder = await folderPicker.PickSingleFolderAsync();
+
+                                if (folder != null)
+                                {
+                                    try
+                                    {
+                                        LabelingHelper.CreateMaskLabelingData(
+                                            $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
+                                            result == ContentDialogResult.Primary ? true : false,
+                                            labeledDatas
+                                        );
+
+                                        LabelingHelper.Copy($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}", folder.Path, result == ContentDialogResult.Primary);
+                                        LabelingHelper.writePythonFile(result == ContentDialogResult.Primary, folder.Path);
+
+                                        await MainWindow.ShowContentDialogAsync(
+                                            "Training Information",
+                                            $"Copied the file(s) to {folder.Path}.\nTo train this file(s), use the code inside the main.py file.",
+                                            "OK"
+                                        );
+
+                                        Close();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        await MainWindow.ShowContentDialogAsync(
+                                            "Error",
+                                            $"An error occurred while saving the file.\nPlease check if the file already exists or re-run the software.\nError: {ex.Message}",
+                                            "OK"
+                                        );
+                                    }
+                                }
+                            }
+
+                            else
+                            {
+                                Close();
+                            }
+                        }
                     }
 
                     break;
@@ -247,7 +333,23 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                             EditModeEndIndex = viewModel.CurrentIndex;
                         }
                         viewModel.CurrentIndex -= 1;
-                        viewModel.CurrentBoundingBox = $"X: {BoundingBoxes[viewModel.CurrentIndex - 1].X}, Y: {BoundingBoxes[viewModel.CurrentIndex - 1].Y}, W: {BoundingBoxes[viewModel.CurrentIndex - 1].Width}, H: {BoundingBoxes[viewModel.CurrentIndex - 1].Height}";
+                        LoadData();
+                        viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
+
+                        switch(labeledDatas[viewModel.CurrentIndex - 1])
+                        {
+                            case 0:
+                                radio_A.IsChecked = true;
+                                break;
+
+                            case 1:
+                                radio_B.IsChecked = true;
+                                break;
+
+                            case 2:
+                                radio_C.IsChecked = true;
+                                break;
+                        }
 
                         btn_previous.IsEnabled = viewModel.CurrentIndex > 1;
                         IsEditMode = true;
@@ -269,7 +371,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         {
             if (viewModel.IsZoomModeEnabled && img_scrollView.ZoomFactor <= 1F)
             {
-                img_scrollView.ZoomTo(3F, new((float) BoundingBoxes[viewModel.CurrentIndex - 1].X, (float) BoundingBoxes[viewModel.CurrentIndex - 1].Y));
+                img_scrollView.ZoomTo(3F, new((float) currentData.X, (float) currentData.Y));
             }
             else if(viewModel.IsZoomModeEnabled)
             {
@@ -278,8 +380,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 double viewportWidth = img_scrollView.ViewportWidth;
                 double viewportHeight = img_scrollView.ViewportHeight;
 
-                double scrollOffsetX = BoundingBoxes[viewModel.CurrentIndex - 1].X * zoomFactor - (viewportWidth / 2);
-                double scrollOffsetY = BoundingBoxes[viewModel.CurrentIndex - 1].Y * zoomFactor - (viewportHeight / 2);
+                double scrollOffsetX = currentData.X * zoomFactor - (viewportWidth / 2);
+                double scrollOffsetY = currentData.Y * zoomFactor - (viewportHeight / 2);
 
                 img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
             }
@@ -307,24 +409,18 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void CreateBBox()
         {
-            foreach(var child in canvas.Children)
-            {
-                if(child.GetType() == typeof(Rectangle))
-                {
-                    canvas.Children.Remove(child);
-                }
-            }
+            DeleteMasks();
 
             Rectangle bBox = new()
             {
-                Width = BoundingBoxes[viewModel.CurrentIndex - 1].Width,
-                Height = BoundingBoxes[viewModel.CurrentIndex - 1].Height,
-                Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 219, 66, 66))
+                Width = currentData.Width,
+                Height = currentData.Height,
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 219, 66, 66))
             };
 
             canvas.Children.Add(bBox);
-            bBox.SetValue(Canvas.LeftProperty, BoundingBoxes[viewModel.CurrentIndex - 1].X);
-            bBox.SetValue(Canvas.TopProperty, BoundingBoxes[viewModel.CurrentIndex - 1].Y);
+            bBox.SetValue(Canvas.LeftProperty, currentData.X);
+            bBox.SetValue(Canvas.TopProperty, currentData.Y);
         }
 
         private void CreateThumbnailBBox()
@@ -339,15 +435,15 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
             Rectangle bBox = new()
             {
-                Width = (BoundingBoxes[viewModel.CurrentIndex - 1].Width) * 0.25,
-                Height = (BoundingBoxes[viewModel.CurrentIndex - 1].Height) * 0.25,
-                Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 219, 66, 66)),
+                Width = (currentData.Width) * 0.25,
+                Height = (currentData.Height) * 0.25,
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 219, 66, 66)),
                 StrokeThickness = 2
             };
 
             thumbnailCanvas.Children.Add(bBox);
-            bBox.SetValue(Canvas.LeftProperty, (BoundingBoxes[viewModel.CurrentIndex - 1].X) * 0.25);
-            bBox.SetValue(Canvas.TopProperty, (BoundingBoxes[viewModel.CurrentIndex - 1].Y) * 0.25);
+            bBox.SetValue(Canvas.LeftProperty, (currentData.X) * 0.25);
+            bBox.SetValue(Canvas.TopProperty, (currentData.Y) * 0.25);
         }
 
         private void img_scrollView_ViewChanged(ScrollView sender, object args)
@@ -386,22 +482,139 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             }
         }
 
+        private void DeleteMasks()
+        {
+            foreach (var child in canvas.Children)
+            {
+                if (child.GetType() == typeof(Rectangle))
+                {
+                    canvas.Children.Remove(child);
+                }
+            }
+
+            var toRemove = canvas.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>()
+                              .Where(rect => rect.Name == "contour")
+                              .ToList();
+
+            foreach (var rect in toRemove)
+            {
+                canvas.Children.Remove(rect);
+            }
+        }
+
         private void AppBarToggleButton_Checked(object sender, RoutedEventArgs e)
         {
             if(btn_hideBBox.IsChecked == true)
             {
-                foreach (var child in canvas.Children)
-                {
-                    if (child.GetType() == typeof(Rectangle))
-                    {
-                        canvas.Children.Remove(child);
-                    }
-                }
+                DeleteMasks();
             }
             else
             {
-                CreateBBox();
+                if (viewModel.UseBBoxAsTarget) CreateBBox();
+                else DrawContours();
             }
+        }
+
+        private void DrawContours()
+        {
+            DeleteMasks();
+
+            for (int y = 1; y < 511; y++)
+            {
+                for (int x = 1; x < 511; x++)
+                {
+                    if (currentMask[y, x] == 1 && IsContour(currentMask, x, y))
+                    {
+                        DrawContourPixel(x, y);
+                    }
+                }
+            }
+        }
+
+        private bool IsContour(int[,] data, int x, int y)
+        {
+            return data[y - 1, x] == 0 || data[y + 1, x] == 0 ||
+                   data[y, x - 1] == 0 || data[y, x + 1] == 0;
+        }
+
+        private void DrawContourPixel(int x, int y)
+        {
+            var rect = new Rectangle
+            {
+                Width = 1,
+                Height = 1,
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 219, 66, 66))
+            };
+
+            Canvas.SetLeft(rect, x);
+            Canvas.SetTop(rect, y);
+            rect.Name = "contour";
+
+            canvas.Children.Add(rect);
+        }
+
+        private async Task LoadData()
+        {
+            DeleteMasks();
+
+            if(viewModel.UseBBoxAsTarget)
+            {
+                await Task.Run(() => {
+
+                    if(BoundingBoxes == null || BoundingBoxes.Count == 0)
+                    {
+                        BoundingBoxes = helper.GetBoundingBox();                        
+                    }
+
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        viewModel.AllIndex = BoundingBoxes.Count;
+                        currentData = BoundingBoxes[viewModel.CurrentIndex - 1];
+                        viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
+
+                        if (btn_hideBBox.IsChecked == false)
+                        {
+                            CreateBBox();
+                        }
+
+                        CreateThumbnailBBox();
+                        scrollTo();
+                    });
+                });
+            }
+
+            else
+            {
+                await Task.Run(() =>
+                {
+                    var data = AnalyzeHelper.GetMaskData($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}", (viewModel.CurrentIndex - 1).ToString());
+                    var coords = AnalyzeHelper.CalculateMaskSize(data);
+
+                    currentMask = AnalyzeHelper.GetMask($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}", (viewModel.CurrentIndex - 1).ToString());
+                    currentData = new(coords.Item3, coords.Item4, coords.Item1, coords.Item2);
+                    
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        viewModel.AllIndex = AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}");
+                        viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
+
+                        if (btn_hideBBox.IsChecked == false)
+                        {
+                            DrawContours();
+                        }
+
+                        CreateThumbnailBBox();
+
+                        scrollTo();
+                    });
+                });
+            }
+        }
+
+        private void btn_useBBox_Click(object sender, RoutedEventArgs e)
+        {
+            DispatcherQueue.TryEnqueue(() => viewModel.UseBBoxAsTarget = btn_useBBox.IsChecked == true);
+            LoadData();
         }
     }
 }

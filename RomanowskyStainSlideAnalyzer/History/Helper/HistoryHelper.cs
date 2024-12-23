@@ -54,6 +54,24 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
             return file;
         }
 
+        public bool IsMaskAvailable(string path, string inputFileName)
+        {
+            var isMaskDirectoryExists = Directory.Exists($@"{path}\Masks\{inputFileName}");
+
+            if(isMaskDirectoryExists)
+            {
+                return Directory.GetFiles($@"{path}\Masks\{inputFileName}", "*.csv").Length > 0;
+            } else
+            {
+                return false;
+            }
+        }
+
+        public bool IsBBoxAvailable(string path, string inputFileName)
+        {
+            return File.Exists($@"{path}\{inputFileName}.csv");
+        }
+
         public ObservableCollection<HistoryDataModel> GetHistory(string date)
         {
             var history = new ObservableCollection<HistoryDataModel>();
@@ -82,11 +100,43 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                         }
                     }
 
+                    var fileSplit = file.Split(@"\");
+                    var maskPath = $@"{dir}\Masks\{fileSplit[fileSplit.Length - 1]}\";
+                    bool isMaskExported = false;
+                    int maskCount = 0;
+
+                    if (Directory.Exists(maskPath))
+                    {
+                        var maskFiles = Directory.GetFiles(maskPath, "*.csv");
+                        var masks = new List<string>();
+
+                        foreach(var f in maskFiles)
+                        {
+                            if(!f.Contains("Labeled"))
+                            {
+                                masks.Add(f);
+                            }
+                        }
+
+                        isMaskExported = masks.Count > 0;
+                        maskCount = masks.Count;
+                    }
+
                     var canItLabeled = CanItLabeling(file);
                     Symbol symbol;
                     string statusText;
 
-                    if (csvFiles.Length > 0)
+                    if (maskCount > 0 && csvFiles.Length > 0)
+                    {
+                        symbol = Symbol.Accept;
+                        statusText = "Labeling Data & Mask Data Included";
+                    }
+                    else if (maskCount > 0)
+                    {
+                        symbol = Symbol.Accept;
+                        statusText = "Mask Data Included";
+                    }
+                    else if (csvFiles.Length > 0)
                     {
                         symbol = Symbol.Accept;
                         statusText = "Labeling Data Included";
@@ -119,7 +169,9 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                             statusText: statusText,
                             canItLabeled: canItLabeled,
                             showChangeButton: canItLabeled ? Visibility.Visible : Visibility.Collapsed,
-                            imgFile: file
+                            imgFile: file,
+                            showMaskButton: isMaskExported ? Visibility.Visible : Visibility.Collapsed,
+                            checkBoxContent: $"Include all masks({maskCount}) in one file"
                         )
                     ); 
                 }
@@ -169,12 +221,145 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
             try
             {
-                File.Copy($"{from.Split(".txt")[0]}", $@"{to}\{fileName.Split(@".txt")[0]}");
+                File.Copy($"{from.Split(".txt")[0]}", $@"{to}\{fileName.Split(@".txt")[0]}", true);
             }
             catch (Exception e)
             {
                 throw e;
             }
+        }
+
+        public bool IsSingleLabeled(string dir)
+        {
+            var allFiles = Directory.GetFiles($@"{dir}\", "*.csv");
+            var csvFiles = allFiles.Where(file => file.Contains("Labeled")).ToArray();
+
+            return csvFiles.Length == 1;
+        }
+
+        public void CopyMaskLabelingData(string from, string to, bool isLabeledOnly = true)
+        {
+            var allFiles = Directory.GetFiles($@"{from}\", "*.csv");
+            var csvFiles = allFiles.Where(file => file.Contains("Labeled")).ToArray();
+            var nonLabeledFiles = allFiles.Where(file => !file.Contains("Labeled")).ToArray();
+
+            try
+            {
+                foreach (var f in isLabeledOnly ? csvFiles : nonLabeledFiles)
+                {
+                    var fSplit = f.Split(@"\");
+                    File.Copy(f, $@"{to}\{fSplit[fSplit.Length - 1]}", true);
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public void ChangeMaskData(string from, string to, string fileName)
+        {
+            try
+            {
+                var files = Directory.GetFiles($@"{from}\", "*.csv");
+
+                if (!Directory.Exists($@"{to}\Masks"))
+                {
+                    Directory.CreateDirectory($@"{to}\Masks");
+                }
+
+                if (!Directory.Exists($@"{to}\Masks\{fileName}"))
+                {
+                    Directory.CreateDirectory($@"{to}\Masks\{fileName}");
+                }
+
+                var fileNameSplit = from.Split(@"\");
+                var name = fileNameSplit[fileNameSplit.Length - 1];
+
+                if (name == $"Mask_Labeled.csv")
+                {
+                    File.Copy(from, $@"{to}\Masks\{fileName}\", true);
+                }
+            }
+
+            catch(Exception e)
+            {
+                throw e;
+            }
+        }
+
+        public async Task ChangeMaskData(string from, string to, string fileName, bool isLabeled)
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var origFiles = Directory.GetFiles($@"{from}\", "*.csv");
+                    var files = origFiles.OrderBy(file =>
+                    {
+                        var name = System.IO.Path.GetFileNameWithoutExtension(file);
+
+                        if (isLabeled && name.Contains("Labeled"))
+                        {
+                            var parts = name.Split('_');
+
+                            if (parts.Length > 1 && int.TryParse(parts[^1], out int number))
+                            {
+                                return number;
+                            }
+
+                            return int.MaxValue;
+                        }
+
+                        else if (!isLabeled && !name.Contains("Labeled"))
+                        {
+                            var parts = name.Split('_');
+
+                            if (parts.Length > 1 && int.TryParse(parts[^1], out int number))
+                            {
+                                return number;
+                            }
+
+                            return int.MaxValue;
+                        }
+
+                        else return int.MaxValue;
+
+
+                    }).ToArray();
+
+                    if (!Directory.Exists($@"{to}\Masks"))
+                    {
+                        Directory.CreateDirectory($@"{to}\Masks");
+                    }
+
+                    if (!Directory.Exists($@"{to}\Masks\{fileName}"))
+                    {
+                        Directory.CreateDirectory($@"{to}\Masks\{fileName}");
+                    }
+
+                    for (var i = 0; i < files.Length; i++)
+                    {
+                        var fileNameSplit = files[i].Split(@"\");
+                        var name = fileNameSplit[fileNameSplit.Length - 1];
+
+                        if (name == $"mask_{i}.csv" && !isLabeled)
+                        {
+                            File.Copy(files[i], $@"{to}\Masks\{fileName}\mask_{i}.csv", true);
+                        }
+
+                        else if (name == $"Mask_Labeled_{i}.csv" && isLabeled)
+                        {
+                            File.Copy(files[i], $@"{to}\Masks\{fileName}\Mask_Labeled_{i}.csv", true);
+                        }
+                    }
+                }
+
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            });
         }
 
         public async Task<string> ExportWithBBoxes(Bitmap bmp, string csvFile, bool exportWithClasses, string dir, string fileName, bool isCSV)
