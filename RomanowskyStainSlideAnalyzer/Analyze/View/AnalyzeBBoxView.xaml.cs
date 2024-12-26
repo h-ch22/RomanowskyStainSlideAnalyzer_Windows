@@ -45,13 +45,14 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         private string maskPath = "";
         private bool showBBoxColor = true;
 
-        public AnalyzeBBoxView(string ImagePath, string CSVPath)
+        public AnalyzeBBoxView(string ImagePath, string CSVPath, bool IsMaskAvailable)
         {
             InitializeComponent();
 
             gridView.DataContext = viewModel;
             viewModel.ImagePath = ImagePath;
             viewModel.CSVPath = CSVPath;
+            viewModel.IsMaskAvailable = IsMaskAvailable;
 
             IntPtr hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
@@ -66,6 +67,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             ExtendsContentIntoTitleBar = true;
             SystemBackdrop = new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
             SetTitleBar(AppTitleBar);
+
             await SetData();
         }
 
@@ -77,37 +79,46 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
         private async void GetData()
         {
-            var data = helper.GetData(viewModel.CSVPath);
-
-            if(!viewModel.UseBoundingBoxAsTarget)
+            if(viewModel.UseBoundingBoxAsTarget)
             {
-                await Task.Run(() =>
+                var data = helper.GetData(viewModel.CSVPath);
+
+                DispatcherQueue.TryEnqueue(() =>
                 {
-                    for (var i = 0; i < data.Count - 1; i++)
-                    {
-                        var csvPathSplit = viewModel.CSVPath.Split(@"\");
-                        var fileName = csvPathSplit[csvPathSplit.Length - 1].Split(".csv")[0];
-                        var root = csvPathSplit[csvPathSplit.Length - 2];
-                        maskPath = $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{fileName}";
-
-                        var maskData = AnalyzeHelper.GetMaskData(maskPath, i.ToString());
-                        var calculatedData = AnalyzeHelper.CalculateMaskSize(maskData);
-
-                        DispatcherQueue.TryEnqueue(() =>
-                        {
-                            Datas[i] = new(Datas[i].id, Datas[i].classId, calculatedData.Item3.ToString(), calculatedData.Item4.ToString(), calculatedData.Item1.ToString(), calculatedData.Item2.ToString());
-                        });
-                    }
+                    viewModel.ShowProgress = Visibility.Collapsed;
+                    scrollView.Visibility = Visibility.Visible;
+                    Datas = data;
+                    listView.ItemsSource = Datas;
                 });
             }
 
-            DispatcherQueue.TryEnqueue(() =>
+            else
             {
-                viewModel.ShowProgress = Visibility.Collapsed;
-                scrollView.Visibility = Visibility.Visible;
-                Datas = data;
-                listView.ItemsSource = Datas;
-            });
+                await Task.Run(() =>
+                {
+                    var maskPath = GetMaskPath();
+                    var data = analyzeHelper.GetData(maskPath);
+
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        Datas = data;
+
+                        viewModel.ShowProgress = Visibility.Collapsed;
+                        scrollView.Visibility = Visibility.Visible;
+                        listView.ItemsSource = Datas;
+                    });
+                });
+            }
+        }
+
+        private string GetMaskPath()
+        {
+            var csvPathSplit = viewModel.CSVPath.Split(@"\");
+            var fileName = csvPathSplit[csvPathSplit.Length - 1].Split(".csv")[0];
+            var root = csvPathSplit[csvPathSplit.Length - 2];
+            maskPath = $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{fileName}";
+
+            return maskPath;
         }
 
         private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -164,21 +175,27 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                    data[y, x - 1] == 0 || data[y, x + 1] == 0;
         }
 
+        private void ShowZeroWHPanel(bool isShow)
+        {
+            ZeroWHPanel.Visibility = isShow ? Visibility.Visible : Visibility.Collapsed;
+            colorPanel.Visibility = isShow ? Visibility.Collapsed : Visibility.Visible;
+            croppedImg.Visibility = isShow ? Visibility.Collapsed : Visibility.Visible;
+            avgPanel.Visibility = isShow ? Visibility.Visible : Visibility.Collapsed;
+
+            viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
+        }
+
         private async void Analyze(string x, string y, string width, string height)
         {
             NoSelectionPanel.Visibility = Visibility.Collapsed;
 
             if (int.Parse(width) == 0 || int.Parse(height) == 0)
             {
-                ZeroWHPanel.Visibility = Visibility.Visible;
-                colorPanel.Visibility = Visibility.Collapsed;
-                croppedImg.Visibility = Visibility.Collapsed;
-                avgPanel.Visibility = Visibility.Visible;
+                ShowZeroWHPanel(true);
             }
             else
             {
-                ZeroWHPanel.Visibility = Visibility.Collapsed;
-                colorPanel.Visibility = Visibility.Visible;
+                ShowZeroWHPanel(false);
 
                 viewModel.ShowAnalyzeProgress = Visibility.Visible;
 
@@ -204,6 +221,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         }
 
                         viewModel.Average = analyzeData.Item1;
+                        viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
                     }
 
                     else
@@ -213,28 +231,36 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
                         if(analyzeData.Item1 == null || analyzeData.Item2 == null)
                         {
-                            Debug.WriteLine("Returned Item is null");
-                        }
-                        
-                        using (var croppedBmp = analyzeData.Item2)
-                        {
-                            using (MemoryStream ms = new())
-                            {
-                                croppedBmp.Save(ms, ImageFormat.Png);
-                                ms.Position = 0;
-                                bmpImage.SetSource(ms.AsRandomAccessStream());
-                                croppedBmp.Dispose();
-                            }
+                            ShowZeroWHPanel(true);
                         }
 
-                        viewModel.Average = analyzeData.Item1;
+                        else
+                        {
+                            ShowZeroWHPanel(false);
+
+                            using (var croppedBmp = analyzeData.Item2)
+                            {
+                                using (MemoryStream ms = new())
+                                {
+                                    croppedBmp.Save(ms, ImageFormat.Png);
+                                    ms.Position = 0;
+                                    bmpImage.SetSource(ms.AsRandomAccessStream());
+                                    croppedBmp.Dispose();
+                                }
+                            }
+
+                            viewModel.Average = analyzeData.Item1;
+                        }
                     }
 
-                    viewModel.CroppedImage = bmpImage;
-                    viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
-                    NoSelectionPanel.Visibility = Visibility.Collapsed;
-                    croppedImg.Visibility = Visibility.Visible;
-                    avgPanel.Visibility = Visibility.Visible;
+                    if(ZeroWHPanel.Visibility != Visibility.Visible)
+                    {
+                        viewModel.CroppedImage = bmpImage;
+                        viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
+                        NoSelectionPanel.Visibility = Visibility.Collapsed;
+                        croppedImg.Visibility = Visibility.Visible;
+                        avgPanel.Visibility = Visibility.Visible;
+                    }
                 }
             }
         }
@@ -243,14 +269,24 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             statisticsProgressPanel.Visibility = Visibility.Visible;
             statisticsPanel.Visibility = Visibility.Collapsed;
-            var avgData = await Task.Run(() => analyzeHelper.Analyze(viewModel.ImagePath, Datas.ToList()));
+            AllAvgDataModel avgData;
+
+            if(viewModel.UseBoundingBoxAsTarget)
+            {
+                avgData = await Task.Run(() => analyzeHelper.Analyze(viewModel.ImagePath, Datas.ToList()));
+            }
+
+            else
+            {
+                avgData = await Task.Run(() => analyzeHelper.Analyze(viewModel.ImagePath, Datas.ToList(), GetMaskPath()));
+            }
 
             viewModel.AllAvg = avgData;
 
             statisticsProgressPanel.Visibility = Visibility.Collapsed;
             statisticsPanel.Visibility = Visibility.Visible;
             btn_exportData.IsEnabled = true;
-            btn_useBBox.IsEnabled = true;
+            btn_useBBox.IsEnabled = viewModel.IsMaskAvailable;
         }
 
         private void DeleteBBox()
@@ -368,6 +404,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
         private async void ToggleDataTarget(object sender, RoutedEventArgs e)
         {
+            btn_exportData.IsEnabled = false;
             DeleteBBox();
             DeleteContours();
 
@@ -383,6 +420,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             NoSelectionPanel.Visibility = Visibility.Visible;
             avgPanel.Visibility = Visibility.Collapsed;
             croppedImg.Visibility = Visibility.Collapsed;
+            btn_exportData.IsEnabled = true;
         }
 
         private void ToggleVisibility()
@@ -477,7 +515,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             var dataToExport = await analyzeHelper.Export(viewModel.AllAvg, Datas, viewModel.ImagePath);
 
-            await Task.Run(() => helper.CreateCSVFile(viewModel.CSVPath, path, dataToExport.Item1, dataToExport.Item2));
+            await Task.Run(() => helper.CreateCSVFile(viewModel.CSVPath, path, dataToExport.Item1, dataToExport.Item2, viewModel.UseBoundingBoxAsTarget));
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Shapes;
+using RomanowskyStainSlideAnalyzer.Analyze.Helper;
+using RomanowskyStainSlideAnalyzer.Analyze.Models;
 using RomanowskyStainSlideAnalyzer.History.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using RomanowskyStainSlideAnalyzer.Labeling.Models;
@@ -69,115 +71,112 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
         public bool IsBBoxAvailable(string path, string inputFileName)
         {
-            return File.Exists($@"{path}\{inputFileName}.csv");
+            return File.Exists($@"{path}\{inputFileName}.txt");
         }
 
-        public ObservableCollection<HistoryDataModel> GetHistory(string date)
+        public async Task<ObservableCollection<HistoryDataModel>> GetHistory(string date)
         {
-            var history = new ObservableCollection<HistoryDataModel>();
-            var path = @"C:\RomanowskyStainSlideAnalyzer";
-
-            if (!Directory.Exists(path)) return history;
-
-            var directories = Directory.GetDirectories(@"C:\RomanowskyStainSlideAnalyzer");
-
-            foreach(var dir in directories)
+            return await Task.Run(() =>
             {
-                if(dir.Contains(date))
+                var history = new ObservableCollection<HistoryDataModel>();
+                var path = @"C:\RomanowskyStainSlideAnalyzer";
+
+                if (!Directory.Exists(path)) return history;
+
+                var directories = Directory.GetDirectories(@"C:\RomanowskyStainSlideAnalyzer");
+
+                foreach (var dir in directories)
                 {
-                    var file = GetImage(dir);
-                    var csvFiles = Directory.GetFiles($@"{dir}\", "*.csv");
-
-                    var fullDate = dir.Split(@"\");
-                    var fullLog = "";
-
-                    using(var reader = new StreamReader($@"{dir}\log.txt", Encoding.UTF8))
+                    if (dir.Contains(date))
                     {
-                        while(!reader.EndOfStream)
+                        var file = GetImage(dir);
+                        var csvFiles = Directory.GetFiles($@"{dir}\", "*.csv");
+
+                        var fullDate = dir.Split(@"\");
+                        var fullLog = "";
+
+                        using (var reader = new StreamReader($@"{dir}\log.txt", Encoding.UTF8))
                         {
-                            var line = reader.ReadLine();
-                            fullLog += $"{line}\n";
-                        }
-                    }
-
-                    var fileSplit = file.Split(@"\");
-                    var maskPath = $@"{dir}\Masks\{fileSplit[fileSplit.Length - 1]}\";
-                    bool isMaskExported = false;
-                    int maskCount = 0;
-
-                    if (Directory.Exists(maskPath))
-                    {
-                        var maskFiles = Directory.GetFiles(maskPath, "*.csv");
-                        var masks = new List<string>();
-
-                        foreach(var f in maskFiles)
-                        {
-                            if(!f.Contains("Labeled"))
+                            while (!reader.EndOfStream)
                             {
-                                masks.Add(f);
+                                var line = reader.ReadLine();
+                                fullLog += $"{line}\n";
                             }
                         }
 
-                        isMaskExported = masks.Count > 0;
-                        maskCount = masks.Count;
-                    }
+                        var fileSplit = file.Split(@"\");
+                        var maskPath = $@"{dir}\Masks\{fileSplit[fileSplit.Length - 1]}\";
+                        bool isMaskExported = false;
+                        bool isMaskLabeled = false;
 
-                    var canItLabeled = CanItLabeling(file);
-                    Symbol symbol;
-                    string statusText;
+                        if (Directory.Exists(maskPath))
+                        {
+                            isMaskExported = Directory.GetFiles($@"{maskPath}", "mask_*.csv").Count(file => System.IO.Path.GetFileName(file).StartsWith("mask_")) > 0;
+                            isMaskLabeled = Directory.GetFiles($@"{maskPath}", "Mask_Labeled_*.csv").Count(file => System.IO.Path.GetFileName(file).StartsWith("Mask_Labeled_")) > 0;
+                        }
 
-                    if (maskCount > 0 && csvFiles.Length > 0)
-                    {
-                        symbol = Symbol.Accept;
-                        statusText = "Labeling Data & Mask Data Included";
-                    }
-                    else if (maskCount > 0)
-                    {
-                        symbol = Symbol.Accept;
-                        statusText = "Mask Data Included";
-                    }
-                    else if (csvFiles.Length > 0)
-                    {
-                        symbol = Symbol.Accept;
-                        statusText = "Labeling Data Included";
-                    }
-                    else if (canItLabeled)
-                    {
-                        symbol = Symbol.ImportAll;
-                        statusText = "Labeling data can be imported";
-                    }
-                    else if (fullLog.Contains("Use Automatic Segmentation: False"))
-                    {
-                        symbol = Symbol.TouchPointer;
-                        statusText = "Manually Segmented";
-                    }
-                    else
-                    {
-                        symbol = Symbol.Cancel;
-                        statusText = "Not Labeled";
-                    }
+                        var canItLabeled = CanItLabeling(file);
+                        Symbol symbol;
+                        string statusText;
 
-                    history.Add(
-                        new HistoryDataModel(
-                            fullDate[fullDate.Length - 1],
-                            dir,
-                            csvFiles.Length > 0 ? csvFiles[0] : "",
-                            file,
-                            fullLog,
-                            csvFiles.Length > 0 ? Visibility.Visible : Visibility.Collapsed,
-                            symbol: symbol,
-                            statusText: statusText,
-                            canItLabeled: canItLabeled,
-                            showChangeButton: canItLabeled ? Visibility.Visible : Visibility.Collapsed,
-                            imgFile: file,
-                            showMaskButton: isMaskExported ? Visibility.Visible : Visibility.Collapsed,
-                            checkBoxContent: $"Include all masks({maskCount}) in one file"
-                        )
-                    ); 
+                        if (isMaskExported && csvFiles.Length > 0)
+                        {
+                            symbol = Symbol.Accept;
+                            statusText = "Labeling Data & Mask Data Included";
+                        }
+                        else if (isMaskExported)
+                        {
+                            symbol = Symbol.Accept;
+                            statusText = "Mask Data Included";
+                        }
+                        else if (csvFiles.Length > 0)
+                        {
+                            symbol = Symbol.Accept;
+                            statusText = "Labeling Data Included";
+                        }
+                        else if (canItLabeled)
+                        {
+                            symbol = Symbol.ImportAll;
+                            statusText = "Labeling data can be imported";
+                        }
+                        else if (fullLog.Contains("Use Automatic Segmentation: False"))
+                        {
+                            symbol = Symbol.TouchPointer;
+                            statusText = "Manually Segmented";
+                        }
+                        else if (fullLog.Contains("Use Post Process: True"))
+                        {
+                            symbol = Symbol.Find;
+                            statusText = "Post Processed";
+                        }
+                        else
+                        {
+                            symbol = Symbol.Cancel;
+                            statusText = "Not Labeled";
+                        }
+
+                        history.Add(
+                            new HistoryDataModel(
+                                fullDate[fullDate.Length - 1],
+                                dir,
+                                csvFiles.Length > 0 ? csvFiles[0] : "",
+                                file,
+                                fullLog,
+                                labeledMaskPropertiesVisibility: isMaskLabeled ? Visibility.Visible : Visibility.Collapsed,
+                                labeledBBoxPropertiesVisibility: csvFiles.Length > 0 ? Visibility.Visible : Visibility.Collapsed,
+                                maskPropertiesVisibility: isMaskExported ? Visibility.Visible : Visibility.Collapsed,
+                                bBoxPropertiesVisibility: File.Exists($@"{file}.txt") ? Visibility.Visible : Visibility.Collapsed,
+                                symbol: symbol,
+                                statusText: statusText,
+                                canItLabeled: canItLabeled,
+                                imgFile: file
+                            )
+                        );
+                    }
                 }
-            }
 
-            return new ObservableCollection<HistoryDataModel>(history.OrderByDescending(x => x.date));
+                return new ObservableCollection<HistoryDataModel>(history.OrderByDescending(x => x.date));
+            });
         }
 
         public bool ValidateLabeledData(string file)
@@ -237,32 +236,36 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
             return csvFiles.Length == 1;
         }
 
-        public void CopyMaskLabelingData(string from, string to, bool isLabeledOnly = true)
+        public async Task<string> CopyMaskLabelingData(string from, string to, bool isLabeledOnly = true)
         {
-            var allFiles = Directory.GetFiles($@"{from}\", "*.csv");
-            var csvFiles = allFiles.Where(file => file.Contains("Labeled")).ToArray();
-            var nonLabeledFiles = allFiles.Where(file => !file.Contains("Labeled")).ToArray();
+            return await Task.Run(() =>
+            {
+                var allFiles = Directory.GetFiles($@"{from}\", "*.csv");
+                var csvFiles = allFiles.Where(file => file.Contains("Labeled")).ToArray();
+                var nonLabeledFiles = allFiles.Where(file => !file.Contains("Labeled")).ToArray();
 
-            try
-            {
-                foreach (var f in isLabeledOnly ? csvFiles : nonLabeledFiles)
+                try
                 {
-                    var fSplit = f.Split(@"\");
-                    File.Copy(f, $@"{to}\{fSplit[fSplit.Length - 1]}", true);
+                    foreach (var f in isLabeledOnly ? csvFiles : nonLabeledFiles)
+                    {
+                        var fSplit = f.Split(@"\");
+                        Debug.WriteLine($"from {f} to {to}/{fSplit[fSplit.Length - 1]}");
+                        File.Copy(f, $@"{to}\{fSplit[fSplit.Length - 1]}", true);
+                    }
+
+                    return "";
                 }
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+            });
         }
 
         public void ChangeMaskData(string from, string to, string fileName)
         {
             try
             {
-                var files = Directory.GetFiles($@"{from}\", "*.csv");
-
                 if (!Directory.Exists($@"{to}\Masks"))
                 {
                     Directory.CreateDirectory($@"{to}\Masks");
@@ -278,7 +281,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
                 if (name == $"Mask_Labeled.csv")
                 {
-                    File.Copy(from, $@"{to}\Masks\{fileName}\", true);
+                    File.Copy(from, $@"{to}\Masks\{fileName}\Mask_Labeled.csv", true);
                 }
             }
 
@@ -360,6 +363,110 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                     throw ex;
                 }
             });
+        }
+
+        public async Task<Bitmap?> ExportWithMasks(Bitmap bmp, string csvPath, bool exportWithClasses)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var dataCount = Directory.GetFiles($@"{csvPath}", exportWithClasses ? "Mask_Labeled_*.csv" : "mask_*.csv").Count(s => exportWithClasses ? s.Contains("Labeled") : !s.Contains("Labeled"));
+
+                    for (var i = 0; i < dataCount; i++)
+                    {
+                        int[,] data;
+                        string className = "";
+
+                        if(exportWithClasses)
+                        {
+                            var maskAndClasses = AnalyzeHelper.GetMaskWithClass(csvPath, i.ToString());
+                            data = maskAndClasses.Item2;
+                            className = maskAndClasses.Item1;
+                            var classType = data[0, 0];
+                        }
+
+                        else
+                        {
+                            data = AnalyzeHelper.GetMask(csvPath, i.ToString());
+                        }
+
+                        var originalW = data.GetLength(1);
+                        var originalH = exportWithClasses ? data.GetLength(0) - 1 : data.GetLength(0);
+                        var targetW = bmp.Width;
+                        var targetH = bmp.Height;
+
+                        var resizedData = AnalyzeHelper.ResizeData(data, originalW, originalH, targetW, targetH);
+
+                        int rows = resizedData.GetLength(0);
+                        int cols = resizedData.GetLength(1);
+                        int pMinX = int.MaxValue, pMinY = int.MaxValue;
+                        int pMaxX = int.MinValue, pMaxY = int.MinValue;
+                        int idx = 0;
+
+                        var points = new List<Point>();
+
+                        for (int y = exportWithClasses ? 1 : 0; y < rows; y++)
+                        {
+                            for (int x = 0; x < cols; x++)
+                            {
+                                if (resizedData[y, x] == 1)
+                                {
+                                    var point = new Point(x, y);
+                                    points.Add(point);
+                                }
+                            }
+                        }
+
+                        Point[] pCol = new Point[points.Count];
+
+                        foreach (var point in points)
+                        {
+                            if (point.X > pMaxX) pMaxX = (int)point.X;
+                            if (point.Y > pMaxY) pMaxY = (int)point.Y;
+                            if (point.X < pMinX) pMinX = (int)point.X;
+                            if (point.Y < pMinY) pMinY = (int)point.Y;
+
+                            pCol[idx] = new(point.X, point.Y);
+                            idx++;
+                        }
+
+                        var width = pMaxX - pMinX;
+                        var height = pMaxY - pMinY;
+
+                        if (points.Count == 0 || width == 0 || height == 0)
+                        {
+                            continue;
+                        }
+
+                        Color bBoxColor = Color.FromArgb(255, 235, 64, 52);
+
+                        if (exportWithClasses)
+                        {
+                            bBoxColor = LabelingHelper.GetBoundingBoxColor(className.Split(";")[0]);
+                        }
+
+                        using (Graphics g = Graphics.FromImage(bmp))
+                        {
+                            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                            using (Pen pen = new(Color.FromArgb(80, bBoxColor.R, bBoxColor.G, bBoxColor.B), 1))
+                            {
+                                g.DrawPolygon(pen, pCol);
+                            }
+                        }
+                    }
+
+                    return bmp;
+                }
+
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e);
+                    return null;
+                }
+            });
+
         }
 
         public async Task<string> ExportWithBBoxes(Bitmap bmp, string csvFile, bool exportWithClasses, string dir, string fileName, bool isCSV)

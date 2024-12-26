@@ -216,6 +216,22 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                     else
                     {
                         IsDone = true;
+
+                        if(isMaskAvailable)
+                        {
+                            LabelingHelper.CreateMaskLabelingData(
+                                $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
+                                true,
+                                labeledDatas
+                            );
+
+                            LabelingHelper.CreateMaskLabelingData(
+                                $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
+                                false,
+                                labeledDatas
+                            );
+                        }
+
                         var folderPicker = new FolderPicker();
                         var window = App.window;
                         var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
@@ -286,12 +302,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                                 {
                                     try
                                     {
-                                        LabelingHelper.CreateMaskLabelingData(
-                                            $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
-                                            result == ContentDialogResult.Primary ? true : false,
-                                            labeledDatas
-                                        );
-
                                         LabelingHelper.Copy($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}", folder.Path, result == ContentDialogResult.Primary);
                                         LabelingHelper.writePythonFile(result == ContentDialogResult.Primary, folder.Path);
 

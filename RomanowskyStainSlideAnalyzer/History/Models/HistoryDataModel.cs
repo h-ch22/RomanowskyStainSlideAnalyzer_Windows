@@ -15,16 +15,20 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
         public string labelingDataPath;
         public string imagePath;
         public string log;
-        public Visibility showSaveButton;
         public Symbol symbol;
         public string statusText;
         public bool canItLabeled;
         public string imgFile;
-        public Visibility showChangeButton;
-        public Visibility showProgress { get; set; }
-        public Visibility showMaskButton;
+        public Visibility LabeledMaskPropertiesVisibility { get; set; }
+        public Visibility LabeledBBoxPropertiesVisibility { get; set; }
+        public Visibility BBoxPropertiesVisibility { get; set; }
+        public Visibility MaskPropertiesVisibility { get; set; }
+        public Visibility AnalyzeBtnVisibility { get; set; }
+        public Visibility ReLabelingVisibility { get; set; }
+        public Visibility SaveBBoxImageVisibility { get; set; }
         public bool includeAllMaskInOneFile { get; set; }
         public string checkBoxContent { get; set; }
+        public Visibility saveMenuVisibility { get; set; }
 
         public HistoryDataModel(
             string date,
@@ -32,17 +36,14 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             string labelingDataPath,
             string imagePath,
             string log,
-            Visibility showSaveButton,
-            Visibility showProgress = Visibility.Collapsed,
+            Visibility labeledMaskPropertiesVisibility,
+            Visibility labeledBBoxPropertiesVisibility,
+            Visibility maskPropertiesVisibility,
+            Visibility bBoxPropertiesVisibility,
             Symbol symbol = Symbol.Accept,
             string statusText = "",
             bool canItLabeled = false,
-            Visibility showChangeButton = Visibility.Collapsed,
-            string imgFile = "",
-            Visibility showMaskButton = Visibility.Collapsed,
-            bool includeAllMaskInOneFile = true,
-            string checkBoxContent = "Include all masks in one file"
-
+            string imgFile = ""
         )
         {
             this.date = date;
@@ -50,16 +51,19 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             this.labelingDataPath = labelingDataPath;
             this.imagePath = imagePath;
             this.log = log;
-            this.showSaveButton = showSaveButton;
-            this.showProgress = showProgress;
             this.symbol = symbol;
             this.statusText = statusText;
             this.canItLabeled = canItLabeled;
-            this.showChangeButton = showChangeButton;
             this.imgFile = imgFile;
-            this.showMaskButton = showMaskButton;
-            this.includeAllMaskInOneFile = includeAllMaskInOneFile;
-            this.checkBoxContent = checkBoxContent;
+            LabeledBBoxPropertiesVisibility = labeledBBoxPropertiesVisibility;
+            LabeledMaskPropertiesVisibility = labeledMaskPropertiesVisibility;
+            MaskPropertiesVisibility = maskPropertiesVisibility;
+            BBoxPropertiesVisibility = bBoxPropertiesVisibility;
+
+            AnalyzeBtnVisibility = (LabeledBBoxPropertiesVisibility == Visibility.Visible || LabeledMaskPropertiesVisibility == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed;
+            ReLabelingVisibility = (BBoxPropertiesVisibility == Visibility.Visible || MaskPropertiesVisibility == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed;
+            SaveBBoxImageVisibility = (BBoxPropertiesVisibility == Visibility.Visible || LabeledBBoxPropertiesVisibility == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed;
+            saveMenuVisibility = (LabeledBBoxPropertiesVisibility == Visibility.Visible || LabeledMaskPropertiesVisibility == Visibility.Visible || MaskPropertiesVisibility == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

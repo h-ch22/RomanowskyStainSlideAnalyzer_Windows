@@ -35,12 +35,15 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             switch (className)
             {
                 case "None":
+                case "0":
                 default:
                     return Color.FromArgb(255, 235, 64, 52);
 
+                case "1":
                 case "Large Cell":
                     return Color.FromArgb(255, 43, 207, 98);
 
+                case "2":
                 case "Small Cell":
                     return Color.FromArgb(255, 43, 120, 207);
             }
@@ -98,12 +101,13 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             }
         }
 
-        public void CreateCSVFile(string csvFilePath, string to, AnalyzeByClassDataModel[] classData, List<AnalyzeDataModel> data)
+        public void CreateCSVFile(string csvFilePath, string to, AnalyzeByClassDataModel[] classData, List<AnalyzeDataModel> data, bool isBBox)
         {
             try
             {
                 var csvFilePathSplit = csvFilePath.Split(@"\");
-                var fileName = csvFilePathSplit[csvFilePathSplit.Length - 1].Split(".csv")[0];
+                var postfix = isBBox ? "BoundingBoxes" : "Masks";
+                var fileName = $"{csvFilePathSplit[csvFilePathSplit.Length - 1].Split(".csv")[0]}_{postfix}";
                 var allLabelHeader = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", "Class", "X", "Y", "W", "H", "Size", "A", "R", "G", "B", "Hue", "Saturation", "Brightness");
                 var header = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", "Class", "A", "R", "G", "B", "Hue", "Saturation", "Brightness", "Width", "Height", "Size");
 
@@ -229,6 +233,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             var allFiles = Directory.GetFiles($@"{path}\", "*.csv");
             var csvFiles = allFiles.Where(file => !file.Contains("Labeled")).ToArray();
 
+            if(File.Exists($@"{path}\Mask_Labeled.csv") && exportAsOneFile)
+            {
+                File.Delete($@"{path}\Mask_Labeled.csv");
+            }
+
             for (var i = 0; i < csvFiles.Length; i++)
             {
                 var file = csvFiles[i];
@@ -331,7 +340,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             }
         }
 
-        private string convertClassIdAsClass(string classId)
+        public static string convertClassIdAsClass(string classId)
         {
             switch(classId)
             {
@@ -355,44 +364,45 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
 
         public static void writePythonFile(bool isSingleFile, string path)
         {
-            string pyPath = $@"{path}\main.py";
+            var postfix = isSingleFile ? "single" : "multiple";
+            string pyPath = $@"{path}\main_{postfix}.py";
             var pythonStylePath = path.Replace(@"\", "/");
 
             List<string> singleCodeLines = new()
             {
                 "import numpy as np\n",
-                "classes = []\n",
-                "data_rows = []\n",
-                $"segmentation_data = '{pythonStylePath}/Mask_Labeled.csv'\n\n",
-                "with open(segmentation_data, 'r') as file:\n",
-                "\tfor line in file:\n",
-                "\t\tline = line.strip()\n\n",
-                "\t\tif ';' in line:\n",
+                "classes = []",
+                "data_rows = []",
+                $"segmentation_data = '{pythonStylePath}/Mask_Labeled.csv'\n",
+                "with open(segmentation_data, 'r') as file:",
+                "\tfor line in file:",
+                "\t\tline = line.strip()\n",
+                "\t\tif ';' in line:",
                 "\t\t\tclass_value = int(line.replace(';', '').strip())",
                 "\t\t\tclasses.append(class_value)\n",
-                "\t\telse:\n",
-                "\t\t\tdata_row = list(map(int, line.split(',')))\n",
-                "\t\t\tdata_rows.append(data_row)\n\n",
-                "data_array = np.array(data_rows)\n"
+                "\t\telse:",
+                "\t\t\tdata_row = list(map(int, line.split(',')))",
+                "\t\t\tdata_rows.append(data_row)\n",
+                "data_array = np.array(data_rows)"
             };
 
             List<string> multipleCodeLines = new()
             {
-                "import numpy as np\n",
-                "from glob import glob\n\n",
-                "classes = []\n",
-                "data_rows = []\n",
-                $"segmentation_datas = '{pythonStylePath}/Mask_Labeled_*.csv'\n\n",
-                "for file in glob(segmentation_datas):\n",
-                "\twith open(file, 'r') as f:\n",
-                "\t\tfor line in f:\n",
-                "\t\t\tline = line.strip()\n\n",
-                "\t\t\tif ';' in line:\n",
-                "\t\t\t\tclass_value = int(line.replace(';', '').strip())\n",
-                "\t\t\t\tclasses.append(class_value)\n\n",
-                "\t\t\telse:\n",
-                "\t\t\t\tdata_row = list(map(int, line.split(',')))\n",
-                "\t\t\t\tdata_rows.append(data_row)\n",
+                "import numpy as np",
+                "from glob import glob\n",
+                "classes = []",
+                "data_rows = []",
+                $"segmentation_datas = '{pythonStylePath}/Mask_Labeled_*.csv'\n",
+                "for file in glob(segmentation_datas):",
+                "\twith open(file, 'r') as f:",
+                "\t\tfor line in f:",
+                "\t\t\tline = line.strip()\n",
+                "\t\t\tif ';' in line:",
+                "\t\t\t\tclass_value = int(line.replace(';', '').strip())",
+                "\t\t\t\tclasses.append(class_value)\n",
+                "\t\t\telse:",
+                "\t\t\t\tdata_row = list(map(int, line.split(',')))",
+                "\t\t\t\tdata_rows.append(data_row)",
                 "data_array = np.array(data_rows)"
             };
 

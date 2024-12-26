@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using RomanowskyStainSlideAnalyzer.Analyze.Models;
+using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,25 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
             return data;
         }
 
+        public static (string, int[,]) GetMaskWithClass(string path, string idx)
+        {
+            int Height = 512, Width = 512;
+
+            int[,] data = new int[Height, Width];
+            string[] lines = File.ReadAllLines($@"{path}\Mask_Labeled_{idx}.csv");
+
+            for (int y = 1; y < Height; y++)
+            {
+                var values = lines[y].Split(',');
+                for (int x = 0; x < Width; x++)
+                {
+                    data[y, x] = int.Parse(values[x]);
+                }
+            }
+
+            return (lines[0], data);
+        }
+
         public static int GetMaskCount(string path)
         {
             var files = Directory.GetFiles(path);
@@ -45,10 +65,9 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
             return files.Count(s => !s.Contains("Labeled"));
         }
 
-        public static List<Tuple<int, int>>? GetMaskData(string path, string idx)
+        public static List<Tuple<int, int>>? GetMaskData(string path, string idx, bool isLabeled = false)
         {
-            
-            var csvFile = $@"{path}\mask_{idx}.csv";
+            var csvFile = isLabeled ? $@"{path}\Mask_Labeled_{idx}.csv" : $@"{path}\mask_{idx}.csv";
             int[,] data = new int[512, 512];
             List<Tuple<int, int>> coordinates = new List<Tuple<int, int>>();
 
@@ -93,6 +112,64 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
             return (width, height, minX ,minY);
         }
 
+        public static int[,] ResizeData(int[,] data, int originalWidth, int originalHeight, int targetWidth, int targetHeight)
+        {
+            int[,] resizedData = new int[targetHeight, targetWidth];
+            float xRatio = (float)originalWidth / targetWidth;
+            float yRatio = (float)originalHeight / targetHeight;
+
+            for (int y = 0; y < targetHeight; y++)
+            {
+                for (int x = 0; x < targetWidth; x++)
+                {
+                    int originalX = (int)(x * xRatio);
+                    int originalY = (int)(y * yRatio);
+                    resizedData[y, x] = data[originalY, originalX];
+                }
+            }
+            return resizedData;
+        }
+
+        private string GetClass(string path, string idx)
+        {
+            var csvFile = $@"{path}\Mask_Labeled_{idx}.csv";
+            return File.ReadLines(csvFile).First().Split(";")[0];
+        }
+
+        public ObservableCollection<LabelingDataModel> GetData(string maskPath)
+        {
+            var csvFiles = Directory.GetFiles(maskPath, "Mask_Labeled_*.csv");
+            ObservableCollection<LabelingDataModel> datas = new();
+
+            try
+            {
+                for(var i = 0; i < csvFiles.Length; i++)
+                {
+                    var maskData = AnalyzeHelper.GetMaskData(maskPath, i.ToString());
+                    var maskSize = AnalyzeHelper.CalculateMaskSize(maskData);
+
+                    datas.Add(
+                        new(
+                            (i+1).ToString(),
+                            LabelingHelper.convertClassIdAsClass(GetClass(maskPath, i.ToString())),
+                            maskSize.Item3.ToString(),
+                            maskSize.Item4.ToString(),
+                            maskSize.Item1.ToString(),
+                            maskSize.Item2.ToString()
+                        )
+                    );
+                }
+
+                return datas;
+            }
+
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                return datas;
+            }
+        }
+
         public async Task<(AvgDataModel?, Bitmap?)> Analyze(int[,] mask, string imagePath)
         {
             int rows = mask.GetLength(0);
@@ -131,7 +208,10 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
 
             return await Task.Run(async () =>
             {
-                if (points.Count == 0)
+                var width = pMaxX - pMinX;
+                var height = pMaxY - pMinY;
+
+                if (points.Count == 0 || width == 0 || height == 0)
                 {
                     return (null, null);
                 }
@@ -148,7 +228,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
                             g.FillPolygon(brush, pCol);
                         }
 
-                        Rectangle cropRect = new(pMinX, pMinY, pMaxX - pMinX, pMaxY - pMinY);
+                        System.Drawing.Rectangle cropRect = new(pMinX, pMinY, width, height);
                         var bmpClone = bmpWrk.Clone(cropRect, bmpWrk.PixelFormat);
 
                         var avgData = await GetAvg(bmpClone);
@@ -176,6 +256,157 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
                         return (avgData, croppedBmp);
                     }
                 }
+            });
+        }
+
+        public async Task<AllAvgDataModel> Analyze(string imagePath, List<LabelingDataModel> Datas, string csvPath)
+        {
+            var dataCount = Directory.GetFiles($@"{csvPath}", "mask_*.csv").Count(file => Path.GetFileName(file).StartsWith("mask_")); ;
+
+            return await Task.Run(async () =>
+            {
+                var avgAll = new AvgDataModel(Color.Red, 0, 0, 0, 0, 0f, 0f, 0f, 0f, 0, 0, 0f);
+                var avgNone = new AvgDataModel(Color.Red, 0, 0, 0, 0, 0f, 0f, 0f, 0f, 0, 0, 0f);
+                var avgLCell = new AvgDataModel(Color.Red, 0, 0, 0, 0, 0f, 0f, 0f, 0f, 0, 0, 0f);
+                var avgSCell = new AvgDataModel(Color.Red, 0, 0, 0, 0, 0f, 0f, 0f, 0f, 0, 0, 0f);
+
+                for (var i = 0; i < dataCount; i++)
+                {
+                    var mask = AnalyzeHelper.GetMask(csvPath, i.ToString());
+
+                    var analyzedData = await Analyze(mask, imagePath);
+
+                    if (analyzedData.Item1 == null || analyzedData.Item2 == null) continue;
+
+                    var data = analyzedData.Item1;
+                    var bitmap = analyzedData.Item2;
+
+                    var x = int.Parse(Datas[i].x);
+                    var y = int.Parse(Datas[i].y);
+                    var width = int.Parse(Datas[i].width);
+                    var height = int.Parse(Datas[i].height);
+
+                    avgAll.width += float.Parse(Datas[i].width);
+                    avgAll.height += float.Parse(Datas[i].height);
+                    avgAll.size += float.Parse(Datas[i].width) * float.Parse(Datas[i].height);
+
+                    if (width == 0 || height == 0) continue;
+
+                    using(Bitmap croppedImage = bitmap)
+                    {
+                        for(int _x = 0; _x < bitmap.Width; _x++)
+                        {
+                            for(int _y = 0; _y < bitmap.Height; _y++)
+                            {
+                                Color clr = bitmap.GetPixel(_x, _y);
+                                avgAll.a += clr.A;
+                                avgAll.r += clr.R;
+                                avgAll.g += clr.G;
+                                avgAll.b += clr.B;
+                                avgAll.brightness += clr.GetBrightness();
+                                avgAll.hue += clr.GetHue();
+                                avgAll.saturation += clr.GetSaturation();
+
+                                avgAll.total++;
+
+                                switch(Datas[i].classId)
+                                {
+                                    case "None":
+                                        avgNone.a += clr.A;
+                                        avgNone.r += clr.R;
+                                        avgNone.g += clr.G;
+                                        avgNone.b += clr.B;
+                                        avgNone.brightness += clr.GetBrightness();
+                                        avgNone.hue += clr.GetHue();
+                                        avgNone.saturation += clr.GetSaturation();
+
+                                        avgNone.width += float.Parse(Datas[i].width);
+                                        avgNone.height += float.Parse(Datas[i].height);
+                                        avgNone.size += (float.Parse(Datas[i].width) * float.Parse(Datas[i].height));
+
+                                        avgNone.total++;
+
+                                        break;
+
+                                    case "Large Cell":
+                                        avgLCell.a += clr.A;
+                                        avgLCell.r += clr.R;
+                                        avgLCell.g += clr.G;
+                                        avgLCell.b += clr.B;
+                                        avgLCell.brightness += clr.GetBrightness();
+                                        avgLCell.hue += clr.GetHue();
+                                        avgLCell.saturation += clr.GetSaturation();
+
+                                        avgLCell.width += float.Parse(Datas[i].width);
+                                        avgLCell.height += float.Parse(Datas[i].height);
+                                        avgLCell.size += (float.Parse(Datas[i].width) * float.Parse(Datas[i].height));
+
+                                        avgLCell.total++;
+
+                                        break;
+
+                                    case "Small Cell":
+                                        avgSCell.a += clr.A;
+                                        avgSCell.r += clr.R;
+                                        avgSCell.g += clr.G;
+                                        avgSCell.b += clr.B;
+                                        avgSCell.brightness += clr.GetBrightness();
+                                        avgSCell.hue += clr.GetHue();
+                                        avgSCell.saturation += clr.GetSaturation();
+
+                                        avgSCell.width += float.Parse(Datas[i].width);
+                                        avgSCell.height += float.Parse(Datas[i].height);
+                                        avgSCell.size += (float.Parse(Datas[i].width) * float.Parse(Datas[i].height));
+
+                                        avgSCell.total++;
+
+                                        break;
+
+                                    default: break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                avgAll.calculateHSB();
+                avgAll.calculateSize(Datas.Count);
+
+                avgLCell.calculateHSB();
+                avgLCell.calculateSize();
+
+                avgSCell.calculateHSB();
+                avgSCell.calculateSize();
+
+                avgNone.calculateHSB();
+                avgNone.calculateSize();
+
+                avgAll.a = GetAvg(avgAll.a, avgAll.total);
+                avgAll.r = GetAvg(avgAll.r, avgAll.total);
+                avgAll.g = GetAvg(avgAll.g, avgAll.total);
+                avgAll.b = GetAvg(avgAll.b, avgAll.total);
+
+                avgNone.a = GetAvg(avgNone.a, avgNone.total);
+                avgNone.r = GetAvg(avgNone.r, avgNone.total);
+                avgNone.g = GetAvg(avgNone.g, avgNone.total);
+                avgNone.b = GetAvg(avgNone.b, avgNone.total);
+
+                avgLCell.a = GetAvg(avgLCell.a, avgLCell.total);
+                avgLCell.r = GetAvg(avgLCell.r, avgLCell.total);
+                avgLCell.g = GetAvg(avgLCell.g, avgLCell.total);
+                avgLCell.b = GetAvg(avgLCell.b, avgLCell.total);
+
+                avgSCell.a = GetAvg(avgSCell.a, avgSCell.total);
+                avgSCell.r = GetAvg(avgSCell.r, avgSCell.total);
+                avgSCell.g = GetAvg(avgSCell.g, avgSCell.total);
+                avgSCell.b = GetAvg(avgSCell.b, avgSCell.total);
+
+                avgAll.setARGB();
+                avgLCell.setARGB();
+                avgSCell.setARGB();
+                avgNone.setARGB();
+
+                return new AllAvgDataModel(avgAll, avgNone, avgLCell, avgSCell);
             });
         }
 
@@ -402,7 +633,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
             AnalyzeByClassDataModel[] data = [
                 new(
                     "All",
-                    allData.avgData.color.ToString(),
+                    allData.avgData.a.ToString(),
                     allData.avgData.r.ToString(),
                     allData.avgData.g.ToString(),
                     allData.avgData.b.ToString(),
@@ -416,7 +647,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
 
                 new(
                     "None",
-                    allData.avgNone.color.ToString(),
+                    allData.avgNone.a.ToString(),
                     allData.avgNone.r.ToString(),
                     allData.avgNone.g.ToString(),
                     allData.avgNone.b.ToString(),
@@ -430,7 +661,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
 
                 new(
                     "Large Cell",
-                    allData.avgLCell.color.ToString(),
+                    allData.avgLCell.a.ToString(),
                     allData.avgLCell.r.ToString(),
                     allData.avgLCell.g.ToString(),
                     allData.avgLCell.b.ToString(),
@@ -444,7 +675,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Helper
 
                 new(
                     "Small Cell",
-                    allData.avgSCell.color.ToString(),
+                    allData.avgSCell.a.ToString(),
                     allData.avgSCell.r.ToString(),
                     allData.avgSCell.g.ToString(),
                     allData.avgSCell.b.ToString(),

@@ -45,7 +45,7 @@
                 <ProgressRing IsIndeterminate="True"/>
             </AppBarButton>
             
-            <AppBarToggleButton x:Name="btn_useBBox" Click="btn_useBBox_Click" IsChecked="{x:Bind viewModel.UseBBoxAsTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{x:Bind viewModel.EnableUseBBoxButton, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Use Bounding Box to Analyze Data" Icon="Crop"/>
+            <AppBarToggleButton x:Name="btn_useBBox" Click="btn_useBBox_Click" IsChecked="{x:Bind viewModel.UseBBoxAsTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{x:Bind viewModel.EnableUseBBoxButton, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Use Bounding Box to Show Data" Icon="Crop"/>
             <AppBarToggleButton x:Name="btn_hideBBox" Checked="AppBarToggleButton_Checked" Unchecked="AppBarToggleButton_Checked" IsChecked="False" Label="Hide Mask" Icon="ClearSelection"/>
             <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Icon="Zoom" Label="Zoom Mode"/>
         </CommandBar>

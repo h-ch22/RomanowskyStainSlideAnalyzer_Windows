@@ -35,14 +35,12 @@
                             </StackPanel>
                         </Button>
 
-                        <Button Margin="10 0 0 0" Height="40" x:Name="btn_showData" Click="OnLabelingOptionClick" Visibility="{x:Bind showSaveButton, Mode=TwoWay}">
+                        <Button Margin="10 0 0 0" Height="40" x:Name="btn_showData" Click="OnLabelingOptionClick" Visibility="{x:Bind AnalyzeBtnVisibility, Mode=TwoWay}">
                             <StackPanel Orientation="Horizontal">
                                 <SymbolIcon Symbol="AllApps"/>
                                 <TextBlock Text="Analyze" Margin="10 0 0 0"/>
                             </StackPanel>
                         </Button>
-
-                        <ProgressRing x:Name="progressRing" IsIndeterminate="True" Visibility="{x:Bind showProgress, Mode=TwoWay}" Margin="10 0 0 0"/>
 
                         <Button Margin="10 0 0 0" x:Name="btn_more" Height="40">
                             <Button.Content>
@@ -51,7 +49,7 @@
 
                             <Button.Flyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Click="OnRelabelingOptionClick" x:Name="btn_relabel" Text="Re-labeling" Visibility="{x:Bind showChangeButton, Mode=TwoWay}">
+                                    <MenuFlyoutItem Click="OnRelabelingOptionClick" x:Name="btn_relabel" Text="Re-labeling" Visibility="{x:Bind ReLabelingVisibility, Mode=TwoWay}">
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Caption"/>
                                         </MenuFlyoutItem.Icon>
@@ -62,30 +60,42 @@
                                             <SymbolIcon Symbol="MoveToFolder"/>
                                         </MenuFlyoutSubItem.Icon>
 
-                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingData" Text="Change Labeling Data" Visibility="{x:Bind showChangeButton, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingData" Text="Change Labeling Data" Visibility="{x:Bind BBoxPropertiesVisibility, Mode=TwoWay}"/>
 
-                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingMaskData" Text="Change Labeled Mask Data" Visibility="{x:Bind showChangeButton, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingMaskData" Text="Change Labeled Mask Data" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}"/>
 
-                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeMaskData" Text="Change Mask Data" Visibility="{x:Bind showChangeButton, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeMaskData" Text="Change Mask Data"/>
                                     
                                     </MenuFlyoutSubItem>
 
-                                    <MenuFlyoutSubItem Text="Save Data" Visibility="{x:Bind showSaveButton, Mode=TwoWay}">
+                                    <MenuFlyoutSubItem Text="Save Data" Visibility="{x:Bind saveMenuVisibility, Mode=TwoWay}">
                                         <MenuFlyoutSubItem.Icon>
                                             <SymbolIcon Symbol="Download"/>
                                         </MenuFlyoutSubItem.Icon>
 
-                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveLabelingData" Text="Save Labeling Data" Visibility="{x:Bind showSaveButton, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveLabelingData" Text="Save Labeling Data" Visibility="{x:Bind LabeledBBoxPropertiesVisibility, Mode=TwoWay}"/>
 
-                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveMaskData" Text="Save Labeled Mask Data" Visibility="{x:Bind showMaskButton, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveMaskData" Text="Save Labeled Mask Data" Visibility="{x:Bind LabeledMaskPropertiesVisibility, Mode=TwoWay}"/>
 
-                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveOriginalMask" Text="Save Original Mask Data" Visibility="{x:Bind showMaskButton, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveOriginalMask" Text="Save Original Mask Data" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}"/>
 
                                     </MenuFlyoutSubItem>
-
-                                    <MenuFlyoutItem Click="SaveImageWithBBoxes" x:Name="btn_saveImageWithBBox" Text="Save Image with Bounding Boxes" Visibility="{x:Bind showChangeButton, Mode=TwoWay}">
+                                    
+                                    <MenuFlyoutItem Click="SaveImageWithBBoxes" x:Name="btn_saveImageWithBBox" Text="Save Image with Bounding Boxes" Visibility="{x:Bind SaveBBoxImageVisibility, Mode=TwoWay}">
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Crop"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+
+                                    <MenuFlyoutItem Click="SaveWithLabeledMasks" x:Name="btn_saveImageWithMask" Text="Save Image with Masks" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}">
+                                        <MenuFlyoutItem.Icon>
+                                            <SymbolIcon Symbol="Pictures"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+
+                                    <MenuFlyoutItem Click="Delete" x:Name="btn_delete" Text="Delete">
+                                        <MenuFlyoutItem.Icon>
+                                            <SymbolIcon Symbol="Delete"/>
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
 
@@ -111,7 +121,13 @@
         </Grid.RowDefinitions>
 
         <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-            <AppBarButton Click="Refresh" Label="Refresh" Icon="Refresh"/>
+            <AppBarButton IsEnabled="False" x:Name="appBarProgress" Visibility="Collapsed">
+                <AppBarButton.Content>
+                    <ProgressRing IsIndeterminate="True"/>
+                </AppBarButton.Content>
+            </AppBarButton>
+            
+            <AppBarButton x:Name="btn_refresh" Click="Refresh" Label="Refresh" Icon="Refresh"/>
         </CommandBar>
 
         <DatePicker Grid.Row="1" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>

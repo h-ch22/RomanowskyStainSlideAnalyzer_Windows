@@ -67,7 +67,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             );
 
             ReleaseNotes.Add(
-                new("History", "- A completely new design for History View is now available.\n- Re-labeling is now available.\n- Save Mask Labeling Data is now available.\n- Label Mask Data is now available.")
+                new("History", "- A completely new design for History View is now available.\n- Re-labeling is now available.\n- Save Mask Labeling Data is now available.\n- Label Mask Data is now available.\n- Save the masked image is available.")
             );
 
             ReleaseNotes.Add(
@@ -75,7 +75,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             );
 
             ReleaseNotes.Add(
-                new("Analyze", "- The ability to analyze segmentation mask data is now available.\n- Toggle Bounding Box / Mask option is now available.")
+                new("Analyze", "- The ability to analyze segmentation mask data is now available.\n- Toggle Bounding Box / Mask option is now available.\n- Fixed the issue where the average A value was not displayed properly when exporting data.")
             );
         }
 
