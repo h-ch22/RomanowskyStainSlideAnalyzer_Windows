@@ -25,6 +25,7 @@ using RomanowskyStainSlideAnalyzer.Home.Helper;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Numerics;
 using RomanowskyStainSlideAnalyzer.Frameworks.View;
+using System.Collections;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -40,6 +41,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         private LabelingHelper helper = new();
         private AnalyzeHelper analyzeHelper = new();
         private ObservableCollection<LabelingDataModel> Datas;
+        private ObservableCollection<LabelingDataModel> MaskDatas;
 
         private string path = "";
         private string maskPath = "";
@@ -54,11 +56,20 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             viewModel.CSVPath = CSVPath;
             viewModel.IsMaskAvailable = IsMaskAvailable;
 
+            if(!IsMaskAvailable)
+            {
+                viewModel.MaskDataVisibility = Visibility.Collapsed;
+            }
+            else
+            {
+                GetMaskPath();
+            }
+
             IntPtr hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
 
             AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
-            appWindow.Resize(new Windows.Graphics.SizeInt32(1280, 1000));
+            appWindow.Resize(new Windows.Graphics.SizeInt32(1350, 1000));
             Init();
         }
 
@@ -79,20 +90,21 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
         private async void GetData()
         {
-            if(viewModel.UseBoundingBoxAsTarget)
-            {
-                var data = helper.GetData(viewModel.CSVPath);
+            var data = helper.GetData(viewModel.CSVPath);
 
-                DispatcherQueue.TryEnqueue(() =>
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!viewModel.IsMaskAvailable)
                 {
                     viewModel.ShowProgress = Visibility.Collapsed;
                     scrollView.Visibility = Visibility.Visible;
-                    Datas = data;
-                    listView.ItemsSource = Datas;
-                });
-            }
+                }
 
-            else
+                Datas = data;
+                listView.ItemsSource = Datas;
+            });
+
+            if (viewModel.IsMaskAvailable)
             {
                 await Task.Run(() =>
                 {
@@ -101,11 +113,9 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        Datas = data;
-
+                        MaskDatas = data;
                         viewModel.ShowProgress = Visibility.Collapsed;
                         scrollView.Visibility = Visibility.Visible;
-                        listView.ItemsSource = Datas;
                     });
                 });
             }
@@ -143,28 +153,61 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                     }
 
-                    else
+                    else if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
                     {
                         var data = AnalyzeHelper.GetMask(maskPath, listView.SelectedIndex.ToString());
                         DrawContours(data);
                     }
                 }
 
-                if (viewModel.IsZoomModeEnabled && img_scrollView.ZoomFactor <= 1F)
-                {
-                    img_scrollView.ZoomTo(3F, new(float.Parse(dataModel.x), float.Parse(dataModel.y)));
-                }
-                else if (viewModel.IsZoomModeEnabled)
-                {
-                    double zoomFactor = img_scrollView.ZoomFactor;
+                float xRatio = (float)viewModel.Size / 512;
+                float yRatio = (float)viewModel.Size / 512;
 
+                int newX = (int)(float.Parse(dataModel.x) * xRatio);
+                int newY = (int)(float.Parse(dataModel.y) * yRatio);
+                float newWidth = float.Parse(dataModel.width) * xRatio;
+                float newHeight = float.Parse(dataModel.height) * yRatio;
+
+                if (viewModel.IsZoomModeEnabled)
+                {
                     double viewportWidth = img_scrollView.ViewportWidth;
                     double viewportHeight = img_scrollView.ViewportHeight;
 
-                    double scrollOffsetX = (double.Parse(dataModel.x)) * zoomFactor - (viewportWidth / 2);
-                    double scrollOffsetY = (double.Parse(dataModel.y)) * zoomFactor - (viewportHeight / 2);
+                    if (img_scrollView.ZoomFactor <= 1F)
+                    {
+                        img_scrollView.ZoomTo(3F, new(newX, newY));
+                    } 
+                    else
+                    {
+                        double zoomFactor = img_scrollView.ZoomFactor;
+                        double scrollOffsetX = Convert.ToDouble(newX) * zoomFactor - (viewportWidth / 2);
+                        double scrollOffsetY = Convert.ToDouble(newY) * zoomFactor - (viewportHeight / 2);
+                        img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+                    }
 
-                    img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+                    if (img_maskScrollView.ZoomFactor <= 1F)
+                    {
+                        img_maskScrollView.ZoomTo(3F, new(newX, newY));
+                    }
+                    else
+                    {
+                        double zoomFactor = img_maskScrollView.ZoomFactor;
+                        double scrollOffsetX = Convert.ToDouble(newX) * zoomFactor - (viewportWidth / 2);
+                        double scrollOffsetY = Convert.ToDouble(newY) * zoomFactor - (viewportHeight / 2);
+                        img_maskScrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+                    }
+
+                    if (img_originalScrollView.ZoomFactor <= 1F)
+                    {
+                        img_originalScrollView.ZoomTo(3F, new(newX, newY));
+                    }
+                    else
+                    {
+                        double zoomFactor = img_originalScrollView.ZoomFactor;
+                        double scrollOffsetX = Convert.ToDouble(newX) * zoomFactor - (viewportWidth / 2);
+                        double scrollOffsetY = Convert.ToDouble(newY) * zoomFactor - (viewportHeight / 2);
+                        img_originalScrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+                    }
                 }
             }
         }
@@ -304,18 +347,26 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             DeleteBBox();
 
+            float xRatio = (float)viewModel.Size / 512;
+            float yRatio = (float)viewModel.Size / 512;
+
+            int newX = (int)(float.Parse(x) * xRatio);
+            int newY = (int)(float.Parse(y) * yRatio);
+            int newWidth = (int)(float.Parse(width) * xRatio);
+            int newHeight = (int)(float.Parse(height) * yRatio);
+
             Microsoft.UI.Xaml.Shapes.Rectangle bBox = new()
             {
-                Width = int.Parse(width),
-                Height = int.Parse(height),
+                Width = newWidth,
+                Height = newHeight,
                 Stroke = new SolidColorBrush(showBBoxColor ? ToMediaColor(LabelingHelper.GetBoundingBoxColor(className)) : Windows.UI.Color.FromArgb(255, 219, 66, 66))
             };
 
             bBox.Name = "boundingBox";
 
             canvas.Children.Add(bBox);
-            bBox.SetValue(Canvas.LeftProperty, Double.Parse(x));
-            bBox.SetValue(Canvas.TopProperty, Double.Parse(y));
+            bBox.SetValue(Canvas.LeftProperty, Convert.ToDouble(newX));
+            bBox.SetValue(Canvas.TopProperty, Convert.ToDouble(newY));
         }
 
         private void DrawContours(int[,] data)
@@ -347,14 +398,34 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             Canvas.SetTop(rect, y);
             rect.Name = "contour";
 
-            canvas.Children.Add(rect);
+            if(viewModel.ShowAllData)
+            {
+                maskCanvas.Children.Add(rect);
+            }
+            else
+            {
+                canvas.Children.Add(rect);
+            }
         }
 
         private void DeleteContours()
         {
-            var toRemove = canvas.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>()
-                                          .Where(rect => rect.Name == "contour")
-                                          .ToList();
+            List<Microsoft.UI.Xaml.Shapes.Rectangle> toRemove;
+
+            if(viewModel.ShowAllData)
+            {
+                toRemove = maskCanvas.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>()
+                              .Where(rect => rect.Name == "contour")
+                              .ToList();
+            }
+
+            else
+            {
+                toRemove = canvas.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>()
+                              .Where(rect => rect.Name == "contour")
+                              .ToList();
+            }
+
 
             foreach (var rect in toRemove)
             {
@@ -391,7 +462,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                     }
 
-                    else
+                    else if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
                     {
                         var data = AnalyzeHelper.GetMask(maskPath, idx.ToString());
                         DrawContours(data);
@@ -411,7 +482,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             listView.SelectedItem = null;
             ToggleVisibility();
 
-            await SetData();
+            listView.ItemsSource = viewModel.UseBoundingBoxAsTarget ? Datas : MaskDatas;
 
             appBarProgress.Visibility = Visibility.Collapsed;
             btn_useBBox.Visibility = Visibility.Visible;
@@ -459,7 +530,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                     CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                 }
 
-                else
+                else if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
                 {
                     var data = AnalyzeHelper.GetMask(maskPath, idx.ToString());
                     DrawContours(data);
@@ -516,6 +587,20 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             var dataToExport = await analyzeHelper.Export(viewModel.AllAvg, Datas, viewModel.ImagePath);
 
             await Task.Run(() => helper.CreateCSVFile(viewModel.CSVPath, path, dataToExport.Item1, dataToExport.Item2, viewModel.UseBoundingBoxAsTarget));
+        }
+
+        private void ToggleAllData(object sender, RoutedEventArgs e)
+        {
+            viewModel.AllDataVisibility = viewModel.ShowAllData ? Visibility.Visible : Visibility.Collapsed;
+            viewModel.MaskDataVisibility = (viewModel.ShowAllData && viewModel.IsMaskAvailable) ? Visibility.Visible : Visibility.Collapsed;
+
+            btn_useBBox.Visibility = viewModel.ShowAllData ? Visibility.Collapsed : Visibility.Visible;
+            viewModel.Size = viewModel.ShowAllData ? 256 : 512;
+            viewModel.Center = viewModel.ShowAllData ? 128 : 256;
+
+            listView.SelectedIndex = -1;
+            DeleteBBox();
+            DeleteContours();
         }
     }
 }

@@ -143,42 +143,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             }
         }
 
-        public void AppendText(int classId, string X, string Y, string W, string H)
-        {
-            try
-            {
-                var filePath = $"{path.Split(".txt")[0]}.csv";
-                var csv = new StringBuilder();
-                var content = string.Format("{0},{1},{2},{3},{4}", classId.ToString(), X, Y, W, H);
-                csv.AppendLine(content);
-
-                File.AppendAllText(filePath, csv.ToString());
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public void ChangeLine(int classId, string X, string Y, string W, string H, int line)
-        {
-            try
-            {
-                var filePath = $"{path.Split(".txt")[0]}.csv";
-                var content = string.Format("{0},{1},{2},{3},{4}", classId.ToString(), X, Y, W, H);
-
-                string[] lineArr = File.ReadAllLines(filePath);
-                lineArr[line] = content.ToString();
-
-                File.WriteAllLines(filePath, lineArr);
-            }
-
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-        }
-
         public bool IsDestinationFileExists(string folder)
         {
             var splitPath = path.Split(@"\");
@@ -226,6 +190,38 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             {
                 throw e;
             }
+        }
+
+        public async Task CreateLabelingData(List<int> labeledDatas, List<BoundingBoxDataModel> bBoxes)
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    for(var i = 0; i < labeledDatas.Count; i++)
+                    {
+                        var filePath = $"{path.Split(".txt")[0]}.csv";
+                        var csv = new StringBuilder();
+                        var content = string.Format(
+                                                    "{0},{1},{2},{3},{4}",
+                                                    labeledDatas[i].ToString(),
+                                                    bBoxes[i].X,
+                                                    bBoxes[i].Y,
+                                                    bBoxes[i].Width,
+                                                    bBoxes[i].Height
+                                                );
+
+                        csv.AppendLine(content);
+
+                        File.AppendAllText(filePath, csv.ToString());
+                    }
+                }
+
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            });
         }
 
         public static void CreateMaskLabelingData(string path, bool exportAsOneFile, List<int> labeledDatas)

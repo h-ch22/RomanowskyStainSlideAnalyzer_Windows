@@ -71,7 +71,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             );
 
             ReleaseNotes.Add(
-                new("Labeling", "- Toggle Bounding Box / Mask option is now available.")
+                new("Labeling", "- Toggle Bounding Box / Mask option is now available.\n- Now when you click the back and next buttons, if there is any saved data it will be displayed.")
             );
 
             ReleaseNotes.Add(

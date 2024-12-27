@@ -44,9 +44,10 @@
                 <ProgressRing></ProgressRing>
             </AppBarButton>
 
-            <AppBarToggleButton IsEnabled="False" x:Name="btn_useBBox" Click="ToggleDataTarget" IsChecked="{x:Bind viewModel.UseBoundingBoxAsTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Use Bounding Box to Analyze Data" Icon="Crop"/>
+            <AppBarToggleButton Click="ToggleAllData" IsChecked="{x:Bind viewModel.ShowAllData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Show All Data" Icon="ViewAll"/>
+            <AppBarToggleButton Visibility="Collapsed" IsEnabled="False" x:Name="btn_useBBox" Click="ToggleDataTarget" IsChecked="{x:Bind viewModel.UseBoundingBoxAsTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Use Bounding Box to Analyze Data" Icon="Crop"/>
             <AppBarToggleButton x:Name="btn_hideBBox" Checked="AppBarToggleButton_Checked" Unchecked="AppBarToggleButton_Checked" IsChecked="False" Label="Hide Mask" Icon="ClearSelection"/>
-            <AppBarToggleButton x:Name="btn_toggleBBoxColor" Checked="ToggleBBoxColor" Unchecked="ToggleBBoxColor" IsChecked="True" Label="Show Color By Class" Icon="ViewAll"/>
+            <AppBarToggleButton x:Name="btn_toggleBBoxColor" Checked="ToggleBBoxColor" Unchecked="ToggleBBoxColor" IsChecked="True" Label="Show Color By Class" Icon="Flag"/>
             <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Zoom Mode" Icon="Find"/>
         </CommandBar>
 
@@ -63,16 +64,93 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <ScrollView x:Name="img_scrollView" Grid.Row="0" Width="512" Height="512" ContentOrientation="None" ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTabStop="True" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                        <Canvas Opacity="1" x:Name="canvas" Width="512" Height="512">
-                            <Image x:Name="img_source" Source="{x:Bind viewModel.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="512" Height="512" Stretch="Fill">
-                                <Image.RenderTransform>
-                                    <RotateTransform Angle="270" CenterX="256" CenterY="256"/>
-                                </Image.RenderTransform>
-                            </Image>
-                        </Canvas>
-                    </ScrollView>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <ScrollView
+                            Margin="10 0 10 0"
+                            Visibility="{x:Bind viewModel.AllDataVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            x:Name="img_originalScrollView"
+                            Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ContentOrientation="None"
+                            ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsTabStop="True"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            HorizontalScrollMode="Auto"
+                            VerticalScrollMode="Auto"
+                            HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Auto">
+
+                            <Canvas
+                                Opacity="1"
+                                x:Name="originalCanvas"
+                                Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+
+                                <Image
+                                    x:Name="img_originalSource"
+                                    Source="{x:Bind viewModel.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Stretch="Fill">
+                                    <Image.RenderTransform>
+                                        <RotateTransform
+                                            x:Name="originalTransform"
+                                            Angle="270"
+                                            CenterX="{x:Bind viewModel.Center, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            CenterY="{x:Bind viewModel.Center, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Image.RenderTransform>
+                                </Image>
+                            </Canvas>
+                        </ScrollView>
+
+                        <ScrollView                             
+                            x:Name="img_scrollView"
+                            Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ContentOrientation="None"
+                            ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsTabStop="True"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            HorizontalScrollMode="Auto"
+                            VerticalScrollMode="Auto"
+                            HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Auto">
+                            <Canvas Opacity="1" x:Name="canvas" Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <Image x:Name="img_source" Source="{x:Bind viewModel.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Stretch="Fill">
+                                    <Image.RenderTransform>
+                                        <RotateTransform x:Name="rotateTransform" Angle="270" CenterX="{x:Bind viewModel.Center, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" CenterY="{x:Bind viewModel.Center, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Image.RenderTransform>
+                                </Image>
+                            </Canvas>
+                        </ScrollView>
+
+                        <ScrollView
+                            Margin="10 0 0 0"
+                            Visibility="{x:Bind viewModel.MaskDataVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            x:Name="img_maskScrollView"
+                            Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ContentOrientation="None"
+                            ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsTabStop="True"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            HorizontalScrollMode="Auto"
+                            VerticalScrollMode="Auto"
+                            HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Auto">
+                            <Canvas Opacity="1" x:Name="maskCanvas" Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <Image x:Name="img_maskSource" Source="{x:Bind viewModel.ImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="{x:Bind viewModel.Size, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Stretch="Fill">
+                                    <Image.RenderTransform>
+                                        <RotateTransform x:Name="maskTransform" Angle="270" CenterX="{x:Bind viewModel.Center, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" CenterY="{x:Bind viewModel.Center, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </Image.RenderTransform>
+                                </Image>
+                            </Canvas>
+                        </ScrollView>
+                    </StackPanel>
+
 
                     <ProgressRing Grid.Row="1" IsIndeterminate="True" Visibility="{x:Bind viewModel.ShowProgress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 

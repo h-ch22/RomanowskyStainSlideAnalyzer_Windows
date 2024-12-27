@@ -131,15 +131,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             {
                 try
                 {
-                    helper.ChangeLine(
-                        (int)classType,
-                        currentData.X.ToString(),
-                        currentData.Y.ToString(),
-                        currentData.Width.ToString(),
-                        currentData.Height.ToString(),
-                        viewModel.CurrentIndex
-                    );
-
                     labeledDatas[viewModel.CurrentIndex - 1] = (int)classType;
                 }
                 catch (Exception ex)
@@ -156,14 +147,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             {
                 try
                 {
-                    helper.AppendText(
-                        (int)classType,
-                        currentData.X.ToString(),
-                        currentData.Y.ToString(),
-                        currentData.Width.ToString(),
-                        currentData.Height.ToString()
-                    );
-
                     labeledDatas.Add((int)classType);
                 }
                 catch (Exception ex)
@@ -193,6 +176,41 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                         if (viewModel.CurrentIndex == EditModeEndIndex) IsEditMode = false;
 
+                        if(BoundingBoxes == null || BoundingBoxes.Count < viewModel.AllIndex)
+                        {
+                            if (BoundingBoxes == null) BoundingBoxes = new();
+
+                            if(IsEditMode)
+                            {
+                                BoundingBoxes[viewModel.CurrentIndex - 1] = new(currentData.X, currentData.Y, currentData.Width, currentData.Height);
+                            }
+
+                            else
+                            {
+                                BoundingBoxes.Add(new(currentData.X, currentData.Y, currentData.Width, currentData.Height));
+                            }
+                        }
+
+                        if (IsEditMode)
+                        {
+                            switch (labeledDatas[viewModel.CurrentIndex - 1])
+                            {
+                                case 0:
+                                    radio_A.IsChecked = true;
+                                    break;
+
+                                case 1:
+                                    radio_B.IsChecked = true;
+                                    break;
+
+                                case 2:
+                                    radio_C.IsChecked = true;
+                                    break;
+
+                                default: break;
+                            }
+                        }
+
                         viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
                         btn_previous.IsEnabled = viewModel.CurrentIndex > 1;
 
@@ -217,7 +235,19 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                     {
                         IsDone = true;
 
-                        if(isMaskAvailable)
+                        try
+                        {
+                            helper.CreateLabelingData(labeledDatas, BoundingBoxes);
+                        } catch(Exception ex)
+                        {
+                            MainWindow.ShowContentDialogAsync(
+                                "Error",
+                                 $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}",
+                                 "OK"
+                            );
+                        }
+
+                        if (isMaskAvailable)
                         {
                             LabelingHelper.CreateMaskLabelingData(
                                 $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
@@ -335,13 +365,15 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                 case "btn_previous":
                     IsDone = false;
+                    btn_next.Content = "Next";
 
-                    if(viewModel.CurrentIndex > 1)
+                    if (viewModel.CurrentIndex > 1)
                     {
                         if(!IsEditMode || EditModeEndIndex < viewModel.CurrentIndex)
                         {
                             EditModeEndIndex = viewModel.CurrentIndex;
                         }
+
                         viewModel.CurrentIndex -= 1;
                         LoadData();
                         viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
@@ -573,7 +605,12 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                     if(BoundingBoxes == null || BoundingBoxes.Count == 0)
                     {
-                        BoundingBoxes = helper.GetBoundingBox();                        
+                        BoundingBoxes = helper.GetBoundingBox();              
+                        
+                        if(BoundingBoxes.Count == 0)
+                        {
+                            BoundingBoxes = new();
+                        }
                     }
 
                     DispatcherQueue.TryEnqueue(() =>

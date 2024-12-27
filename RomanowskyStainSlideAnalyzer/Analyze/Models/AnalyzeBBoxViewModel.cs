@@ -35,6 +35,39 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Models
             }
         }
 
+        private bool _ShowAllData = true;
+        public bool ShowAllData
+        {
+            get => _ShowAllData;
+            set
+            {
+                _ShowAllData = value;
+                OnPropertyChanged(nameof(ShowAllData));
+            }
+        }
+
+        private int _Size = 256;
+        public int Size
+        {
+            get => _Size;
+            set
+            {
+                _Size = value;
+                OnPropertyChanged(nameof(Size));
+            }
+        }
+
+        private int _Center = 128;
+        public int Center
+        {
+            get => _Center;
+            set
+            {
+                _Center = value;
+                OnPropertyChanged(nameof(Center));
+            }
+        }
+
         private bool _UseBoundingBoxAsTarget = true;
         public bool UseBoundingBoxAsTarget
         {
@@ -65,6 +98,28 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Models
             set
             {
                 _ZoomMode = value;
+            }
+        }
+
+        private Visibility _AllDataVisibility = Visibility.Visible;
+        public Visibility AllDataVisibility
+        {
+            get => _AllDataVisibility;
+            set
+            {
+                _AllDataVisibility = value;
+                OnPropertyChanged(nameof(AllDataVisibility));
+            }
+        }
+
+        private Visibility _MaskDataVisibility = Visibility.Visible;
+        public Visibility MaskDataVisibility
+        {
+            get => _MaskDataVisibility;
+            set
+            {
+                _MaskDataVisibility = value;
+                OnPropertyChanged(nameof(MaskDataVisibility));
             }
         }
 
