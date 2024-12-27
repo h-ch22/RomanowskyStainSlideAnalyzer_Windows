@@ -23,7 +23,7 @@
 
 ## Labeling<br>
 <img src="./Docs/Images/img_labeling.png"><br>
-> If you selected the Extract Bounding Boxes option, try labeling using the Labeling function.<br>
+> If you selected the Extract Bounding Boxes or Extract Masks option, try labeling using the Labeling function.<br>
 
 ### Export<br>
 <img src="./Docs/Images/img_exportLabels.png"><br>
@@ -66,6 +66,27 @@
 
 ## Release Note<br>
 > Here are the release notes for each version of Romanowsky Stain Slide Analyzer for Windows.<br>
+
+- ### Romanowsky Stain Slide Analyzer 1.3.0.0 Release Note
+> #### Segmentation<br>
+> - Extract Masks is now available.<br>
+> - An option is available to save the image immediately after segmentation is complete.<br>
+
+> #### History<br>
+> - A completely new design for History View is now available.<br>
+> - Re-labeling is now available.<br>
+> - Save Mask Labeling Data is now available.<br>
+> - Label Mask Data is now available.<br>
+> - Save the masked image is available.<br>
+
+> #### Labeling<br>
+> - Toggle Bounding Box / Mask option is now available.<br>
+> - Now when you click the back and next buttons, if there is any saved data it will be displayed.<br>
+
+> #### Analyze<br>
+> - The ability to analyze segmentation mask data is now available.<br>
+> - Toggle Bounding Box / Mask option is now available.<br>
+> - Fixed the issue where the average A value was not displayed properly when exporting data.<br>
 
 - ### Romanowsky Stain Slide Analyzer 1.2.1.0 Release Note
 > #### Feature Activator<br>
