@@ -12,7 +12,7 @@
     <Page.Resources>
         <DataTemplate x:Key="HistoryListItemTemplate" x:DataType="model:HistoryDataModel">
             <ItemContainer AutomationProperties.Name="{x:Bind date, Mode=TwoWay}">
-                <Grid Width="350" Background="{StaticResource ListBoxBackgroundThemeBrush}" Padding="20">
+                <Grid Width="350" Background="{StaticResource SystemControlPageBackgroundAltHighBrush}" Padding="20">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>

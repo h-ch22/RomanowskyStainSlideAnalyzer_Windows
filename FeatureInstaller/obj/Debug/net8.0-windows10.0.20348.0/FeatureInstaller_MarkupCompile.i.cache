@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\USER\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\FeatureInstaller\obj\Debug\net8.0-windows10.0.20348.0\
+C:\Users\USER\Desktop\Changjin\src\Windows\FeatureInstaller\obj\Debug\net8.0-windows10.0.20348.0\
 FeatureInstaller
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
-C:\Users\USER\Desktop\2024\RomanowskyStainSlideAnalyzer\src\Windows\FeatureInstaller\App.xaml
+C:\Users\USER\Desktop\Changjin\src\Windows\FeatureInstaller\App.xaml
 11407045341
 21665440927
 61000310210
 201-669852727
 MainWindow.xaml;
 
-False
+True
 

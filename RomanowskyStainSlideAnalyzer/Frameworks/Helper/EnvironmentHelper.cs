@@ -1,4 +1,7 @@
-﻿using System;
+﻿using NvAPIWrapper;
+using NvAPIWrapper.GPU;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
@@ -16,6 +19,39 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
 
         private readonly string featureActivatorPath = "C:\\Program Files\\Romanowsky Stain Slide Analyzer\\Romanowsky Stain Slide Analyzer Feature Activator";
         private ApplicationDataContainer settings = ApplicationData.Current.LocalSettings;
+
+        public static List<string> GetGPUList()
+        {
+            List<string> gpuList = new();
+            NVIDIA.Initialize();
+
+            foreach (var gpu in PhysicalGPU.GetPhysicalGPUs())
+            {
+                gpuList.Add(
+                    $"{gpu.FullName} ({gpu.BusInformation})"
+                );
+            }
+
+            return gpuList;
+        }
+
+        private static string ExtractBusNumberFromPNPDeviceID(string pnpDeviceId)
+        {
+            if (string.IsNullOrEmpty(pnpDeviceId)) return "Unknown";
+
+            var parts = pnpDeviceId.Split('&');
+            if (parts.Length > 1)
+            {
+                var busPart = parts[^1];
+                if (busPart.Contains("_"))
+                {
+                    var busNumber = busPart.Split('_')[1];
+                    return busNumber;
+                }
+            }
+
+            return "Unknown";
+        }
 
         public bool GetWSLStatus()
         {

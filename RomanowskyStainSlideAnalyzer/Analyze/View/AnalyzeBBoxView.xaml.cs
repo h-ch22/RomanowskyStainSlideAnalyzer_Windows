@@ -153,7 +153,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                     }
 
-                    else if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
+                    if((viewModel.ShowAllData && viewModel.IsMaskAvailable) || !viewModel.UseBoundingBoxAsTarget)
                     {
                         var data = AnalyzeHelper.GetMask(maskPath, listView.SelectedIndex.ToString());
                         DrawContours(data);
@@ -245,6 +245,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                 using (Bitmap _bmp = new(viewModel.ImagePath))
                 {
                     var bmpImage = new BitmapImage();
+                    var maskedImage = new BitmapImage();
 
                     if (viewModel.UseBoundingBoxAsTarget)
                     {
@@ -267,12 +268,12 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
                     }
 
-                    else
+                    if(!viewModel.UseBoundingBoxAsTarget || (viewModel.ShowAllData && viewModel.IsMaskAvailable))
                     {
                         var maskData = AnalyzeHelper.GetMask(maskPath, listView.SelectedIndex.ToString());
                         var analyzeData = await analyzeHelper.Analyze(maskData, viewModel.ImagePath);
 
-                        if(analyzeData.Item1 == null || analyzeData.Item2 == null)
+                        if((analyzeData.Item1 == null || analyzeData.Item2 == null) && !viewModel.ShowAllData)
                         {
                             ShowZeroWHPanel(true);
                         }
@@ -281,27 +282,48 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         {
                             ShowZeroWHPanel(false);
 
-                            using (var croppedBmp = analyzeData.Item2)
+                            if(analyzeData.Item2 != null)
                             {
-                                using (MemoryStream ms = new())
+                                using (var croppedBmp = analyzeData.Item2)
                                 {
-                                    croppedBmp.Save(ms, ImageFormat.Png);
-                                    ms.Position = 0;
-                                    bmpImage.SetSource(ms.AsRandomAccessStream());
-                                    croppedBmp.Dispose();
+                                    using (MemoryStream ms = new())
+                                    {
+                                        croppedBmp.Save(ms, ImageFormat.Png);
+                                        ms.Position = 0;
+
+                                        if (viewModel.ShowAllData)
+                                        {
+                                            maskedImage.SetSource(ms.AsRandomAccessStream());
+                                        }
+
+                                        else
+                                        {
+                                            bmpImage.SetSource(ms.AsRandomAccessStream());
+                                        }
+                                        croppedBmp.Dispose();
+                                    }
                                 }
                             }
 
-                            viewModel.Average = analyzeData.Item1;
+                            if(analyzeData.Item1 != null)
+                            {
+                                viewModel.Average = analyzeData.Item1;
+                            }
                         }
                     }
 
                     if(ZeroWHPanel.Visibility != Visibility.Visible)
                     {
                         viewModel.CroppedImage = bmpImage;
+                        viewModel.CroppedMaskImage = maskedImage;
                         viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
                         NoSelectionPanel.Visibility = Visibility.Collapsed;
                         croppedImg.Visibility = Visibility.Visible;
+
+                        if(viewModel.ShowAllData && viewModel.IsMaskAvailable)
+                        {
+                            croppedMaskImg.Visibility = Visibility.Visible;
+                        }
                         avgPanel.Visibility = Visibility.Visible;
                     }
                 }
@@ -373,13 +395,19 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             DeleteContours();
 
+            float xRatio = (float)viewModel.Size / 512;
+            float yRatio = (float)viewModel.Size / 512;
+
             for (int y = 1; y < 511; y++)
             {
                 for (int x = 1; x < 511; x++)
                 {
                     if (data[y, x] == 1 && IsContour(data, x, y))
                     {
-                        DrawContourPixel(x, y);
+                        int newX = (int)(x * xRatio);
+                        int newY = (int)(y * yRatio);
+
+                        DrawContourPixel(newX, newY);
                     }
                 }
             }
@@ -429,7 +457,8 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
             foreach (var rect in toRemove)
             {
-                canvas.Children.Remove(rect);
+                if (viewModel.ShowAllData) maskCanvas.Children.Remove(rect);
+                else canvas.Children.Remove(rect);
             }
         }
 
@@ -462,7 +491,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                     }
 
-                    else if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
+                    if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
                     {
                         var data = AnalyzeHelper.GetMask(maskPath, idx.ToString());
                         DrawContours(data);
@@ -473,40 +502,14 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             btn_toggleBBoxColor.IsEnabled = btn_hideBBox.IsChecked == false;
         }
 
-        private async void ToggleDataTarget(object sender, RoutedEventArgs e)
+        private void ToggleDataTarget(object sender, RoutedEventArgs e)
         {
-            btn_exportData.IsEnabled = false;
             DeleteBBox();
             DeleteContours();
 
-            listView.SelectedItem = null;
-            ToggleVisibility();
-
-            listView.ItemsSource = viewModel.UseBoundingBoxAsTarget ? Datas : MaskDatas;
-
-            appBarProgress.Visibility = Visibility.Collapsed;
-            btn_useBBox.Visibility = Visibility.Visible;
-            viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
-
-            NoSelectionPanel.Visibility = Visibility.Visible;
-            avgPanel.Visibility = Visibility.Collapsed;
-            croppedImg.Visibility = Visibility.Collapsed;
-            btn_exportData.IsEnabled = true;
-        }
-
-        private void ToggleVisibility()
-        {
-            viewModel.ShowAnalyzeProgress = Visibility.Visible;
-            viewModel.ShowProgress = Visibility.Visible;
-            appBarProgress.Visibility = Visibility.Visible;
-            statisticsProgressPanel.Visibility = Visibility.Visible;
-
-            btn_useBBox.Visibility = Visibility.Collapsed;
-            scrollView.Visibility = Visibility.Collapsed;
-            NoSelectionPanel.Visibility = Visibility.Collapsed;
-            avgPanel.Visibility = Visibility.Collapsed;
-            statisticsProgressPanel.Visibility = Visibility.Collapsed;
-            statisticsPanel.Visibility = Visibility.Collapsed;
+            var tmp = Datas;
+            Datas = MaskDatas;
+            MaskDatas = tmp;
         }
 
         private void ToggleBBoxColor(object sender, RoutedEventArgs e)
@@ -593,6 +596,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             viewModel.AllDataVisibility = viewModel.ShowAllData ? Visibility.Visible : Visibility.Collapsed;
             viewModel.MaskDataVisibility = (viewModel.ShowAllData && viewModel.IsMaskAvailable) ? Visibility.Visible : Visibility.Collapsed;
+            croppedMaskImg.Visibility = (viewModel.ShowAllData && viewModel.IsMaskAvailable) ? Visibility.Visible : Visibility.Collapsed;
 
             btn_useBBox.Visibility = viewModel.ShowAllData ? Visibility.Collapsed : Visibility.Visible;
             viewModel.Size = viewModel.ShowAllData ? 256 : 512;

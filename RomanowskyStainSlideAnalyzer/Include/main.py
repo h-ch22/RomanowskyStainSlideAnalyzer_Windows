@@ -125,11 +125,9 @@ def show_anns(anns, original_image, borders=True):
 
 
 if __name__ == '__main__':
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", required=True, help='Target Image File')
+    parser.add_argument("-dev", "--device", default="Auto")
     parser.add_argument("-a", "--automatic_segmentation", default='y')
     parser.add_argument("-b", "--extract_bounding_boxes", default='y')
     parser.add_argument("-m", "--extract_masks", default='y')
@@ -176,9 +174,22 @@ if __name__ == '__main__':
     crop_overlap_ratio = args.crop_overlap_ratio
     crop_n_points_downscale_factor = args.crop_n_points_downscale_factor
     min_mask_region_area = args.min_mask_region_area
+    selected_device = args.device
 
     input_points = args.input_points
     input_labels = args.input_labels
+
+    if selected_device.lower() == 'auto':
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
+
+    elif selected_device.lower() == 'cpu':
+        device = torch.device('cpu')
+
+    else:
+        device = torch.device(f'cuda:{selected_device}')
+        torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
+
 
     filename = ""
 

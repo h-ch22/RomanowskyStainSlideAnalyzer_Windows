@@ -65,7 +65,8 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                 while((line = reader.ReadLine()) != null)
                 {
                     var header = line.Split(":")[0].Replace(Environment.NewLine, "");
-                    var contents = line.Split(":")[1].Replace(" ", "").Replace(Environment.NewLine, "");
+                    var contents = line.Split(":")[1].Replace(Environment.NewLine, "");
+                    contents = contents.Substring(1, contents.Length - 1);
 
                     var data = new LogDataModel(header, contents == "" ? "N/A" : contents);
                     logData.Add(data);

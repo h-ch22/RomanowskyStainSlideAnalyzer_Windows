@@ -25,8 +25,10 @@ using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -64,6 +66,17 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
+        private string _Device = "CPU";
+        public string Device
+        {
+            get => _Device;
+            set
+            {
+                _Device = value;
+                OnPropertyChanged(nameof(Device));
+            }
+        }
+
         private string _Extension = "png";
 
         public string Extension
@@ -90,7 +103,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         }
 
         private bool _Indeterminate = false;
-        
+
         public bool Indeterminate
         {
             get => _Indeterminate;
@@ -138,7 +151,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             {
                 _ExtractBBoxes = value;
 
-                if(value)
+                if (value)
                 {
                     UseAutomaticSegmentation = true;
                     UsePostProcess = false;
@@ -226,7 +239,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             {
                 _UsePostProcess = value;
 
-                if(value)
+                if (value)
                 {
                     ExtractBBoxes = false;
                     ExtractMasks = false;
@@ -260,7 +273,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 Thread thread = new Thread(checkEnvironment);
                 thread.Start();
             }
-            else if(helper.GetLibrariesVersion("Entry Point Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString() || helper.GetLibrariesVersion("Feature Activator Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+            else if (helper.GetLibrariesVersion("Entry Point Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString() || helper.GetLibrariesVersion("Feature Activator Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
             {
                 Thread thread = new(updateLibraries);
                 thread.Start();
@@ -271,6 +284,21 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 progressView.Visibility = Visibility.Collapsed;
                 configurationView.Visibility = Visibility.Collapsed;
                 imageView.Visibility = Visibility.Visible;
+
+                var deviceList = EnvironmentHelper.GetGPUList();
+
+                foreach(var d in deviceList)
+                {
+                    var deviceFlyout = new MenuFlyoutItem();
+                    deviceFlyout.Text = d;
+                    deviceFlyout.Click += OnDeviceSelected;
+
+                    deviceMenu.Items.Add(
+                        deviceFlyout    
+                    );
+                }
+
+                Device = "Auto";
             }
         }
 
@@ -292,7 +320,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                 PlaceHolderText = "Prefix";
                 HelpText = $"The file will be saved as {FileName}_{originalFileName[originalFileName.Length - 1]}";
-            } else if(radio_postfix.IsChecked == true)
+            }
+            else if (radio_postfix.IsChecked == true)
             {
                 if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Visible)
                 {
@@ -304,7 +333,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 var ext = name[name.Length - 1];
 
                 HelpText = $"The file will be saved as {name[0]}_{FileName}.{ext}";
-            } else
+            }
+            else
             {
                 if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Collapsed)
                 {
@@ -349,7 +379,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             if (!result)
             {
-                if(!helper.isWSLActivated || !helper.isVirtualMachinePlatformActivated)
+                if (!helper.isWSLActivated || !helper.isVirtualMachinePlatformActivated)
                 {
                     updateStatus("Activating Features (This may take some time)");
                     var activateResult = helper.ActivateFeatures();
@@ -372,7 +402,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     increaseProgress();
                 }
             }
-            else {
+            else
+            {
                 increaseProgress(20);
             }
 
@@ -455,7 +486,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             increaseProgress();
 
-            if(!helper.GetStatus("Entry Point Status"))
+            if (!helper.GetStatus("Entry Point Status"))
             {
                 updateStatus("Copying Romanowsky Stain Slide Analyzer for Python CLI...");
                 var copyResult = helper.CopyEntryPoint();
@@ -480,7 +511,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
         private async void updateLibraries()
         {
-            if(helper.GetLibrariesVersion("Feature Activator Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+            if (helper.GetLibrariesVersion("Feature Activator Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
             {
                 updateStatus("Updating Feature Activator...");
                 var isActivatorInstalled = helper.InstallFeatureActivator();
@@ -494,7 +525,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             increaseProgress(50);
 
-            if(helper.GetLibrariesVersion("Entry Point Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+            if (helper.GetLibrariesVersion("Entry Point Version") != Assembly.GetExecutingAssembly().GetName().Version.ToString())
             {
                 updateStatus("Updating Entry Point...");
                 var isEntryPointCopied = helper.UpdateEntryPoint();
@@ -554,11 +585,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     "Reboot manually"
                 );
 
-                if(result == ContentDialogResult.Primary)
+                if (result == ContentDialogResult.Primary)
                 {
                     helper.reboot();
-                } 
-                else if(result == ContentDialogResult.Secondary)
+                }
+                else if (result == ContentDialogResult.Secondary)
                 {
                     helper.reboot(3600);
                     ShowRebootScreen();
@@ -595,7 +626,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             var file = await filePicker.PickSingleFileAsync();
 
-            if(file != null)
+            if (file != null)
             {
                 filePath = file.Path;
 
@@ -612,8 +643,9 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
-        private async void OnClick(object sender, RoutedEventArgs e) {
-            switch((sender as Button).Name)
+        private async void OnClick(object sender, RoutedEventArgs e)
+        {
+            switch ((sender as Button).Name)
             {
                 case "btn_reboot":
                     helper.reboot();
@@ -652,7 +684,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     break;
 
                 case "btn_selectPoint":
-                    if(filePath == "")
+                    if (filePath == "")
                     {
                         await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
                         return;
@@ -713,11 +745,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     {
                         await MainWindow.ShowContentDialogAsync("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {filePath}", "OK");
                         return;
-                    } else if (FileName == "input")
+                    }
+                    else if (FileName == "input")
                     {
                         await MainWindow.ShowContentDialogAsync("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.", "OK");
                         return;
-                    } else if(FileName.Contains("."))
+                    }
+                    else if (FileName.Contains("."))
                     {
                         await MainWindow.ShowContentDialogAsync("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.", "OK");
                         return;
@@ -742,30 +776,27 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
-        private void Segment()
+        private async void Segment()
         {
-            var isGPUInstalled = helper.GetGPU();
-
-            if (!isGPUInstalled)
-            {
-                MainWindow.ShowContentDialogAsync(
-                    "No GPU Installed",
-                    "Windows cannot detect your GPU.\nIf you have a GPU installed, make sure that it is connected and that the GPU drivers are properly installed. If you do not have a GPU installed, segmentation speed may be very slow.",
-                    "OK"
-                );
-            }
-
             List<double> coords = new();
             List<int> labels = new();
 
-            if(!UseAutomaticSegmentation)
+            if (!UseAutomaticSegmentation)
             {
-                foreach(var item in viewModel.Points)
+                foreach (var item in viewModel.Points)
                 {
                     coords.Add(item.X);
                     coords.Add(item.Y);
                     labels.Add((int)item.ClassType);
                 }
+            }
+
+            var selectedDevice = Device;
+
+            if(Device != "Auto" && Device != "CPU")
+            {
+                selectedDevice = Device.Split("Bus #")[1].Split(",")[0];
+                selectedDevice = (int.Parse(selectedDevice) - 1).ToString();
             }
 
             var result = segmentationHelper.segment(
@@ -791,7 +822,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 viewModel.CropNMSThresh.Value,
                 viewModel.CropOverlapRatio.Value,
                 viewModel.CropNPointsDownScaleFactor.Value,
-                viewModel.MinMaskRegionArea.Value
+                viewModel.MinMaskRegionArea.Value,
+                selectedDevice
             );
 
             if (!result)
@@ -804,7 +836,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     btn_usePostProcess.IsEnabled = false;
                     btn_useAutomaticSegmentation.IsEnabled = false;
                     btn_selectPoint.IsEnabled = false;
-                    
+
                     progressBar.Visibility = Visibility.Collapsed;
                     resultImageView.Visibility = Visibility.Collapsed;
                     StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
@@ -856,7 +888,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 viewModel.CropNMSThresh.Value,
                 viewModel.CropOverlapRatio.Value,
                 viewModel.CropNPointsDownScaleFactor.Value,
-                viewModel.MinMaskRegionArea.Value
+                viewModel.MinMaskRegionArea.Value,
+                Device
             );
 
             if (!createHistoryResult)
@@ -887,8 +920,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 segmentHelpPanel.Visibility = Visibility.Visible;
                 btn_labeling.Visibility = ExtractBBoxes ? Visibility.Visible : Visibility.Collapsed;
                 SegmentHelpText = "The Romanowsky Stain Slide Analyzer has completed the task you requested, and the results are as above.\nFor detailed results, check the results in the History tab.";
-            
-                if(_ExtractBBoxes)
+
+                if (_ExtractBBoxes)
                 {
                     btn_save.Visibility = Visibility.Visible;
                     btn_labeling.Visibility = Visibility.Visible;
@@ -900,6 +933,56 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         private void OnMenuItemClick(object sender, RoutedEventArgs e)
         {
             Extension = (sender as MenuFlyoutItem).Text;
+        }
+
+        private void OnDeviceSelected(object sender, RoutedEventArgs e)
+        {
+            Device = (sender as MenuFlyoutItem).Text;
+        }
+
+        private async void imageView_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.DataView.Contains(StandardDataFormats.StorageItems))
+            {
+                var items = await e.DataView.GetStorageItemsAsync();
+
+                if (items.Count > 0)
+                {
+                    var item = items[0];
+
+                    if (item.GetType() == typeof(StorageFile))
+                    {
+                        if ((item as StorageFile).Path.Contains(" "))
+                        {
+                            await MainWindow.ShowContentDialogAsync("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {filePath}", "OK");
+                        }
+                        else if ((item as StorageFile).FileType.ToLower() == ".jpg" || (item as StorageFile).FileType.ToLower() == ".jpeg" || (item as StorageFile).FileType.ToLower() == ".png")
+                        {
+                            filePath = item.Path;
+                            var source = new BitmapImage(new Uri(filePath));
+                            btn_loadImage.Visibility = Visibility.Collapsed;
+                            imageTutorialView.Visibility = Visibility.Collapsed;
+                            btn_clear.Visibility = Visibility.Visible;
+                            selectedImagePanel.Visibility = Visibility.Visible;
+                            selectedImageView.Source = source;
+                            labelingViewModel.Source = source;
+                            controlsView.Visibility = Visibility.Visible;
+                            viewModel.Source = source;
+                            SetFileName();
+                        }
+                        else
+                        {
+                            e.AcceptedOperation = DataPackageOperation.None;
+                            await MainWindow.ShowContentDialogAsync("Warning", $"Only .jpg, .jpeg, .png files can be loaded.\nFile {(item as StorageFile).Path} will be skipped.", "OK");
+                        }
+                    }
+                }
+            }
+        }
+
+        private async void imageView_DragOver(object sender, DragEventArgs e)
+        {
+            e.AcceptedOperation =  DataPackageOperation.Copy;
         }
     }
 }

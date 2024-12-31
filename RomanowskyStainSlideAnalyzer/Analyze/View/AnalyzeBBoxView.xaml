@@ -186,8 +186,11 @@
 
                     <TextBlock Text="Analyze" FontWeight="SemiBold" FontSize="24" Grid.Row="0"/>
 
-                    <Image Grid.Row="1" x:Name="croppedImg" Source="{x:Bind viewModel.CroppedImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Height="80" Stretch="Uniform" Visibility="Collapsed"/>
-
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center">
+                        <Image x:Name="croppedImg" Source="{x:Bind viewModel.CroppedImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Height="80" Stretch="Uniform" Visibility="Collapsed"/>
+                        <Image x:Name="croppedMaskImg" Source="{x:Bind viewModel.CroppedMaskImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" Height="80" Stretch="Uniform" Visibility="Collapsed" Margin="10 0 0 0"/>
+                    </StackPanel>
+                    
                     <StackPanel Grid.Row="2" VerticalAlignment="Center" Orientation="Vertical" x:Name="NoSelectionPanel">
                         <SymbolIcon Symbol="TouchPointer" Foreground="Gray"/>
                         <TextBlock Text="Please select a label" HorizontalAlignment="Center" Foreground="Gray"/>

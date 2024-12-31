@@ -156,6 +156,17 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.Models
             }
         }
 
+        private BitmapImage? _CroppedMaskImage = null;
+        public BitmapImage? CroppedMaskImage
+        {
+            get => _CroppedMaskImage;
+            set
+            {
+                _CroppedMaskImage = value;
+                OnPropertyChanged(nameof(CroppedMaskImage));
+            }
+        }
+
         private string _Class = "";
         public string Class
         {

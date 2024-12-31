@@ -79,7 +79,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string cropNMSThresh,
             string cropOverlapRatio,
             string cropNPointsDownscaleFactor,
-            string minMaskRegionArea
+            string minMaskRegionArea,
+            string device
         )
         {
             var pathSplitByDrive = filePath.Split(@":\");
@@ -87,7 +88,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
 
             var path = pathSplitByDrive[1].Replace(@"\", "/").Replace(":/", "/");
 
-            var cli = $"cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && python main.py -f /mnt/{drive}/{path}";
+            var cli = $"cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && python main.py -f /mnt/{drive}/{path} -dev {device}";
 
             if(prefix != "")
             {
@@ -188,7 +189,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string cropNMSThresh,
             string cropOverlapRatio,
             string cropNPointsDownscaleFactor,
-            string minMaskRegionArea
+            string minMaskRegionArea,
+            string device
         )
         {
             var rssaFolder = @"C:\RomanowskyStainSlideAnalyzer";
@@ -267,6 +269,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                     $"Min Mask Region Area: {minMaskRegionArea}",
                     $"Use Post Process: {usePostProcess}",
                     $"Output File Name: {outputFileName}",
+                    $"Device: {device}"
                 };
 
                 string docPath = $@"{finalPath}\log.txt";

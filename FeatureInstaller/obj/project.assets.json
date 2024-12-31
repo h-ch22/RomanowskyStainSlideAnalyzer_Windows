@@ -116,11 +116,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\USER\\Desktop\\2024\\RomanowskyStainSlideAnalyzer\\src\\Windows\\FeatureInstaller\\FeatureInstaller.csproj",
+      "projectUniqueName": "C:\\Users\\USER\\Desktop\\Changjin\\src\\Windows\\FeatureInstaller\\FeatureInstaller.csproj",
       "projectName": "FeatureInstaller",
-      "projectPath": "C:\\Users\\USER\\Desktop\\2024\\RomanowskyStainSlideAnalyzer\\src\\Windows\\FeatureInstaller\\FeatureInstaller.csproj",
+      "projectPath": "C:\\Users\\USER\\Desktop\\Changjin\\src\\Windows\\FeatureInstaller\\FeatureInstaller.csproj",
       "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\USER\\Desktop\\2024\\RomanowskyStainSlideAnalyzer\\src\\Windows\\FeatureInstaller\\obj\\",
+      "outputPath": "C:\\Users\\USER\\Desktop\\Changjin\\src\\Windows\\FeatureInstaller\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

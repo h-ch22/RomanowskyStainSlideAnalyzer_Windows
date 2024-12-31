@@ -40,10 +40,10 @@
             <TextBlock x:Name="ErrorText" Text="There was a problem processing your request.&#x0a;Please reinstall the software or contact your administrator." Foreground="Gray" TextAlignment="Center" Visibility="Collapsed"/>
         </StackPanel>
 
-        <StackPanel x:Name="imageView" Orientation="Vertical" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <StackPanel AllowDrop="True" Drop="imageView_DragEnter"  DragOver="imageView_DragOver" x:Name="imageView" Orientation="Vertical" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
             <StackPanel x:Name="imageTutorialView" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <SymbolIcon Symbol="Add" Foreground="Gray"/>
-                <TextBlock Text="Please load an image to continue." Foreground="Gray" TextAlignment="Center"/>
+                <TextBlock Text="Please load or drag an image to continue." Foreground="Gray" TextAlignment="Center"/>
             </StackPanel>
 
             <StackPanel x:Name="selectedImagePanel" Visibility="Collapsed" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -57,8 +57,8 @@
                     <TextBlock Margin="10 0 0 0" x:Name="segmentHelpText" Text="{Binding SegmentHelpText, Mode=TwoWay}" Foreground="Gray" TextAlignment="Center" VerticalAlignment="Center"/>
                 </StackPanel>
 
-        </StackPanel>
-            
+            </StackPanel>
+
         </StackPanel>
 
         <StackPanel x:Name="progressView" Orientation="Vertical" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -70,9 +70,11 @@
 
         <Grid Margin="20 0" x:Name="controlsView" Grid.Row="2" Visibility="Collapsed" VerticalAlignment="Center">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="3*"/>
                 <ColumnDefinition Width="0.5*"/>
-                <ColumnDefinition Width="4.5*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="3*"/>
             </Grid.ColumnDefinitions>
 
             <RadioButtons Grid.Column="0" Header="Output File Name">
@@ -82,10 +84,27 @@
             </RadioButtons>
 
             <AppBarSeparator Grid.Column="1"/>
-            
+
             <StackPanel Orientation="Vertical" Grid.Column="2">
+                <TextBlock Text="Device"/>
+
+                <DropDownButton x:Name="dropdown_devices" Content="{Binding Device, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <DropDownButton.Flyout>
+                        <MenuFlyout x:Name="deviceMenu" Placement="Bottom">
+                            <MenuFlyoutItem Click="OnDeviceSelected" Text="Auto"/>
+                            <MenuFlyoutItem Click="OnDeviceSelected" Text="CPU"/>
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                </DropDownButton>
+
+                <TextBlock Text="Only NVIDIA GPUs are displayed." FontSize="12" Foreground="Gray"/>
+            </StackPanel>
+
+            <AppBarSeparator Grid.Column="3"/>
+
+            <StackPanel Orientation="Vertical" Grid.Column="4">
                 <TextBlock Text="File Name"/>
-                
+
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBox PlaceholderText="{Binding PlaceHolderText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="30" Width="250"/>
 
@@ -99,11 +118,11 @@
                         </DropDownButton.Flyout>
                     </DropDownButton>
                 </StackPanel>
-                
+
                 <TextBlock Text="{Binding HelpText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Gray"/>
             </StackPanel>
 
         </Grid>
-        
+
     </Grid>
 </Page>

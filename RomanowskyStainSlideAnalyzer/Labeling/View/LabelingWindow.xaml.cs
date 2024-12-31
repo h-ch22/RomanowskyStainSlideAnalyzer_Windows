@@ -53,7 +53,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         private bool IsDone = false;
         private int EditModeEndIndex = 0;
         private bool isMaskAvailable;
-        private bool isBBoxAvailable;
 
         public LabelingWindow(LabelingViewModel viewModel, string path, bool isMaskAvailable, bool isBBoxAvailable)
         {
@@ -61,7 +60,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
             this.viewModel = viewModel;
             this.isMaskAvailable = isMaskAvailable;
-            this.isBBoxAvailable = isBBoxAvailable;
 
             if(isMaskAvailable && isBBoxAvailable)
             {
@@ -123,6 +121,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             }
 
             await LoadData();
+            scrollTo();
         }
 
         private void WriteLabelingData()
@@ -603,7 +602,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             {
                 await Task.Run(() => {
 
-                    if(BoundingBoxes == null || BoundingBoxes.Count == 0)
+                    if(BoundingBoxes == null || BoundingBoxes.Count < viewModel.AllIndex)
                     {
                         BoundingBoxes = helper.GetBoundingBox();              
                         
