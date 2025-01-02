@@ -27,9 +27,9 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
     /// </summary>
     public sealed partial class ParameterControlWindow : Window
     {
-        private ParametersViewModel viewModel;
+        private SegmentParameterDataModel viewModel;
 
-        public ParameterControlWindow(ParametersViewModel viewModel)
+        public ParameterControlWindow(SegmentParameterDataModel viewModel)
         {
             this.InitializeComponent();
             this.viewModel = viewModel;

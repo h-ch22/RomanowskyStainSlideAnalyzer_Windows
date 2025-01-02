@@ -31,10 +31,10 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
     /// </summary>
     public sealed partial class PointSelectionView : Window
     {
-        private ParametersViewModel viewModel;
+        private SegmentParameterDataModel viewModel;
         private ClassTypeModel classType = ClassTypeModel.TYPE_A;
 
-        public PointSelectionView(ParametersViewModel viewModel)
+        public PointSelectionView(SegmentParameterDataModel viewModel)
         {
             this.InitializeComponent();
             this.viewModel = viewModel;

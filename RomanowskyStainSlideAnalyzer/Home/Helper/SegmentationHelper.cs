@@ -165,7 +165,9 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                 dir.Delete(true);
             }
 
-            return Directory.Exists(path);
+            Directory.Delete(path);
+
+            return !Directory.Exists(path);
         }
 
         public bool CreateHistory(
@@ -307,7 +309,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             }
             catch (Exception e)
             {
-                Debug.Write(e.Message);
+                Debug.WriteLine(e.Message);
 
                 if (Directory.Exists(finalPath))
                 {

@@ -17,6 +17,7 @@ using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.View;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -54,6 +55,18 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
+        private string _Extension = "png";
+        public string Extension
+        {
+            get => _Extension;
+            set
+            {
+                _Extension = value;
+                OnPropertyChanged(nameof(Extension));
+                SetFileName();
+            }
+        }
+
         private string _PlaceHolderText = "Postfix";
 
         public string PlaceHolderText
@@ -74,19 +87,6 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             {
                 _Device = value;
                 OnPropertyChanged(nameof(Device));
-            }
-        }
-
-        private string _Extension = "png";
-
-        public string Extension
-        {
-            get => _Extension;
-            set
-            {
-                _Extension = value;
-                OnPropertyChanged(nameof(Extension));
-                SetFileName();
             }
         }
 
@@ -114,78 +114,56 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
-        private bool _UseAutomaticSegmentation = true;
         public bool UseAutomaticSegmentation
         {
-            get => _UseAutomaticSegmentation;
+            get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].useAutomaticSegmentation : true;
             set
             {
-                _UseAutomaticSegmentation = value;
-                OnPropertyChanged(nameof(UseAutomaticSegmentation));
-                OnPropertyChanged(nameof(IsParameterSettingsEnabled));
-                OnPropertyChanged(nameof(IsSelectPointEnabled));
-
-                if (!_UseAutomaticSegmentation)
+                if(FilesToSegment.Count() > 0)
                 {
-                    btn_usePostProcess.IsEnabled = false;
-                    btn_extractBBoxes.IsEnabled = false;
-                    btn_extractMasks.IsEnabled = false;
+                    FilesToSegment[CurrentIndex].useAutomaticSegmentation = value;
+                    OnPropertyChanged(nameof(UseAutomaticSegmentation));
+                    ToggleButtonStatus();
 
-                    ExtractBBoxes = false;
-                    ExtractMasks = false;
-                }
-                else
-                {
-                    btn_usePostProcess.IsEnabled = true;
-                    btn_extractBBoxes.IsEnabled = true;
-                    btn_extractMasks.IsEnabled = true;
+                    if (!value)
+                    {
+                        ExtractBBoxes = false;
+                        ExtractMasks = false;
+                    }
                 }
             }
         }
 
-        private bool _ExtractBBoxes = true;
         public bool ExtractBBoxes
         {
-            get => _ExtractBBoxes;
+            get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].extractBoundingBoxes : true;
             set
             {
-                _ExtractBBoxes = value;
-
-                if (value)
+                if(FilesToSegment.Count() > 0)
                 {
-                    UseAutomaticSegmentation = true;
-                    UsePostProcess = false;
-                }
+                    FilesToSegment[CurrentIndex].extractBoundingBoxes = value;
 
-                OnPropertyChanged(nameof(ExtractBBoxes));
+                    ToggleButtonStatus();
+
+                    OnPropertyChanged(nameof(ExtractBBoxes));
+                }
             }
         }
 
-        private bool _ExtractMasks = true;
         public bool ExtractMasks
         {
-            get => _ExtractMasks;
+            get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].extractMasks : true;
             set
             {
-                _ExtractMasks = value;
-
-                if (value)
+                if(FilesToSegment.Count() > 0)
                 {
-                    UseAutomaticSegmentation = true;
-                    UsePostProcess = false;
+                    FilesToSegment[CurrentIndex].extractMasks = value;
+
+                    ToggleButtonStatus();
+
+                    OnPropertyChanged(nameof(ExtractMasks));
                 }
-                OnPropertyChanged(nameof(ExtractMasks));
             }
-        }
-
-        public bool IsParameterSettingsEnabled
-        {
-            get => _UseAutomaticSegmentation;
-        }
-
-        public bool IsSelectPointEnabled
-        {
-            get => !_UseAutomaticSegmentation;
         }
 
         private Symbol _SegmentHelpIcon = Symbol.Accept;
@@ -231,35 +209,95 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             }
         }
 
-        private bool _UsePostProcess = false;
         public bool UsePostProcess
         {
-            get => _UsePostProcess;
+            get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].usePostProcess : true;
             set
             {
-                _UsePostProcess = value;
-
-                if (value)
+                if(FilesToSegment.Count() > 0)
                 {
-                    ExtractBBoxes = false;
-                    ExtractMasks = false;
-                }
+                    FilesToSegment[CurrentIndex].usePostProcess = value;
 
-                OnPropertyChanged(nameof(UsePostProcess));
+                    if (value)
+                    {
+                        ExtractBBoxes = false;
+                        ExtractMasks = false;
+                    }
+
+                    ToggleButtonStatus();
+                    OnPropertyChanged(nameof(UsePostProcess));
+                }
             }
         }
 
-        private ParametersViewModel viewModel = new();
+        private ObservableCollection<SegmentParameterDataModel> _FilesToSegment = new();
+        public ObservableCollection<SegmentParameterDataModel> FilesToSegment
+        {
+            get => _FilesToSegment;
+            set
+            {
+                _FilesToSegment = value;
+                OnPropertyChanged(nameof(FilesToSegment));
+            }
+        }
+
+        private int _CurrentIndex = 0;
+        public int CurrentIndex
+        {
+            get => _CurrentIndex;
+            set
+            {
+                _CurrentIndex = value;
+                OnPropertyChanged(nameof(CurrentIndex));
+                OnPropertyChanged(nameof(UseAutomaticSegmentation));
+                OnPropertyChanged(nameof(ExtractBBoxes));
+                OnPropertyChanged(nameof(ExtractMasks));
+                OnPropertyChanged(nameof(UsePostProcess));
+
+                ToggleButtonStatus();
+
+                if (FilesToSegment[CurrentIndex].prefix != "")
+                {
+                    radio_prefix.IsChecked = true;
+                    FileName = FilesToSegment[CurrentIndex].prefix;
+                    OnPropertyChanged(nameof(FileName));
+                } else if (FilesToSegment[CurrentIndex].postfix != "")
+                {
+                    radio_postfix.IsChecked = true;
+                    FileName = FilesToSegment[CurrentIndex].postfix;
+                    OnPropertyChanged(nameof(FileName));
+                }
+                else if (FilesToSegment[CurrentIndex].newName != "")
+                {
+                    radio_newName.IsChecked = true;
+                    FileName = FilesToSegment[CurrentIndex].newName;
+                    Extension = FilesToSegment[CurrentIndex].ext;
+                    OnPropertyChanged(nameof(FileName));
+                    OnPropertyChanged(nameof(Extension));
+                }
+                else
+                {
+                    radio_postfix.IsChecked = true;
+                    FileName = "output";
+                    OnPropertyChanged(nameof(FileName));
+                }
+            }
+        }
+
+        private bool _UseParallel = false;
+        public bool UseParallel
+        {
+            get => _UseParallel;
+            set
+            {
+                _UseParallel = value;
+                OnPropertyChanged(nameof(UseParallel));
+            }
+        }
+
         private LabelingViewModel labelingViewModel = new();
         private EnvironmentHelper helper = new();
         private SegmentationHelper segmentationHelper = new();
-        private string filePath = "";
-        private string outputFileName = "";
-        private string finalPreFix = "";
-        private string finalPostFix = "";
-        private string finalFileName = "";
-        private string finalExt = "";
-        private string targetPath = "";
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -299,7 +337,21 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 }
 
                 Device = "Auto";
+
+                FilesToSegment.CollectionChanged += (s, e) =>
+                {
+                    OnPropertyChanged(nameof(FilesToSegment.Count));
+                };
             }
+        }
+
+        private void ToggleButtonStatus()
+        {
+            btn_extractBBoxes.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation && !FilesToSegment[CurrentIndex].usePostProcess;
+            btn_extractMasks.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation && !FilesToSegment[CurrentIndex].usePostProcess;
+            btn_customizeParams.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation;
+            btn_usePostProcess.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation;
+            btn_selectPoint.IsEnabled = !FilesToSegment[CurrentIndex].useAutomaticSegmentation;
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -309,41 +361,59 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
         private void SetFileName()
         {
-            var originalFileName = filePath.Split(@"\");
-
-            if (radio_prefix.IsChecked == true)
+            if(FilesToSegment.Count() > 0)
             {
-                if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Visible)
+                var originalFileName = FilesToSegment[CurrentIndex].filePath.Split(@"\");
+
+                if (radio_prefix.IsChecked == true)
                 {
-                    dropDown_extensions.Visibility = Visibility.Collapsed;
+                    if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Visible)
+                    {
+                        dropDown_extensions.Visibility = Visibility.Collapsed;
+                    }
+
+                    PlaceHolderText = "Prefix";
+                    HelpText = $"The file will be saved as {FileName}_{originalFileName[originalFileName.Length - 1]}";
+
+                    FilesToSegment[CurrentIndex].prefix = FileName;
+                    FilesToSegment[CurrentIndex].postfix = "";
+                    FilesToSegment[CurrentIndex].ext = "";
+                    FilesToSegment[CurrentIndex].newName = "";
                 }
-
-                PlaceHolderText = "Prefix";
-                HelpText = $"The file will be saved as {FileName}_{originalFileName[originalFileName.Length - 1]}";
-            }
-            else if (radio_postfix.IsChecked == true)
-            {
-                if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Visible)
+                else if (radio_postfix.IsChecked == true)
                 {
-                    dropDown_extensions.Visibility = Visibility.Collapsed;
+                    if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Visible)
+                    {
+                        dropDown_extensions.Visibility = Visibility.Collapsed;
+                    }
+
+                    PlaceHolderText = "Postfix";
+                    var name = originalFileName[originalFileName.Length - 1].Split(".");
+                    var ext = name[name.Length - 1];
+
+                    HelpText = $"The file will be saved as {name[0]}_{FileName}.{ext}";
+
+                    FilesToSegment[CurrentIndex].postfix = FileName;
+                    FilesToSegment[CurrentIndex].prefix = "";
+                    FilesToSegment[CurrentIndex].ext = "";
+                    FilesToSegment[CurrentIndex].newName = "";
                 }
-
-                PlaceHolderText = "Postfix";
-                var name = originalFileName[originalFileName.Length - 1].Split(".");
-                var ext = name[name.Length - 1];
-
-                HelpText = $"The file will be saved as {name[0]}_{FileName}.{ext}";
-            }
-            else
-            {
-                if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Collapsed)
+                else
                 {
+                    if (dropDown_extensions != null && dropDown_extensions.Visibility == Visibility.Collapsed)
+                    {
+                        dropDown_extensions.Visibility = Visibility.Visible;
+                    }
+
+                    PlaceHolderText = "File Name";
+                    HelpText = $"The file will be saved as {FileName}.{Extension}";
                     dropDown_extensions.Visibility = Visibility.Visible;
-                }
 
-                PlaceHolderText = "File Name";
-                HelpText = $"The file will be saved as {FileName}.{Extension}";
-                dropDown_extensions.Visibility = Visibility.Visible;
+                    FilesToSegment[CurrentIndex].newName = FileName;
+                    FilesToSegment[CurrentIndex].postfix = "";
+                    FilesToSegment[CurrentIndex].ext = Extension;
+                    FilesToSegment[CurrentIndex].prefix = "";
+                }
             }
         }
 
@@ -624,21 +694,29 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             filePicker.FileTypeFilter.Add(".jpeg");
             filePicker.FileTypeFilter.Add(".png");
 
-            var file = await filePicker.PickSingleFileAsync();
+            var files = await filePicker.PickMultipleFilesAsync();
 
-            if (file != null)
+            if (files != null && files.Count() > 0)
             {
-                filePath = file.Path;
+                foreach(var file in files)
+                {
+                    if (file.Path.Contains(" "))
+                    {
+                        await MainWindow.ShowContentDialogAsync("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {file.Path}", "OK");
+                    }
 
-                var source = new BitmapImage(new Uri(filePath));
-                btn_loadImage.Visibility = Visibility.Collapsed;
+                    else
+                    {
+                        FilesToSegment.Add(
+                            new(file.Path, "", "", "output", "", new(), new())
+                        );
+                    }
+                }
+
                 imageTutorialView.Visibility = Visibility.Collapsed;
                 btn_clear.Visibility = Visibility.Visible;
                 selectedImagePanel.Visibility = Visibility.Visible;
-                selectedImageView.Source = source;
-                labelingViewModel.Source = source;
                 controlsView.Visibility = Visibility.Visible;
-                viewModel.Source = source;
                 SetFileName();
             }
         }
@@ -656,14 +734,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     break;
 
                 case "btn_clear":
-                    filePath = "";
+                    FilesToSegment.Clear();
 
                     btn_loadImage.Visibility = Visibility.Visible;
                     imageTutorialView.Visibility = Visibility.Visible;
                     btn_clear.Visibility = Visibility.Collapsed;
                     selectedImagePanel.Visibility = Visibility.Collapsed;
                     controlsView.Visibility = Visibility.Collapsed;
-                    resultImageView.Visibility = Visibility.Collapsed;
                     btn_labeling.Visibility = Visibility.Collapsed;
                     btn_customizeParams.IsEnabled = true;
                     btn_segment.IsEnabled = true;
@@ -679,24 +756,37 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     break;
 
                 case "btn_customizeParams":
-                    ParameterControlWindow paramsControlWindow = new(viewModel);
-                    paramsControlWindow.Activate();
-                    break;
-
-                case "btn_selectPoint":
-                    if (filePath == "")
+                    if (FilesToSegment.Count() <= 0)
                     {
                         await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
                         return;
                     }
 
-                    PointSelectionView pointSelectionView = new(viewModel);
+
+                    ParameterControlWindow paramsControlWindow = new(
+                        FilesToSegment[CurrentIndex]
+                    );
+
+                    paramsControlWindow.Activate();
+                    
+                    break;
+
+                case "btn_selectPoint":
+                    if (FilesToSegment.Count() <= 0)
+                    {
+                        await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
+                        return;
+                    }
+
+                    PointSelectionView pointSelectionView = new(FilesToSegment[CurrentIndex]);
                     pointSelectionView.Activate();
 
                     break;
 
                 case "btn_labeling":
-                    LabelingWindow labelingWindow = new(labelingViewModel, $@"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}.txt", btn_extractMasks.IsChecked == true, btn_extractBBoxes.IsChecked == true);
+                    var fileName = FilesToSegment[CurrentIndex].destination.Split(@"\");
+
+                    LabelingWindow labelingWindow = new(labelingViewModel, $@"{FilesToSegment[CurrentIndex].destination}.txt", FilesToSegment[CurrentIndex].extractMasks, FilesToSegment[CurrentIndex].extractBoundingBoxes);
                     labelingWindow.Activate();
                     break;
 
@@ -716,7 +806,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     {
                         try
                         {
-                            File.Copy($@"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}", $@"{folder.Path}\{outputFileName}");
+                            var filePathSplit = FilesToSegment[CurrentIndex].destination.Split(@"\");
+                            File.Copy($@"{FilesToSegment[CurrentIndex].destination}", $@"{folder.Path}\{filePathSplit[filePathSplit.Length - 1]}");
                             await MainWindow.ShowContentDialogAsync("Done", "The requested task has been completed.", "OK");
                         }
                         catch (Exception ex)
@@ -731,44 +822,47 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     break;
 
                 case "btn_segment":
-                    if (filePath == "")
+                    if (FilesToSegment.Count() <= 0)
                     {
                         await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
                         return;
                     }
-                    else if (FileName == "" || (radio_newName.IsChecked == true && Extension == ""))
+
+                    else
                     {
-                        await MainWindow.ShowContentDialogAsync("Warning", "Please enter file name.", "OK");
-                        return;
-                    }
-                    else if (filePath.Contains(" "))
-                    {
-                        await MainWindow.ShowContentDialogAsync("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {filePath}", "OK");
-                        return;
-                    }
-                    else if (FileName == "input")
-                    {
-                        await MainWindow.ShowContentDialogAsync("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.", "OK");
-                        return;
-                    }
-                    else if (FileName.Contains("."))
-                    {
-                        await MainWindow.ShowContentDialogAsync("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.", "OK");
-                        return;
+                        foreach(var file in FilesToSegment)
+                        {
+                            if (file.prefix == "" && file.postfix == "" && file.newName == "")
+                            {
+                                await MainWindow.ShowContentDialogAsync("Warning", "Please enter file name.", "OK");
+                                return;
+                            }
+                            else if (file.newName == "input" || file.postfix == "input" || file.prefix == "input")
+                            {
+                                await MainWindow.ShowContentDialogAsync("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.", "OK");
+                                return;
+                            }
+                            else if (file.newName.Contains(".") || file.prefix.Contains(".") || file.postfix.Contains("."))
+                            {
+                                await MainWindow.ShowContentDialogAsync("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.", "OK");
+                                return;
+                            }
+
+                            var originalFileName = file.filePath.Split(@"\");
+                            if (file.prefix != "") file.destination = $"{file.prefix}_{originalFileName[originalFileName.Length - 1]}";
+                            else if (file.postfix != "") file.destination = $"{originalFileName[originalFileName.Length - 1]}_{file.postfix}";
+                            else file.destination = $@"{file.newName}.{file.ext}";
+                        }
                     }
 
                     commandBar.IsEnabled = false;
                     Indeterminate = true;
                     controlsView.Visibility = Visibility.Collapsed;
+                    progressBar.IsIndeterminate = FilesToSegment.Count() == 1;
                     progressBar.Visibility = Visibility.Visible;
                     progressView.Visibility = Visibility.Visible;
                     segmentHelpPanel.Visibility = Visibility.Collapsed;
                     StatusText = "Romanowsky Stain Slide Analyzer is processing your request.\nPlease wait.";
-
-                    finalPostFix = radio_postfix.IsChecked == true ? FileName : "";
-                    finalPreFix = radio_prefix.IsChecked == true ? FileName : "";
-                    finalFileName = radio_newName.IsChecked == true ? FileName : "";
-                    finalExt = radio_newName.IsChecked == true ? Extension : "";
 
                     Thread thread = new Thread(Segment);
                     thread.Start();
@@ -778,134 +872,151 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
         private async void Segment()
         {
-            List<double> coords = new();
-            List<int> labels = new();
-
-            if (!UseAutomaticSegmentation)
+            foreach(var file in FilesToSegment)
             {
-                foreach (var item in viewModel.Points)
+                List<double> coords = new();
+                List<int> labels = new();
+
+                if (!UseAutomaticSegmentation)
                 {
-                    coords.Add(item.X);
-                    coords.Add(item.Y);
-                    labels.Add((int)item.ClassType);
+                    foreach (var item in file.Points)
+                    {
+                        coords.Add(item.X);
+                        coords.Add(item.Y);
+                        labels.Add((int)item.ClassType);
+                    }
                 }
-            }
 
-            var selectedDevice = Device;
+                file.inputCoords = coords;
+                file.inputLabels = labels;
 
-            if(Device != "Auto" && Device != "CPU")
-            {
-                selectedDevice = Device.Split("Bus #")[1].Split(",")[0];
-                selectedDevice = (int.Parse(selectedDevice) - 1).ToString();
-            }
+                var selectedDevice = Device;
 
-            var result = segmentationHelper.segment(
-                filePath,
-                finalFileName,
-                finalPreFix,
-                finalPostFix,
-                finalExt,
-                _UseAutomaticSegmentation,
-                _ExtractBBoxes,
-                _ExtractMasks,
-                coords,
-                labels,
-                _UsePostProcess,
-                viewModel.PointsPerSide.Value,
-                viewModel.PointsPerBatch.Value,
-                viewModel.PredIoUThresh.Value,
-                viewModel.StabilityScoreThresh.Value,
-                viewModel.StabilityScoreOffset.Value,
-                viewModel.MaskThreshold.Value,
-                viewModel.BoxNMSThresh.Value,
-                viewModel.CropNLayers.Value,
-                viewModel.CropNMSThresh.Value,
-                viewModel.CropOverlapRatio.Value,
-                viewModel.CropNPointsDownScaleFactor.Value,
-                viewModel.MinMaskRegionArea.Value,
-                selectedDevice
-            );
-
-            if (!result)
-            {
-                DispatcherQueue.TryEnqueue(async () =>
+                if (Device != "Auto" && Device != "CPU")
                 {
-                    commandBar.IsEnabled = true;
-                    btn_customizeParams.IsEnabled = false;
-                    btn_segment.IsEnabled = false;
-                    btn_usePostProcess.IsEnabled = false;
-                    btn_useAutomaticSegmentation.IsEnabled = false;
-                    btn_selectPoint.IsEnabled = false;
+                    selectedDevice = Device.Split("Bus #")[1].Split(",")[0];
+                    selectedDevice = (int.Parse(selectedDevice) - 1).ToString();
+                }
 
-                    progressBar.Visibility = Visibility.Collapsed;
-                    resultImageView.Visibility = Visibility.Collapsed;
-                    StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
-                });
+                var result = segmentationHelper.segment(
+                    file.filePath,
+                    file.destination,
+                    file.prefix,
+                    file.postfix,
+                    file.ext,
+                    file.useAutomaticSegmentation,
+                    file.extractBoundingBoxes,
+                    file.extractMasks,
+                    file.inputCoords,
+                    file.inputLabels,
+                    file.usePostProcess,
+                    file.PointsPerSide.Value,
+                    file.PointsPerBatch.Value,
+                    file.PredIoUThresh.Value,
+                    file.StabilityScoreThresh.Value,
+                    file.StabilityScoreOffset.Value,
+                    file.MaskThreshold.Value,
+                    file.BoxNMSThresh.Value,
+                    file.CropNLayers.Value,
+                    file.CropNMSThresh.Value,
+                    file.CropOverlapRatio.Value,
+                    file.CropNPointsDownScaleFactor.Value,
+                    file.MinMaskRegionArea.Value,
+                    selectedDevice
+                );
 
-                MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
-                return;
-            }
-
-            var originalFileName = filePath.Split(@"\");
-
-            if (finalPreFix != "")
-            {
-                outputFileName = $"{FileName}_{originalFileName[originalFileName.Length - 1]}";
-            }
-            else if (finalPostFix != "")
-            {
-                var name = originalFileName[originalFileName.Length - 1].Split(".");
-                var ext = name[name.Length - 1];
-
-                outputFileName = $"{name[0]}_{FileName}.{ext}";
-            }
-            else
-            {
-                outputFileName = $"{FileName}.{Extension}";
-            }
-
-            targetPath = DateTime.Now.ToString("MM_dd_yyyy_HH_mm_ss");
-            updateStatus("Finishing up...");
-
-            var createHistoryResult = segmentationHelper.CreateHistory(
-                filePath,
-                targetPath,
-                outputFileName,
-                _UsePostProcess,
-                _UseAutomaticSegmentation,
-                _ExtractBBoxes,
-                _ExtractMasks,
-                coords,
-                labels,
-                viewModel.PointsPerSide.Value,
-                viewModel.PointsPerBatch.Value,
-                viewModel.PredIoUThresh.Value,
-                viewModel.StabilityScoreThresh.Value,
-                viewModel.StabilityScoreOffset.Value,
-                viewModel.MaskThreshold.Value,
-                viewModel.BoxNMSThresh.Value,
-                viewModel.CropNLayers.Value,
-                viewModel.CropNMSThresh.Value,
-                viewModel.CropOverlapRatio.Value,
-                viewModel.CropNPointsDownScaleFactor.Value,
-                viewModel.MinMaskRegionArea.Value,
-                Device
-            );
-
-            if (!createHistoryResult)
-            {
-                DispatcherQueue.TryEnqueue(async () =>
+                if (!result)
                 {
-                    commandBar.IsEnabled = true;
-                    btn_customizeParams.IsEnabled = false;
-                    btn_segment.IsEnabled = false;
-                    btn_usePostProcess.IsEnabled = false;
-                    progressView.Visibility = Visibility.Collapsed;
-                    resultImageView.Visibility = Visibility.Collapsed;
-                });
+                    DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        commandBar.IsEnabled = true;
+                        btn_customizeParams.IsEnabled = false;
+                        btn_segment.IsEnabled = false;
+                        btn_usePostProcess.IsEnabled = false;
+                        btn_useAutomaticSegmentation.IsEnabled = false;
+                        btn_selectPoint.IsEnabled = false;
 
-                MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
-                return;
+                        progressBar.Visibility = Visibility.Collapsed;
+                        StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
+                        await MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
+
+                    });
+
+                    return;
+                }
+
+                var originalFileName = file.filePath.Split(@"\");
+                var outputFileName = "";
+
+                if (file.prefix != "")
+                {
+                    outputFileName = $"{file.prefix}_{originalFileName[originalFileName.Length - 1]}";
+                }
+                else if (file.postfix != "")
+                {
+                    var name = originalFileName[originalFileName.Length - 1].Split(".");
+                    var ext = name[name.Length - 1];
+
+                    outputFileName = $"{name[0]}_{file.postfix}.{ext}";
+                }
+                else
+                {
+                    outputFileName = $"{file.newName}.{file.ext}";
+                }
+
+                var targetPath = DateTime.Now.ToString("MM_dd_yyyy_HH_mm_ss");
+
+                var createHistoryResult = segmentationHelper.CreateHistory(
+                    file.filePath,
+                    targetPath,
+                    outputFileName,
+                    file.usePostProcess,
+                    file.useAutomaticSegmentation,
+                    file.extractBoundingBoxes,
+                    file.extractMasks,
+                    file.inputCoords,
+                    file.inputLabels,
+                    file.PointsPerSide.Value,
+                    file.PointsPerBatch.Value,
+                    file.PredIoUThresh.Value,
+                    file.StabilityScoreThresh.Value,
+                    file.StabilityScoreOffset.Value,
+                    file.MaskThreshold.Value,
+                    file.BoxNMSThresh.Value,
+                    file.CropNLayers.Value,
+                    file.CropNMSThresh.Value,
+                    file.CropOverlapRatio.Value,
+                    file.CropNPointsDownScaleFactor.Value,
+                    file.MinMaskRegionArea.Value,
+                    Device
+                );
+
+                if (!createHistoryResult)
+                {
+                    DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        commandBar.IsEnabled = true;
+                        btn_customizeParams.IsEnabled = false;
+                        btn_segment.IsEnabled = false;
+                        btn_usePostProcess.IsEnabled = false;
+                        progressBar.Visibility = Visibility.Collapsed;
+                        StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
+                        await MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
+                    });
+
+                    return;
+                }
+
+                var rssaFolder = @"C:\RomanowskyStainSlideAnalyzer";
+                var finalPath = Path.Combine(rssaFolder, targetPath);
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    file.destination = @$"{finalPath}\{file.destination}";
+
+                    var progressUnit = (FilesToSegment.Count() / 100) * 100;
+                    increaseProgress(progressUnit);
+                });
             }
 
             DispatcherQueue.TryEnqueue(async () =>
@@ -915,13 +1026,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 btn_segment.IsEnabled = false;
                 btn_usePostProcess.IsEnabled = false;
                 progressView.Visibility = Visibility.Collapsed;
-                resultImageView.Visibility = Visibility.Visible;
-                resultImageView.Source = new BitmapImage(new Uri(@$"C:\RomanowskyStainSlideAnalyzer\{targetPath}\{outputFileName}"));
                 segmentHelpPanel.Visibility = Visibility.Visible;
                 btn_labeling.Visibility = ExtractBBoxes ? Visibility.Visible : Visibility.Collapsed;
                 SegmentHelpText = "The Romanowsky Stain Slide Analyzer has completed the task you requested, and the results are as above.\nFor detailed results, check the results in the History tab.";
 
-                if (_ExtractBBoxes)
+                if (ExtractBBoxes)
                 {
                     btn_save.Visibility = Visibility.Visible;
                     btn_labeling.Visibility = Visibility.Visible;
@@ -948,32 +1057,29 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                 if (items.Count > 0)
                 {
-                    var item = items[0];
-
-                    if (item.GetType() == typeof(StorageFile))
+                    foreach(var item in items)
                     {
-                        if ((item as StorageFile).Path.Contains(" "))
+                        if (item.GetType() == typeof(StorageFile))
                         {
-                            await MainWindow.ShowContentDialogAsync("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {filePath}", "OK");
-                        }
-                        else if ((item as StorageFile).FileType.ToLower() == ".jpg" || (item as StorageFile).FileType.ToLower() == ".jpeg" || (item as StorageFile).FileType.ToLower() == ".png")
-                        {
-                            filePath = item.Path;
-                            var source = new BitmapImage(new Uri(filePath));
-                            btn_loadImage.Visibility = Visibility.Collapsed;
-                            imageTutorialView.Visibility = Visibility.Collapsed;
-                            btn_clear.Visibility = Visibility.Visible;
-                            selectedImagePanel.Visibility = Visibility.Visible;
-                            selectedImageView.Source = source;
-                            labelingViewModel.Source = source;
-                            controlsView.Visibility = Visibility.Visible;
-                            viewModel.Source = source;
-                            SetFileName();
-                        }
-                        else
-                        {
-                            e.AcceptedOperation = DataPackageOperation.None;
-                            await MainWindow.ShowContentDialogAsync("Warning", $"Only .jpg, .jpeg, .png files can be loaded.\nFile {(item as StorageFile).Path} will be skipped.", "OK");
+                            if ((item as StorageFile).Path.Contains(" "))
+                            {
+                                await MainWindow.ShowContentDialogAsync("Warning", $"There is a space in the file path. If there is a space, unexpected actions may occur.\nPlease remove the space.\nFile path: {item.Path}", "OK");
+                            }
+                            else if ((item as StorageFile).FileType.ToLower() == ".jpg" || (item as StorageFile).FileType.ToLower() == ".jpeg" || (item as StorageFile).FileType.ToLower() == ".png")
+                            {
+                                FilesToSegment.Add(new(item.Path, "", "", "output", "", new(), new()));
+                                btn_loadImage.Visibility = Visibility.Collapsed;
+                                imageTutorialView.Visibility = Visibility.Collapsed;
+                                btn_clear.Visibility = Visibility.Visible;
+                                selectedImagePanel.Visibility = Visibility.Visible;
+                                controlsView.Visibility = Visibility.Visible;
+                                SetFileName();
+                            }
+                            else
+                            {
+                                e.AcceptedOperation = DataPackageOperation.None;
+                                await MainWindow.ShowContentDialogAsync("Warning", $"Only .jpg, .jpeg, .png files can be loaded.\nFile {(item as StorageFile).Path} will be skipped.", "OK");
+                            }
                         }
                     }
                 }

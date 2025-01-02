@@ -52,7 +52,7 @@
         <ScrollView Grid.Row="3" Width="512" Height="512" ContentOrientation="None" ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTabStop="True" HorizontalAlignment="Center" VerticalAlignment="Center"
                     HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <Canvas Opacity="1" x:Name="canvas" Width="512" Height="512">
-                <Image x:Name="img_source" PointerPressed="CreatePoint" Source="{x:Bind viewModel.Source, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="512" Height="512" Stretch="Uniform">
+                <Image x:Name="img_source" PointerPressed="CreatePoint" Source="{x:Bind viewModel.filePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="512" Height="512" Stretch="Uniform">
                     <Image.RenderTransform>
                         <RotateTransform Angle="270" CenterX="256" CenterY="256"/>
                     </Image.RenderTransform>

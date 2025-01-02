@@ -188,7 +188,7 @@ if __name__ == '__main__':
 
     else:
         device = torch.device(f'cuda:{selected_device}')
-        torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
+        torch.autocast(f"cuda:{selected_device}", dtype=torch.bfloat16).__enter__()
 
 
     filename = ""
@@ -198,7 +198,7 @@ if __name__ == '__main__':
 
     else:
         if pre_name != "": filename = f"{pre_name}_{str(file).split("/")[-1]}"
-        else: filename = f"{destination}.{ext}"
+        else: filename = f"{destination}"
 
     image = Image.open(f'{file}').convert('RGB')
     min_area = min(image.width, image.height)
