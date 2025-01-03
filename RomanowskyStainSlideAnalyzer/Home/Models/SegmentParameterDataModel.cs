@@ -299,6 +299,17 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             }
         }
 
+        private string _Device = "Auto";
+        public string Device
+        {
+            get => _Device;
+            set
+            {
+                _Device = value;
+                OnPropertyChanged(nameof(Device));
+            }
+        }
+
         public List<PointDataModel> Points = new();
 
         public SegmentParameterDataModel(

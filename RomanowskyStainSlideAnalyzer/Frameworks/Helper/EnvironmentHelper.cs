@@ -23,13 +23,20 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.Helper
         public static List<string> GetGPUList()
         {
             List<string> gpuList = new();
-            NVIDIA.Initialize();
-
-            foreach (var gpu in PhysicalGPU.GetPhysicalGPUs())
+            try
             {
-                gpuList.Add(
-                    $"{gpu.FullName} ({gpu.BusInformation})"
-                );
+                NVIDIA.Initialize();
+
+                foreach (var gpu in PhysicalGPU.GetPhysicalGPUs())
+                {
+                    gpuList.Add(
+                        $"{gpu.FullName} ({gpu.BusInformation})"
+                    );
+                }
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
             }
 
             return gpuList;

@@ -53,6 +53,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         private bool IsDone = false;
         private int EditModeEndIndex = 0;
         private bool isMaskAvailable;
+        private bool isBBoxAvailable;
 
         public LabelingWindow(LabelingViewModel viewModel, string path, bool isMaskAvailable, bool isBBoxAvailable)
         {
@@ -60,14 +61,10 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
             this.viewModel = viewModel;
             this.isMaskAvailable = isMaskAvailable;
+            this.isBBoxAvailable = isBBoxAvailable;
 
-            if(isMaskAvailable && isBBoxAvailable)
+            if(!isMaskAvailable || !isBBoxAvailable)
             {
-                this.viewModel.EnableUseBBoxButton = true;
-            } else
-            {
-                this.viewModel.EnableUseBBoxButton = false;
-
                 if (isMaskAvailable) this.viewModel.UseBBoxAsTarget = false;
                 else this.viewModel.UseBBoxAsTarget = true;
             }
@@ -82,7 +79,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
 
             AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
-            appWindow.Resize(new Windows.Graphics.SizeInt32(800, 950));
+            appWindow.Resize(new Windows.Graphics.SizeInt32((isMaskAvailable && isBBoxAvailable) ? 1100 : 800, 950));
             Init();
         }
         private async void Init()
@@ -90,6 +87,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             ExtendsContentIntoTitleBar = true;
             SystemBackdrop = new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
             SetTitleBar(AppTitleBar);
+
+            img_maskScrollView.Visibility = (isMaskAvailable && isBBoxAvailable) ? Visibility.Visible : Visibility.Collapsed;
 
             if (helper.GetFileAlreadyExists())
             {
@@ -222,8 +221,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                         if (btn_hideBBox.IsChecked == false)
                         {
-                            if (viewModel.UseBBoxAsTarget) CreateBBox();
-                            else DrawContours();
+                            CreateBBox();
+                            DrawContours();
                         }
 
                         scrollTo();
@@ -398,6 +397,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         if (btn_hideBBox.IsChecked == false)
                         {
                             CreateBBox();
+                            DrawContours();
                         }
 
                         CreateThumbnailBBox();
@@ -410,13 +410,15 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void scrollTo()
         {
-            if (viewModel.IsZoomModeEnabled && img_scrollView.ZoomFactor <= 1F)
+            if (viewModel.IsZoomModeEnabled && (img_scrollView.ZoomFactor <= 1F || img_maskScrollView.ZoomFactor <= 1F))
             {
-                img_scrollView.ZoomTo(3F, new((float) currentData.X, (float) currentData.Y));
+                if(img_scrollView.ZoomFactor <= 1F) img_scrollView.ZoomTo(3F, new((float) currentData.X, (float) currentData.Y));
+                if(img_maskScrollView.ZoomFactor <= 1F) img_maskScrollView.ZoomTo(3F, new((float)currentData.X, (float)currentData.Y));
             }
             else if(viewModel.IsZoomModeEnabled)
             {
                 double zoomFactor = img_scrollView.ZoomFactor;
+                double maskZoomFactor = img_maskScrollView.ZoomFactor;
 
                 double viewportWidth = img_scrollView.ViewportWidth;
                 double viewportHeight = img_scrollView.ViewportHeight;
@@ -424,7 +426,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 double scrollOffsetX = currentData.X * zoomFactor - (viewportWidth / 2);
                 double scrollOffsetY = currentData.Y * zoomFactor - (viewportHeight / 2);
 
+                double maskOffsetX = currentData.X * maskZoomFactor - (viewportWidth / 2);
+                double maskOffsetY = currentData.Y * maskZoomFactor - (viewportHeight / 2);
+
                 img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+                img_maskScrollView.ScrollTo(maskOffsetX, maskOffsetY);
             }
         }
 
@@ -450,7 +456,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void CreateBBox()
         {
-            DeleteMasks();
+            DeleteBBoxes();
 
             Rectangle bBox = new()
             {
@@ -525,6 +531,12 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void DeleteMasks()
         {
+            DeleteContours();
+            DeleteBBoxes();
+        }
+
+        private void DeleteBBoxes()
+        {
             foreach (var child in canvas.Children)
             {
                 if (child.GetType() == typeof(Rectangle))
@@ -532,14 +544,17 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                     canvas.Children.Remove(child);
                 }
             }
+        }
 
-            var toRemove = canvas.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>()
-                              .Where(rect => rect.Name == "contour")
-                              .ToList();
+        private void DeleteContours()
+        {
+            var toRemove = maskCanvas.Children.OfType<Rectangle>()
+                  .Where(rect => rect.Name == "contour")
+                  .ToList();
 
             foreach (var rect in toRemove)
             {
-                canvas.Children.Remove(rect);
+                maskCanvas.Children.Remove(rect);
             }
         }
 
@@ -551,14 +566,14 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             }
             else
             {
-                if (viewModel.UseBBoxAsTarget) CreateBBox();
-                else DrawContours();
+                CreateBBox();
+                DrawContours();
             }
         }
 
         private void DrawContours()
         {
-            DeleteMasks();
+            DeleteContours();
 
             for (int y = 1; y < 511; y++)
             {
@@ -591,28 +606,27 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             Canvas.SetTop(rect, y);
             rect.Name = "contour";
 
-            canvas.Children.Add(rect);
+            maskCanvas.Children.Add(rect);
         }
 
         private async Task LoadData()
         {
             DeleteMasks();
 
-            if(viewModel.UseBBoxAsTarget)
-            {
-                await Task.Run(() => {
+            await Task.Run(() => {
+                if (BoundingBoxes == null || BoundingBoxes.Count < viewModel.AllIndex)
+                {
+                    BoundingBoxes = helper.GetBoundingBox();
 
-                    if(BoundingBoxes == null || BoundingBoxes.Count < viewModel.AllIndex)
+                    if (BoundingBoxes.Count == 0)
                     {
-                        BoundingBoxes = helper.GetBoundingBox();              
-                        
-                        if(BoundingBoxes.Count == 0)
-                        {
-                            BoundingBoxes = new();
-                        }
+                        BoundingBoxes = new();
                     }
+                }
 
-                    DispatcherQueue.TryEnqueue(() =>
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if(BoundingBoxes.Count > viewModel.CurrentIndex)
                     {
                         viewModel.AllIndex = BoundingBoxes.Count;
                         currentData = BoundingBoxes[viewModel.CurrentIndex - 1];
@@ -625,11 +639,11 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                         CreateThumbnailBBox();
                         scrollTo();
-                    });
+                    }
                 });
-            }
+            });
 
-            else
+            if(isMaskAvailable)
             {
                 await Task.Run(() =>
                 {
@@ -638,7 +652,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                     currentMask = AnalyzeHelper.GetMask($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}", (viewModel.CurrentIndex - 1).ToString());
                     currentData = new(coords.Item3, coords.Item4, coords.Item1, coords.Item2);
-                    
+
                     DispatcherQueue.TryEnqueue(() =>
                     {
                         viewModel.AllIndex = AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}");
@@ -655,12 +669,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                     });
                 });
             }
-        }
-
-        private void btn_useBBox_Click(object sender, RoutedEventArgs e)
-        {
-            DispatcherQueue.TryEnqueue(() => viewModel.UseBBoxAsTarget = btn_useBBox.IsChecked == true);
-            LoadData();
         }
     }
 }

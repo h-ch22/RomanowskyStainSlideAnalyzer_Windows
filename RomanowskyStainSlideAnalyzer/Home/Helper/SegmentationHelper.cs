@@ -135,12 +135,18 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                     {
                         FileName = "ubuntu",
                         Arguments = $"run {cli}",
-                        UseShellExecute = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
                         CreateNoWindow = true
                     }
                 };
 
+                process.ErrorDataReceived += (sender, e) => Debug.WriteLine($"STDERR: {e.Data}");
+
                 process.Start();
+                process.BeginErrorReadLine();
+
                 process.WaitForExit();
 
                 return process.ExitCode == 0;
@@ -290,12 +296,17 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                     {
                         FileName = "ubuntu",
                         Arguments = $"run {cli}",
-                        UseShellExecute = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
                         CreateNoWindow = true
                     }
                 };
 
+                process.ErrorDataReceived += (sender, e) => Debug.WriteLine($"STDERR: {e.Data}");
                 process.Start();
+                process.BeginErrorReadLine();
+
                 process.WaitForExit();
 
                 var exitCode = process.ExitCode;

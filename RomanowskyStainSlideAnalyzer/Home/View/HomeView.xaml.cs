@@ -119,7 +119,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].useAutomaticSegmentation : true;
             set
             {
-                if(FilesToSegment.Count() > 0)
+                if (FilesToSegment.Count() > 0)
                 {
                     FilesToSegment[CurrentIndex].useAutomaticSegmentation = value;
                     OnPropertyChanged(nameof(UseAutomaticSegmentation));
@@ -139,7 +139,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].extractBoundingBoxes : true;
             set
             {
-                if(FilesToSegment.Count() > 0)
+                if (FilesToSegment.Count() > 0)
                 {
                     FilesToSegment[CurrentIndex].extractBoundingBoxes = value;
 
@@ -155,7 +155,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].extractMasks : true;
             set
             {
-                if(FilesToSegment.Count() > 0)
+                if (FilesToSegment.Count() > 0)
                 {
                     FilesToSegment[CurrentIndex].extractMasks = value;
 
@@ -211,10 +211,10 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
         public bool UsePostProcess
         {
-            get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].usePostProcess : true;
+            get => FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].usePostProcess : false;
             set
             {
-                if(FilesToSegment.Count() > 0)
+                if (FilesToSegment.Count() > 0)
                 {
                     FilesToSegment[CurrentIndex].usePostProcess = value;
 
@@ -247,6 +247,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             get => _CurrentIndex;
             set
             {
+                IsChangingIndex = true;
                 _CurrentIndex = value;
                 OnPropertyChanged(nameof(CurrentIndex));
                 OnPropertyChanged(nameof(UseAutomaticSegmentation));
@@ -256,31 +257,39 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                 ToggleButtonStatus();
 
-                if (FilesToSegment[CurrentIndex].prefix != "")
+                if (FilesToSegment.Count() > 0 && value > -1)
                 {
-                    radio_prefix.IsChecked = true;
-                    FileName = FilesToSegment[CurrentIndex].prefix;
-                    OnPropertyChanged(nameof(FileName));
-                } else if (FilesToSegment[CurrentIndex].postfix != "")
-                {
-                    radio_postfix.IsChecked = true;
-                    FileName = FilesToSegment[CurrentIndex].postfix;
-                    OnPropertyChanged(nameof(FileName));
+                    Device = FilesToSegment[value].Device;
+
+                    if (FilesToSegment[value].prefix != "")
+                    {
+                        radio_prefix.IsChecked = true;
+                        FileName = FilesToSegment[value].prefix;
+                    }
+                    else if (FilesToSegment[value].postfix != "")
+                    {
+                        radio_postfix.IsChecked = true;
+                        FileName = FilesToSegment[value].postfix;
+                    }
+                    else if (FilesToSegment[value].newName != "")
+                    {
+                        radio_newName.IsChecked = true;
+                        FileName = FilesToSegment[value].newName;
+                        Extension = FilesToSegment[value].ext;
+                    }
+                    else
+                    {
+                        radio_postfix.IsChecked = true;
+                        FileName = "output";
+                    }
+
+                    if(IsSegmentationComplete)
+                    {
+                        LabelingBtnVisibility = (FilesToSegment[value].extractBoundingBoxes || FilesToSegment[value].extractMasks) ? Visibility.Visible : Visibility.Collapsed;
+                    }
                 }
-                else if (FilesToSegment[CurrentIndex].newName != "")
-                {
-                    radio_newName.IsChecked = true;
-                    FileName = FilesToSegment[CurrentIndex].newName;
-                    Extension = FilesToSegment[CurrentIndex].ext;
-                    OnPropertyChanged(nameof(FileName));
-                    OnPropertyChanged(nameof(Extension));
-                }
-                else
-                {
-                    radio_postfix.IsChecked = true;
-                    FileName = "output";
-                    OnPropertyChanged(nameof(FileName));
-                }
+
+                IsChangingIndex = false;
             }
         }
 
@@ -291,11 +300,40 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             set
             {
                 _UseParallel = value;
+                dropdown_devices.IsEnabled = !value;
+                txt_deviceHelp.Text = value ? "When the Parallel option is enabled, it automatically assigns tasks to each GPU." : "Only NVIDIA GPUs are displayed.";
+
                 OnPropertyChanged(nameof(UseParallel));
             }
         }
 
-        private LabelingViewModel labelingViewModel = new();
+        private bool _IsParallelEnabled = false;
+        public bool IsParallelEnabled
+        {
+            get => _IsParallelEnabled;
+            set
+            {
+                _IsParallelEnabled = value;
+                OnPropertyChanged(nameof(IsParallelEnabled));
+            }
+        }
+
+        private Visibility _LabelingBtnVisibility = Visibility.Collapsed;
+        public Visibility LabelingBtnVisibility
+        {
+            get => _LabelingBtnVisibility;
+            set
+            {
+                _LabelingBtnVisibility = value;
+                OnPropertyChanged(nameof(LabelingBtnVisibility));
+            }
+        }
+
+        private bool IsChangingIndex = false;
+        private bool IsSegmentationComplete = false;
+        private bool IsError = false;
+        private List<string> DeviceList = new();
+
         private EnvironmentHelper helper = new();
         private SegmentationHelper segmentationHelper = new();
 
@@ -322,36 +360,38 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 progressView.Visibility = Visibility.Collapsed;
                 configurationView.Visibility = Visibility.Collapsed;
                 imageView.Visibility = Visibility.Visible;
-
-                var deviceList = EnvironmentHelper.GetGPUList();
-
-                foreach(var d in deviceList)
-                {
-                    var deviceFlyout = new MenuFlyoutItem();
-                    deviceFlyout.Text = d;
-                    deviceFlyout.Click += OnDeviceSelected;
-
-                    deviceMenu.Items.Add(
-                        deviceFlyout    
-                    );
-                }
-
-                Device = "Auto";
-
-                FilesToSegment.CollectionChanged += (s, e) =>
-                {
-                    OnPropertyChanged(nameof(FilesToSegment.Count));
-                };
             }
+
+            DeviceList = EnvironmentHelper.GetGPUList();
+            IsParallelEnabled = DeviceList.Count() > 1;
+
+            foreach (var d in DeviceList)
+            {
+                var deviceFlyout = new MenuFlyoutItem();
+                deviceFlyout.Text = d;
+                deviceFlyout.Click += OnDeviceSelected;
+
+                deviceMenu.Items.Add(
+                    deviceFlyout
+                );
+            }
+
+            Device = "Auto";
+
+            FilesToSegment.CollectionChanged += (s, e) =>
+            {
+                btn_deleteImage.IsEnabled = FilesToSegment.Count() > 1;
+                OnPropertyChanged(nameof(FilesToSegment.Count));
+            };
         }
 
         private void ToggleButtonStatus()
         {
-            btn_extractBBoxes.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation && !FilesToSegment[CurrentIndex].usePostProcess;
-            btn_extractMasks.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation && !FilesToSegment[CurrentIndex].usePostProcess;
-            btn_customizeParams.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation;
-            btn_usePostProcess.IsEnabled = FilesToSegment[CurrentIndex].useAutomaticSegmentation;
-            btn_selectPoint.IsEnabled = !FilesToSegment[CurrentIndex].useAutomaticSegmentation;
+            btn_extractBBoxes.IsEnabled = FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].useAutomaticSegmentation && !FilesToSegment[CurrentIndex].usePostProcess : true;
+            btn_extractMasks.IsEnabled = FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].useAutomaticSegmentation && !FilesToSegment[CurrentIndex].usePostProcess : true;
+            btn_customizeParams.IsEnabled = FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].useAutomaticSegmentation : true;
+            btn_usePostProcess.IsEnabled = FilesToSegment.Count() > 0 ? FilesToSegment[CurrentIndex].useAutomaticSegmentation : false;
+            btn_selectPoint.IsEnabled = FilesToSegment.Count() > 0 ? !FilesToSegment[CurrentIndex].useAutomaticSegmentation : false;
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -361,7 +401,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
         private void SetFileName()
         {
-            if(FilesToSegment.Count() > 0)
+            if (FilesToSegment.Count() > 0 && !IsChangingIndex)
             {
                 var originalFileName = FilesToSegment[CurrentIndex].filePath.Split(@"\");
 
@@ -698,7 +738,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
             if (files != null && files.Count() > 0)
             {
-                foreach(var file in files)
+                foreach (var file in files)
                 {
                     if (file.Path.Contains(" "))
                     {
@@ -713,12 +753,27 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     }
                 }
 
-                imageTutorialView.Visibility = Visibility.Collapsed;
-                btn_clear.Visibility = Visibility.Visible;
-                selectedImagePanel.Visibility = Visibility.Visible;
-                controlsView.Visibility = Visibility.Visible;
-                SetFileName();
+                if (FilesToSegment.Count() > 0)
+                {
+                    imageTutorialView.Visibility = Visibility.Collapsed;
+                    btn_clear.Visibility = Visibility.Visible;
+                    selectedImagePanel.Visibility = Visibility.Visible;
+                    controlsView.Visibility = Visibility.Visible;
+                    SetFileName();
+                }
             }
+        }
+
+        private string GetOriginalImage(string path)
+        {
+            var jpgFiles = Directory.GetFiles($@"{path}\", "input.jpg");
+            var jpegFiles = Directory.GetFiles($@"{path}\", "input.jpeg");
+            var pngFiles = Directory.GetFiles($@"{path}\", "input.png");
+
+            if (jpgFiles.Length == 1) return jpgFiles[0];
+            else if (jpegFiles.Length == 1) return jpegFiles[0];
+            else if (pngFiles.Length == 1) return pngFiles[0];
+            else return "";
         }
 
         private async void OnClick(object sender, RoutedEventArgs e)
@@ -729,12 +784,124 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     helper.reboot();
                     break;
 
+                case "btn_segment":
+                    if (FilesToSegment.Count() <= 0)
+                    {
+                        await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
+                        return;
+                    }
+
+                    else
+                    {
+                        foreach (var file in FilesToSegment)
+                        {
+                            if (file.prefix == "" && file.postfix == "" && file.newName == "")
+                            {
+                                await MainWindow.ShowContentDialogAsync("Warning", "Please enter file name.", "OK");
+                                return;
+                            }
+                            else if (file.newName == "input" || file.postfix == "input" || file.prefix == "input")
+                            {
+                                await MainWindow.ShowContentDialogAsync("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.", "OK");
+                                return;
+                            }
+                            else if (file.newName.Contains(".") || file.prefix.Contains(".") || file.postfix.Contains("."))
+                            {
+                                await MainWindow.ShowContentDialogAsync("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.", "OK");
+                                return;
+                            }
+
+                            var originalFileName = file.filePath.Split(@"\");
+                            var ext = originalFileName[originalFileName.Length - 1].Split(".");
+
+                            if (file.prefix != "") file.destination = $"{file.prefix}_{originalFileName[originalFileName.Length - 1]}";
+                            else if (file.postfix != "") file.destination = $"{ext[0]}_{file.postfix}.{ext[1]}";
+                            else file.destination = $@"{file.newName}.{file.ext}";
+                        }
+                    }
+
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        commandBar.IsEnabled = false;
+                        Indeterminate = true;
+                        controlsView.Visibility = Visibility.Collapsed;
+                        progressBar.IsIndeterminate = (FilesToSegment.Count() == 1 || UseParallel);
+                        progressBar.Visibility = Visibility.Visible;
+                        progressView.Visibility = Visibility.Visible;
+                        segmentHelpPanel.Visibility = Visibility.Collapsed;
+                        StatusText = "Romanowsky Stain Slide Analyzer is processing your request.\nPlease wait.";
+                        Progress = 0;
+                    });
+
+                    if (UseParallel)
+                    {
+                        await Task.Run(() =>
+                        {
+                            List<ObservableCollection<SegmentParameterDataModel>> gpuAssignments = new();
+
+                            for (int i = 0; i < DeviceList.Count(); i++)
+                            {
+                                gpuAssignments.Add(new());
+                            }
+
+                            for (int i = 0; i < FilesToSegment.Count(); i++)
+                            {
+                                var gpuIndex = i % DeviceList.Count();
+                                FilesToSegment[i].Device = DeviceList[gpuIndex];
+                                gpuAssignments[gpuIndex].Add(FilesToSegment[i]);
+                            }
+
+                            Parallel.ForEach(gpuAssignments, item =>
+                            {
+                                Segment(item);
+                            });
+                        });
+
+                        if (!IsError) ShowCompleteView();
+                    }
+
+                    else
+                    {
+                        Thread thread = new Thread(() => Segment(null));
+                        thread.Start();
+                    }
+
+                    break;
+
+            }
+        }
+
+        private async void OnMenuFlyoutClick(object sender, RoutedEventArgs e)
+        {
+            switch((sender as MenuFlyoutItem).Name)
+            {
                 case "btn_loadImage":
                     ShowFilePicker();
                     break;
 
+                case "btn_deleteImage":
+                    var isConfirm = await MainWindow.ShowContentDialogAsync("Delete", "Are you sure you want to remove this image?\nThe actual file will not be removed.", "Yes", "No");
+
+                    if(isConfirm)
+                    {
+                        var isIndexAtEnd = false;
+
+                        if (CurrentIndex == FilesToSegment.Count() - 1)
+                        {
+                            CurrentIndex -= 1;
+                            isIndexAtEnd = true;
+                        }
+
+                        FilesToSegment.RemoveAt(isIndexAtEnd ? CurrentIndex + 1 : CurrentIndex);
+                    }
+                    break;
+
                 case "btn_clear":
+                    CurrentIndex = 0;
+                    IsError = false;
                     FilesToSegment.Clear();
+                    IsSegmentationComplete = false;
+                    LabelingBtnVisibility = Visibility.Collapsed;
 
                     btn_loadImage.Visibility = Visibility.Visible;
                     imageTutorialView.Visibility = Visibility.Visible;
@@ -746,7 +913,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     btn_segment.IsEnabled = true;
                     btn_usePostProcess.IsEnabled = true;
                     btn_useAutomaticSegmentation.IsEnabled = true;
-                    btn_selectPoint.IsEnabled = true;
+                    btn_selectPoint.IsEnabled = false;
                     progressView.Visibility = Visibility.Collapsed;
                     btn_save.Visibility = Visibility.Collapsed;
 
@@ -768,7 +935,55 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     );
 
                     paramsControlWindow.Activate();
-                    
+
+                    break;
+
+                case "btn_setParamsAll":
+                    if (FilesToSegment.Count() > 0 && FilesToSegment[CurrentIndex].useAutomaticSegmentation)
+                    {
+                        var dialogResult = await MainWindow.ShowContentDialogAsync("Set All Parameters", "Sets all parameters to the same value based on the parameters of the currently displayed image.\nDo you want to continue?", "Yes", "No");
+
+                        if (dialogResult)
+                        {
+                            var current = FilesToSegment[CurrentIndex];
+
+                            for (var i = 0; i < FilesToSegment.Count(); i++)
+                            {
+                                var target = FilesToSegment[i];
+
+                                if (i != CurrentIndex)
+                                {
+                                    target.PointsPerSide.Value = current.PointsPerSide.Value;
+                                    target.PointsPerBatch.Value = current.PointsPerBatch.Value;
+                                    target.PredIoUThresh.Value = current.PredIoUThresh.Value;
+                                    target.StabilityScoreThresh.Value = current.StabilityScoreThresh.Value;
+                                    target.StabilityScoreOffset.Value = current.StabilityScoreOffset.Value;
+                                    target.MaskThreshold.Value = current.MaskThreshold.Value;
+                                    target.BoxNMSThresh.Value = current.BoxNMSThresh.Value;
+                                    target.CropNLayers.Value = current.CropNLayers.Value;
+                                    target.CropNMSThresh.Value = current.CropNMSThresh.Value;
+                                    target.CropOverlapRatio.Value = current.CropOverlapRatio.Value;
+                                    target.CropNPointsDownScaleFactor.Value = current.CropNPointsDownScaleFactor.Value;
+                                    target.MinMaskRegionArea.Value = current.MinMaskRegionArea.Value;
+                                }
+                            }
+
+                            await MainWindow.ShowContentDialogAsync("Done", "All parameters are set.", "OK");
+                        }
+                    }
+                    else
+                    {
+                        if (FilesToSegment.Count() <= 0)
+                        {
+                            await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
+                        }
+
+                        else if (!FilesToSegment[CurrentIndex].useAutomaticSegmentation)
+                        {
+                            await MainWindow.ShowContentDialogAsync("Warning", "To use this feature, enable Use Automatic Segmentation.", "OK");
+                        }
+                    }
+
                     break;
 
                 case "btn_selectPoint":
@@ -784,9 +999,10 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     break;
 
                 case "btn_labeling":
-                    var fileName = FilesToSegment[CurrentIndex].destination.Split(@"\");
+                    var viewModel = new LabelingViewModel();
+                    viewModel.Source = new BitmapImage(new Uri(FilesToSegment[CurrentIndex].filePath));
 
-                    LabelingWindow labelingWindow = new(labelingViewModel, $@"{FilesToSegment[CurrentIndex].destination}.txt", FilesToSegment[CurrentIndex].extractMasks, FilesToSegment[CurrentIndex].extractBoundingBoxes);
+                    LabelingWindow labelingWindow = new(viewModel, $@"{FilesToSegment[CurrentIndex].destination}.txt", FilesToSegment[CurrentIndex].extractMasks, FilesToSegment[CurrentIndex].extractBoundingBoxes);
                     labelingWindow.Activate();
                     break;
 
@@ -821,63 +1037,17 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     }
                     break;
 
-                case "btn_segment":
-                    if (FilesToSegment.Count() <= 0)
-                    {
-                        await MainWindow.ShowContentDialogAsync("No Image", "Please select an image.", "OK");
-                        return;
-                    }
-
-                    else
-                    {
-                        foreach(var file in FilesToSegment)
-                        {
-                            if (file.prefix == "" && file.postfix == "" && file.newName == "")
-                            {
-                                await MainWindow.ShowContentDialogAsync("Warning", "Please enter file name.", "OK");
-                                return;
-                            }
-                            else if (file.newName == "input" || file.postfix == "input" || file.prefix == "input")
-                            {
-                                await MainWindow.ShowContentDialogAsync("Warning", $"input cannot be used as a file name.\nPlease choose a different file name.", "OK");
-                                return;
-                            }
-                            else if (file.newName.Contains(".") || file.prefix.Contains(".") || file.postfix.Contains("."))
-                            {
-                                await MainWindow.ShowContentDialogAsync("Warning", $"The file name cannot contain a '.'\nPlease try again with a different name.", "OK");
-                                return;
-                            }
-
-                            var originalFileName = file.filePath.Split(@"\");
-                            if (file.prefix != "") file.destination = $"{file.prefix}_{originalFileName[originalFileName.Length - 1]}";
-                            else if (file.postfix != "") file.destination = $"{originalFileName[originalFileName.Length - 1]}_{file.postfix}";
-                            else file.destination = $@"{file.newName}.{file.ext}";
-                        }
-                    }
-
-                    commandBar.IsEnabled = false;
-                    Indeterminate = true;
-                    controlsView.Visibility = Visibility.Collapsed;
-                    progressBar.IsIndeterminate = FilesToSegment.Count() == 1;
-                    progressBar.Visibility = Visibility.Visible;
-                    progressView.Visibility = Visibility.Visible;
-                    segmentHelpPanel.Visibility = Visibility.Collapsed;
-                    StatusText = "Romanowsky Stain Slide Analyzer is processing your request.\nPlease wait.";
-
-                    Thread thread = new Thread(Segment);
-                    thread.Start();
-                    break;
             }
         }
 
-        private async void Segment()
+        private async void Segment(ObservableCollection<SegmentParameterDataModel>? files = null)
         {
-            foreach(var file in FilesToSegment)
+            foreach (var file in files == null ? FilesToSegment : files)
             {
                 List<double> coords = new();
                 List<int> labels = new();
 
-                if (!UseAutomaticSegmentation)
+                if (!file.useAutomaticSegmentation)
                 {
                     foreach (var item in file.Points)
                     {
@@ -890,11 +1060,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 file.inputCoords = coords;
                 file.inputLabels = labels;
 
-                var selectedDevice = Device;
+                var selectedDevice = file.Device;
 
-                if (Device != "Auto" && Device != "CPU")
+                if (selectedDevice != "Auto" && selectedDevice != "CPU")
                 {
-                    selectedDevice = Device.Split("Bus #")[1].Split(",")[0];
+                    selectedDevice = selectedDevice.Split("Bus #")[1].Split(",")[0];
                     selectedDevice = (int.Parse(selectedDevice) - 1).ToString();
                 }
 
@@ -927,21 +1097,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                 if (!result)
                 {
-                    DispatcherQueue.TryEnqueue(async () =>
-                    {
-                        commandBar.IsEnabled = true;
-                        btn_customizeParams.IsEnabled = false;
-                        btn_segment.IsEnabled = false;
-                        btn_usePostProcess.IsEnabled = false;
-                        btn_useAutomaticSegmentation.IsEnabled = false;
-                        btn_selectPoint.IsEnabled = false;
-
-                        progressBar.Visibility = Visibility.Collapsed;
-                        StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
-                        await MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
-
-                    });
-
+                    IsError = true;
+                    ShowErrorView();
                     return;
                 }
 
@@ -988,22 +1145,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     file.CropOverlapRatio.Value,
                     file.CropNPointsDownScaleFactor.Value,
                     file.MinMaskRegionArea.Value,
-                    Device
+                    file.Device
                 );
 
                 if (!createHistoryResult)
                 {
-                    DispatcherQueue.TryEnqueue(async () =>
-                    {
-                        commandBar.IsEnabled = true;
-                        btn_customizeParams.IsEnabled = false;
-                        btn_segment.IsEnabled = false;
-                        btn_usePostProcess.IsEnabled = false;
-                        progressBar.Visibility = Visibility.Collapsed;
-                        StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
-                        await MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
-                    });
-
+                    IsError = true;
+                    ShowErrorView();
                     return;
                 }
 
@@ -1014,28 +1162,45 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 {
                     file.destination = @$"{finalPath}\{file.destination}";
 
-                    var progressUnit = (FilesToSegment.Count() / 100) * 100;
+                    var progressUnit = (Convert.ToDouble(1.0 / Convert.ToDouble(FilesToSegment.Count()))) * 100;
                     increaseProgress(progressUnit);
                 });
             }
 
+            if (files == null && !IsError) ShowCompleteView();
+        }
+
+        private void ShowErrorView()
+        {
             DispatcherQueue.TryEnqueue(async () =>
             {
                 commandBar.IsEnabled = true;
                 btn_customizeParams.IsEnabled = false;
                 btn_segment.IsEnabled = false;
                 btn_usePostProcess.IsEnabled = false;
+                progressBar.Visibility = Visibility.Collapsed;
+                StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
+                await MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
+            });
+        }
+
+        private void ShowCompleteView()
+        {
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                commandBar.IsEnabled = true;
+                btn_customizeParams.IsEnabled = false;
+                btn_segment.IsEnabled = false;
+                btn_usePostProcess.IsEnabled = false;
+
+                btn_save.Visibility = Visibility.Visible;
                 progressView.Visibility = Visibility.Collapsed;
                 segmentHelpPanel.Visibility = Visibility.Visible;
-                btn_labeling.Visibility = ExtractBBoxes ? Visibility.Visible : Visibility.Collapsed;
-                SegmentHelpText = "The Romanowsky Stain Slide Analyzer has completed the task you requested, and the results are as above.\nFor detailed results, check the results in the History tab.";
+                SegmentHelpText = "The Romanowsky Stain Slide Analyzer has completed the task you requested, and the results are as above.\nFor detailed results, check the results in the History tab. Data with the Extract Bounding Boxes or Extract Masks options enabled can be labeled by clicking the Labeling button.";
+                IsSegmentationComplete = true;
 
-                if (ExtractBBoxes)
-                {
-                    btn_save.Visibility = Visibility.Visible;
-                    btn_labeling.Visibility = Visibility.Visible;
-                    SegmentHelpText += "\nYou can use the extracted Bounding Boxes to label the data.";
-                }
+                LabelingBtnVisibility = (FilesToSegment[CurrentIndex].extractBoundingBoxes || FilesToSegment[CurrentIndex].extractMasks) ? Visibility.Visible : Visibility.Collapsed;
+
             });
         }
 
@@ -1047,6 +1212,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         private void OnDeviceSelected(object sender, RoutedEventArgs e)
         {
             Device = (sender as MenuFlyoutItem).Text;
+
+            if(!IsChangingIndex && FilesToSegment.Count() > 0)
+            {
+                FilesToSegment[CurrentIndex].Device = Device;
+            }
         }
 
         private async void imageView_DragEnter(object sender, DragEventArgs e)
@@ -1057,7 +1227,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                 if (items.Count > 0)
                 {
-                    foreach(var item in items)
+                    foreach (var item in items)
                     {
                         if (item.GetType() == typeof(StorageFile))
                         {
@@ -1088,7 +1258,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
         private async void imageView_DragOver(object sender, DragEventArgs e)
         {
-            e.AcceptedOperation =  DataPackageOperation.Copy;
+            e.AcceptedOperation = DataPackageOperation.Copy;
         }
     }
 }

@@ -63,19 +63,15 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Segmentation", "- Extract Masks is now available.\n- An option is available to save the image immediately after segmentation is complete.")
+                new("Segmentation", "- Newly designed HomeView.\n- You can now add files by dragging.\n- You can now segment multiple images.\n- You can now choose which GPU to use for inference.\n- Parallel GPU option is now available.")
             );
 
             ReleaseNotes.Add(
-                new("History", "- A completely new design for History View is now available.\n- Re-labeling is now available.\n- Save Mask Labeling Data is now available.\n- Label Mask Data is now available.\n- Save the masked image is available.")
+                new("Labeling", "- Now you can check the mask and bounding box at the same time.")
             );
 
             ReleaseNotes.Add(
-                new("Labeling", "- Toggle Bounding Box / Mask option is now available.\n- Now when you click the back and next buttons, if there is any saved data it will be displayed.")
-            );
-
-            ReleaseNotes.Add(
-                new("Analyze", "- The ability to analyze segmentation mask data is now available.\n- Toggle Bounding Box / Mask option is now available.\n- Fixed the issue where the average A value was not displayed properly when exporting data.")
+                new("Analyze", "- You can now check mask data and bounding box data at the same time.")
             );
         }
 

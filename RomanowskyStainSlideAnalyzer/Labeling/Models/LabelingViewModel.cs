@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
@@ -77,17 +78,6 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Models
             {
                 _CurrentIndex = value;
                 OnPropertyChanged(nameof(CurrentIndex));
-            }
-        }
-
-        private bool _EnableUseBBoxButton = false;
-        public bool EnableUseBBoxButton
-        {
-            get => _EnableUseBBoxButton;
-            set
-            {
-                _EnableUseBBoxButton = value;
-                OnPropertyChanged(nameof(EnableUseBBoxButton));
             }
         }
 
