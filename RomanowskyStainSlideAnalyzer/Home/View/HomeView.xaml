@@ -183,15 +183,29 @@
             </Grid.ColumnDefinitions>
 
             <RadioButtons Grid.Column="0" Header="Output File Name">
-                <RadioButton x:Name="radio_prefix" Content="Prefix" Checked="OnRadioButtonChecked"/>
-                <RadioButton x:Name="radio_postfix" Content="Postfix" Checked="OnRadioButtonChecked" IsChecked="True"/>
-                <RadioButton x:Name="radio_newName" Content="New Name" Checked="OnRadioButtonChecked"/>
+                <RadioButton x:Name="radio_prefix" Content="Prefix (P)" Checked="OnRadioButtonChecked">
+                    <RadioButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="P"/>
+                    </RadioButton.KeyboardAccelerators>
+                </RadioButton>
+
+                <RadioButton x:Name="radio_postfix" Content="Postfix (S)" Checked="OnRadioButtonChecked" IsChecked="True">
+                    <RadioButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="S"/>
+                    </RadioButton.KeyboardAccelerators>
+                </RadioButton>
+
+                <RadioButton x:Name="radio_newName" Content="New Name (N)" Checked="OnRadioButtonChecked">
+                    <RadioButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="N"/>
+                    </RadioButton.KeyboardAccelerators>
+                </RadioButton>
             </RadioButtons>
 
             <AppBarSeparator Grid.Column="1"/>
 
             <StackPanel Orientation="Vertical" Grid.Column="2">
-                <TextBlock Text="Device"/>
+                <TextBlock Text="Select Device (D)"/>
 
                 <DropDownButton x:Name="dropdown_devices" Content="{Binding Device, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <DropDownButton.Flyout>
@@ -200,6 +214,10 @@
                             <MenuFlyoutItem Click="OnDeviceSelected" Text="CPU"/>
                         </MenuFlyout>
                     </DropDownButton.Flyout>
+
+                    <DropDownButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="D"/>
+                    </DropDownButton.KeyboardAccelerators>
                 </DropDownButton>
 
                 <TextBlock x:Name="txt_deviceHelp" Text="Only NVIDIA GPUs are displayed." FontSize="12" Foreground="Gray"/>
