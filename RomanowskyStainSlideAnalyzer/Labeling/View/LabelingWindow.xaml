@@ -44,9 +44,18 @@
             <AppBarButton Visibility="Collapsed" x:Name="appBarProgressView">
                 <ProgressRing IsIndeterminate="True"/>
             </AppBarButton>
-            
-            <AppBarToggleButton x:Name="btn_hideBBox" Checked="AppBarToggleButton_Checked" Unchecked="AppBarToggleButton_Checked" IsChecked="False" Label="Hide Mask" Icon="ClearSelection"/>
-            <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Icon="Zoom" Label="Zoom Mode"/>
+
+            <AppBarToggleButton x:Name="btn_hideBBox" Checked="AppBarToggleButton_Checked" Unchecked="AppBarToggleButton_Checked" IsChecked="False" Label="Hide Mask (F1)" Icon="ClearSelection">
+                <AppBarToggleButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="F1"/>
+                </AppBarToggleButton.KeyboardAccelerators>
+            </AppBarToggleButton>
+
+            <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Icon="Zoom" Label="Zoom Mode (F2)">
+                <AppBarToggleButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="F2"/>
+                </AppBarToggleButton.KeyboardAccelerators>
+            </AppBarToggleButton>
         </CommandBar>
 
         <StackPanel Grid.Row="2" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -76,6 +85,11 @@
                 </Canvas>
             </ScrollView>
 
+            <StackPanel x:Name="noDataPanel" Width="512" Height="512" VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical" Visibility="Collapsed">
+                <SymbolIcon Symbol="Cancel" Foreground="Gray"/>
+                <TextBlock Text="There is no data." Foreground="Gray" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </StackPanel>
+
             <ScrollView x:Name="img_maskScrollView" Visibility="Collapsed" Margin="10 0 0 0" Width="512" Height="512" ContentOrientation="None" ZoomMode="{x:Bind viewModel.ZoomMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTabStop="True" HorizontalAlignment="Center" VerticalAlignment="Center"
                     HorizontalScrollMode="Auto" VerticalScrollMode="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ViewChanged="img_scrollView_ViewChanged">
                 <Canvas Opacity="1" x:Name="maskCanvas" Width="512" Height="512">
@@ -95,9 +109,23 @@
             </Grid.ColumnDefinitions>
 
             <RadioButtons Grid.Column="0" Header="Select Class">
-                <RadioButton x:Name="radio_A" Content="None" IsChecked="True" Checked="OnClassSelected"/>
-                <RadioButton x:Name="radio_B" Content="Large Cell" Checked="OnClassSelected"/>
-                <RadioButton x:Name="radio_C" Content="Small Cell" Checked="OnClassSelected"/>
+                <RadioButton x:Name="radio_A" Content="None (N)" IsChecked="True" Checked="OnClassSelected">
+                    <RadioButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="N"/>
+                    </RadioButton.KeyboardAccelerators>
+                </RadioButton>
+
+                <RadioButton x:Name="radio_B" Content="Large Cell (L)" Checked="OnClassSelected">
+                    <RadioButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="L"/>
+                    </RadioButton.KeyboardAccelerators>
+                </RadioButton>
+
+                <RadioButton x:Name="radio_C" Content="Small Cell (S)" Checked="OnClassSelected">
+                    <RadioButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="S"/>
+                    </RadioButton.KeyboardAccelerators>
+                </RadioButton>
             </RadioButtons>
 
             <Canvas HorizontalAlignment="Right" Grid.Column="1" Opacity="1" x:Name="thumbnailCanvas" Width="128" Height="128">
@@ -109,7 +137,7 @@
             </Canvas>
 
         </Grid>
-        
+
         <StackPanel Grid.Row="5" Margin="20" HorizontalAlignment="Center">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -117,8 +145,17 @@
                     <ColumnDefinition Width="5*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button x:Name="btn_previous" IsEnabled="False" Click="OnClick" Grid.Column="0">Previous</Button>
-                <Button x:Name="btn_next" Content="Next" Click="OnClick" Grid.Column="1" Margin="10 0 0 0" Background="{StaticResource SystemAccentColor}" Foreground="{StaticResource TextOnAccentFillColorPrimary}"></Button>
+                <Button x:Name="btn_previous" IsEnabled="False" Click="OnClick" Grid.Column="0" Content="Previous">
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Back"/>
+                    </Button.KeyboardAccelerators>
+                </Button>
+                
+                <Button x:Name="btn_next" Content="Next" Click="OnClick" Grid.Column="1" Margin="10 0 0 0" Background="{StaticResource SystemAccentColor}" Foreground="{StaticResource TextOnAccentFillColorPrimary}">
+                    <Button.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="Enter"/>
+                    </Button.KeyboardAccelerators>
+                </Button>
             </Grid>
         </StackPanel>
     </Grid>

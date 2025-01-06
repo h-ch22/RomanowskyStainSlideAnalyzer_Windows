@@ -17,11 +17,11 @@
         </Grid.RowDefinitions>
 
         <CommandBar x:Name="commandBar" IsEnabled="False" Background="Transparent" DefaultLabelPosition="Right" Grid.Row="0">
-            <AppBarButton Icon="Pictures" Label="Images">
+            <AppBarButton Icon="Pictures" Label="Images (F1)">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F1"/>
                 </AppBarButton.KeyboardAccelerators>
-                
+
                 <AppBarButton.Flyout>
                     <MenuFlyout>
                         <MenuFlyoutItem x:Name="btn_loadImage" Icon="Add" Text="Add Images" Click="OnMenuFlyoutClick">
@@ -35,7 +35,7 @@
                                 <KeyboardAccelerator Key="Delete"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
-                        
+
                         <MenuFlyoutItem x:Name="btn_clear" Icon="Cancel" Text="Clear" Click="OnMenuFlyoutClick" Visibility="Collapsed">
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="Escape"/>
@@ -50,14 +50,14 @@
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
-            
+
             <AppBarSeparator/>
-            
-            <AppBarButton Icon="Find" Label="Parameters">
+
+            <AppBarButton Icon="Find" Label="Parameters (F2)">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F2"/>
                 </AppBarButton.KeyboardAccelerators>
-                
+
                 <AppBarButton.Flyout>
                     <MenuFlyout>
                         <MenuFlyoutItem x:Name="btn_customizeParams" Icon="Setting" Text="Customize Parameters (Advanced)" Click="OnMenuFlyoutClick">
@@ -87,31 +87,31 @@
                 </AppBarButton.Flyout>
             </AppBarButton>
 
-            <AppBarToggleButton x:Name="btn_useAutomaticSegmentation" Icon="ViewAll" Label="Use Automatic Segmentation" IsChecked="{Binding UseAutomaticSegmentation, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_useAutomaticSegmentation" Icon="ViewAll" Label="Use Automatic Segmentation (F3)" IsChecked="{Binding UseAutomaticSegmentation, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F3"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_usePostProcess" Icon="Find" Label="Use Post-Process" IsChecked="{Binding UsePostProcess, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_usePostProcess" Icon="Find" Label="Use Post-Process (F4)" IsChecked="{Binding UsePostProcess, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F4" Modifiers="Shift"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_extractMasks" Icon="Pictures" Label="Extract Masks" IsChecked="{Binding ExtractMasks, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_extractMasks" Icon="Pictures" Label="Extract Masks (F5)" IsChecked="{Binding ExtractMasks, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F5" Modifiers="Shift"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_extractBBoxes" Icon="Crop" Label="Extract Bounding Boxes" IsChecked="{Binding ExtractBBoxes, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_extractBBoxes" Icon="Crop" Label="Extract Bounding Boxes (F6)" IsChecked="{Binding ExtractBBoxes, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F6" Modifiers="Shift"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_useParallel" Icon="Switch" Label="Use Parallel GPU" IsChecked="{Binding UseParallel, Mode=TwoWay}" IsEnabled="{Binding IsParallelEnabled, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_useParallel" Icon="Switch" Label="Use Parallel GPU (F7)" IsChecked="{Binding UseParallel, Mode=TwoWay}" IsEnabled="{Binding IsParallelEnabled, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F7" Modifiers="Shift"/>
                 </AppBarToggleButton.KeyboardAccelerators>
@@ -119,7 +119,7 @@
 
             <AppBarSeparator/>
 
-            <AppBarButton x:Name="btn_segment" Icon="Accept" Label="Segment" Click="OnClick">
+            <AppBarButton x:Name="btn_segment" Icon="Accept" Label="Segment (F8)" Click="OnClick">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F8"/>
                 </AppBarButton.KeyboardAccelerators>

@@ -56,7 +56,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             viewModel.CSVPath = CSVPath;
             viewModel.IsMaskAvailable = IsMaskAvailable;
 
-            if(!IsMaskAvailable)
+            if (!IsMaskAvailable)
             {
                 viewModel.MaskDataVisibility = Visibility.Collapsed;
             }
@@ -94,14 +94,14 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
             DispatcherQueue.TryEnqueue(() =>
             {
+                Datas = data;
+
                 if (!viewModel.IsMaskAvailable)
                 {
                     viewModel.ShowProgress = Visibility.Collapsed;
                     scrollView.Visibility = Visibility.Visible;
+                    listView.ItemsSource = Datas;
                 }
-
-                Datas = data;
-                listView.ItemsSource = Datas;
             });
 
             if (viewModel.IsMaskAvailable)
@@ -116,8 +116,10 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         MaskDatas = data;
                         viewModel.ShowProgress = Visibility.Collapsed;
                         scrollView.Visibility = Visibility.Visible;
+                        listView.ItemsSource = Datas.Count > MaskDatas.Count ? Datas : MaskDatas;
                     });
                 });
+
             }
         }
 
@@ -135,9 +137,14 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             int idx = (sender as ListView).SelectedIndex;
 
-            if(idx > -1)
+            AnalyzeColor(idx);
+        }
+
+        private void AnalyzeColor(int idx)
+        {
+            if (idx > -1)
             {
-                LabelingDataModel dataModel = Datas[idx];
+                LabelingDataModel dataModel = idx < Datas.Count ? Datas[idx] : MaskDatas[idx];
 
                 viewModel.Index = dataModel.id;
                 viewModel.Class = dataModel.classId;
@@ -148,12 +155,12 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
                 if (btn_hideBBox.IsChecked == false)
                 {
-                    if (viewModel.UseBoundingBoxAsTarget)
+                    if (viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
                     {
                         CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                     }
 
-                    if((viewModel.ShowAllData && viewModel.IsMaskAvailable) || !viewModel.UseBoundingBoxAsTarget)
+                    if ((viewModel.ShowAllData && viewModel.IsMaskAvailable) || !viewModel.UseBoundingBoxAsTarget)
                     {
                         var data = AnalyzeHelper.GetMask(maskPath, listView.SelectedIndex.ToString());
                         DrawContours(data);
@@ -176,7 +183,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                     if (img_scrollView.ZoomFactor <= 1F)
                     {
                         img_scrollView.ZoomTo(3F, new(newX, newY));
-                    } 
+                    }
                     else
                     {
                         double zoomFactor = img_scrollView.ZoomFactor;
@@ -264,7 +271,11 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                             }
                         }
 
-                        viewModel.Average = analyzeData.Item1;
+                        if(viewModel.UseBoundingBoxAsTarget)
+                        {
+                            viewModel.Average = analyzeData.Item1;
+                        }
+
                         viewModel.ShowAnalyzeProgress = Visibility.Collapsed;
                     }
 
@@ -273,7 +284,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         var maskData = AnalyzeHelper.GetMask(maskPath, listView.SelectedIndex.ToString());
                         var analyzeData = await analyzeHelper.Analyze(maskData, viewModel.ImagePath);
 
-                        if((analyzeData.Item1 == null || analyzeData.Item2 == null) && !viewModel.ShowAllData)
+                        if ((analyzeData.Item1 == null || analyzeData.Item2 == null) && !viewModel.ShowAllData)
                         {
                             ShowZeroWHPanel(true);
                         }
@@ -282,7 +293,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         {
                             ShowZeroWHPanel(false);
 
-                            if(analyzeData.Item2 != null)
+                            if (analyzeData.Item2 != null)
                             {
                                 using (var croppedBmp = analyzeData.Item2)
                                 {
@@ -305,14 +316,14 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                                 }
                             }
 
-                            if(analyzeData.Item1 != null)
+                            if (analyzeData.Item1 != null && !viewModel.UseBoundingBoxAsTarget)
                             {
                                 viewModel.Average = analyzeData.Item1;
                             }
                         }
                     }
 
-                    if(ZeroWHPanel.Visibility != Visibility.Visible)
+                    if (ZeroWHPanel.Visibility != Visibility.Visible)
                     {
                         viewModel.CroppedImage = bmpImage;
                         viewModel.CroppedMaskImage = maskedImage;
@@ -320,7 +331,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
                         NoSelectionPanel.Visibility = Visibility.Collapsed;
                         croppedImg.Visibility = Visibility.Visible;
 
-                        if(viewModel.ShowAllData && viewModel.IsMaskAvailable)
+                        if (viewModel.ShowAllData && viewModel.IsMaskAvailable)
                         {
                             croppedMaskImg.Visibility = Visibility.Visible;
                         }
@@ -336,14 +347,14 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             statisticsPanel.Visibility = Visibility.Collapsed;
             AllAvgDataModel avgData;
 
-            if(viewModel.UseBoundingBoxAsTarget)
+            if (viewModel.UseBoundingBoxAsTarget)
             {
                 avgData = await Task.Run(() => analyzeHelper.Analyze(viewModel.ImagePath, Datas.ToList()));
             }
 
             else
             {
-                avgData = await Task.Run(() => analyzeHelper.Analyze(viewModel.ImagePath, Datas.ToList(), GetMaskPath()));
+                avgData = await Task.Run(() => analyzeHelper.Analyze(viewModel.ImagePath, MaskDatas.ToList(), GetMaskPath()));
             }
 
             viewModel.AllAvg = avgData;
@@ -426,7 +437,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             Canvas.SetTop(rect, y);
             rect.Name = "contour";
 
-            if(viewModel.ShowAllData)
+            if (viewModel.ShowAllData)
             {
                 maskCanvas.Children.Add(rect);
             }
@@ -440,7 +451,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             List<Microsoft.UI.Xaml.Shapes.Rectangle> toRemove;
 
-            if(viewModel.ShowAllData)
+            if (viewModel.ShowAllData)
             {
                 toRemove = maskCanvas.Children.OfType<Microsoft.UI.Xaml.Shapes.Rectangle>()
                               .Where(rect => rect.Name == "contour")
@@ -471,7 +482,7 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         {
             if (btn_hideBBox.IsChecked == true)
             {
-                if(canvas != null)
+                if (canvas != null)
                 {
                     DeleteContours();
                     DeleteBBox();
@@ -479,19 +490,19 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
 
             }
 
-            else if(btn_hideBBox.IsChecked == false)
+            else if (btn_hideBBox.IsChecked == false)
             {
                 if (listView.SelectedIndex > -1)
                 {
                     int idx = listView.SelectedIndex;
 
-                    if(viewModel.UseBoundingBoxAsTarget)
+                    if (viewModel.UseBoundingBoxAsTarget && idx < Datas.Count)
                     {
                         LabelingDataModel dataModel = Datas[idx];
                         CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                     }
 
-                    if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
+                    if (!viewModel.UseBoundingBoxAsTarget || (viewModel.ShowAllData && viewModel.IsMaskAvailable))
                     {
                         var data = AnalyzeHelper.GetMask(maskPath, idx.ToString());
                         DrawContours(data);
@@ -502,14 +513,17 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             btn_toggleBBoxColor.IsEnabled = btn_hideBBox.IsChecked == false;
         }
 
-        private void ToggleDataTarget(object sender, RoutedEventArgs e)
+        private async void ToggleDataTarget(object sender, RoutedEventArgs e)
         {
-            DeleteBBox();
-            DeleteContours();
+            if(!viewModel.ShowAllData)
+            {
+                DeleteBBox();
+                DeleteContours();
 
-            var tmp = Datas;
-            Datas = MaskDatas;
-            MaskDatas = tmp;
+                listView.ItemsSource = viewModel.UseBoundingBoxAsTarget ? Datas : MaskDatas;
+            }
+
+            GetAllAvg();
         }
 
         private void ToggleBBoxColor(object sender, RoutedEventArgs e)
@@ -526,14 +540,14 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             {
                 int idx = listView.SelectedIndex;
 
-                if(viewModel.UseBoundingBoxAsTarget)
+                if (viewModel.UseBoundingBoxAsTarget)
                 {
                     LabelingDataModel dataModel = Datas[idx];
 
                     CreateBBox(dataModel.x, dataModel.y, dataModel.width, dataModel.height, dataModel.classId);
                 }
 
-                else if(!viewModel.UseBoundingBoxAsTarget || viewModel.ShowAllData)
+                if (!viewModel.UseBoundingBoxAsTarget || (viewModel.ShowAllData && viewModel.IsMaskAvailable))
                 {
                     var data = AnalyzeHelper.GetMask(maskPath, idx.ToString());
                     DrawContours(data);
@@ -588,7 +602,6 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
         private async Task Export()
         {
             var dataToExport = await analyzeHelper.Export(viewModel.AllAvg, Datas, viewModel.ImagePath);
-
             await Task.Run(() => helper.CreateCSVFile(viewModel.CSVPath, path, dataToExport.Item1, dataToExport.Item2, viewModel.UseBoundingBoxAsTarget));
         }
 
@@ -598,13 +611,22 @@ namespace RomanowskyStainSlideAnalyzer.Analyze.View
             viewModel.MaskDataVisibility = (viewModel.ShowAllData && viewModel.IsMaskAvailable) ? Visibility.Visible : Visibility.Collapsed;
             croppedMaskImg.Visibility = (viewModel.ShowAllData && viewModel.IsMaskAvailable) ? Visibility.Visible : Visibility.Collapsed;
 
-            btn_useBBox.Visibility = viewModel.ShowAllData ? Visibility.Collapsed : Visibility.Visible;
             viewModel.Size = viewModel.ShowAllData ? 256 : 512;
             viewModel.Center = viewModel.ShowAllData ? 128 : 256;
 
             listView.SelectedIndex = -1;
             DeleteBBox();
             DeleteContours();
+
+            if(viewModel.ShowAllData)
+            {
+                if (viewModel.IsMaskAvailable) listView.ItemsSource = Datas.Count > MaskDatas.Count ? Datas : MaskDatas;
+                else listView.ItemsSource = Datas;
+            }
+            else
+            {
+                listView.ItemsSource = viewModel.UseBoundingBoxAsTarget ? Datas : MaskDatas;
+            }
         }
     }
 }

@@ -126,8 +126,12 @@
                     <ProgressRing IsIndeterminate="True"/>
                 </AppBarButton.Content>
             </AppBarButton>
-            
-            <AppBarButton x:Name="btn_refresh" Click="Refresh" Label="Refresh" Icon="Refresh"/>
+
+            <AppBarButton x:Name="btn_refresh" Click="Refresh" Label="Refresh (F5)" Icon="Refresh">
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="F5"/>
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
         </CommandBar>
 
         <DatePicker Grid.Row="1" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>

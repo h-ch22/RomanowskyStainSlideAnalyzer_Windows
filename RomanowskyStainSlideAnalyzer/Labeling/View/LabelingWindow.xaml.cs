@@ -41,6 +41,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         private LabelingHelper helper;
         private List<BoundingBoxDataModel> BoundingBoxes;
         private List<int> labeledDatas = new();
+        private List<int> labeledMaskDatas = new();
         private BoundingBoxDataModel currentData;
         private int[,] currentMask;
 
@@ -63,7 +64,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             this.isMaskAvailable = isMaskAvailable;
             this.isBBoxAvailable = isBBoxAvailable;
 
-            if(!isMaskAvailable || !isBBoxAvailable)
+            if (!isMaskAvailable || !isBBoxAvailable)
             {
                 if (isMaskAvailable) this.viewModel.UseBBoxAsTarget = false;
                 else this.viewModel.UseBBoxAsTarget = true;
@@ -129,7 +130,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             {
                 try
                 {
-                    labeledDatas[viewModel.CurrentIndex - 1] = (int)classType;
+                    if (isBBoxAvailable && viewModel.CurrentIndex <= BoundingBoxes.Count) labeledDatas[viewModel.CurrentIndex - 1] = (int)classType;
+                    if (isMaskAvailable && viewModel.CurrentIndex <= AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}")) labeledMaskDatas[viewModel.CurrentIndex - 1] = (int)classType;
                 }
                 catch (Exception ex)
                 {
@@ -145,7 +147,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             {
                 try
                 {
-                    labeledDatas.Add((int)classType);
+                    if (isBBoxAvailable && viewModel.CurrentIndex <= BoundingBoxes.Count) labeledDatas.Add((int)classType);
+                    if (isMaskAvailable && viewModel.CurrentIndex <= AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}")) labeledMaskDatas.Add((int)classType);
                 }
                 catch (Exception ex)
                 {
@@ -160,10 +163,10 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private async void OnClick(object sender, RoutedEventArgs e)
         {
-            switch((sender as Button).Name)
+            switch ((sender as Button).Name)
             {
                 case "btn_next":
-                    if(!IsDone)
+                    if (!IsDone)
                     {
                         WriteLabelingData();
                     }
@@ -174,24 +177,28 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                         if (viewModel.CurrentIndex == EditModeEndIndex) IsEditMode = false;
 
-                        if(BoundingBoxes == null || BoundingBoxes.Count < viewModel.AllIndex)
+                        if (BoundingBoxes == null || BoundingBoxes.Count < viewModel.AllIndex)
                         {
-                            if (BoundingBoxes == null) BoundingBoxes = new();
-
-                            if(IsEditMode)
+                            if(viewModel.CurrentIndex <= BoundingBoxes.Count)
                             {
-                                BoundingBoxes[viewModel.CurrentIndex - 1] = new(currentData.X, currentData.Y, currentData.Width, currentData.Height);
+                                if (BoundingBoxes == null) BoundingBoxes = new();
+
+                                if (IsEditMode)
+                                {
+                                    BoundingBoxes[viewModel.CurrentIndex - 1] = new(currentData.X, currentData.Y, currentData.Width, currentData.Height);
+                                }
+
+                                else
+                                {
+                                    BoundingBoxes.Add(new(currentData.X, currentData.Y, currentData.Width, currentData.Height));
+                                }
                             }
 
-                            else
-                            {
-                                BoundingBoxes.Add(new(currentData.X, currentData.Y, currentData.Width, currentData.Height));
-                            }
                         }
 
                         if (IsEditMode)
                         {
-                            switch (labeledDatas[viewModel.CurrentIndex - 1])
+                            switch (isBBoxAvailable ? labeledDatas[viewModel.CurrentIndex - 1] : labeledMaskDatas[viewModel.CurrentIndex - 1])
                             {
                                 case 0:
                                     radio_A.IsChecked = true;
@@ -221,8 +228,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                         if (btn_hideBBox.IsChecked == false)
                         {
-                            CreateBBox();
-                            DrawContours();
+                            if (isBBoxAvailable) CreateBBox();
+                            if (isMaskAvailable) DrawContours();
                         }
 
                         scrollTo();
@@ -235,28 +242,32 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                         try
                         {
-                            helper.CreateLabelingData(labeledDatas, BoundingBoxes);
-                        } catch(Exception ex)
+                            if (isBBoxAvailable)
+                            {
+                                helper.CreateLabelingData(labeledDatas, BoundingBoxes);
+                            }
+
+                            if (isMaskAvailable)
+                            {
+                                LabelingHelper.CreateMaskLabelingData(
+                                    $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
+                                    true,
+                                    labeledMaskDatas
+                                );
+
+                                LabelingHelper.CreateMaskLabelingData(
+                                    $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
+                                    false,
+                                    labeledMaskDatas
+                                );
+                            }
+                        }
+                        catch (Exception ex)
                         {
                             MainWindow.ShowContentDialogAsync(
                                 "Error",
                                  $"An error occurred while writing the file.\nCheck if another process is using the file, or re-run the software.\nError: {ex.Message}",
                                  "OK"
-                            );
-                        }
-
-                        if (isMaskAvailable)
-                        {
-                            LabelingHelper.CreateMaskLabelingData(
-                                $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
-                                true,
-                                labeledDatas
-                            );
-
-                            LabelingHelper.CreateMaskLabelingData(
-                                $@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}",
-                                false,
-                                labeledDatas
                             );
                         }
 
@@ -275,7 +286,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         {
                             try
                             {
-                                if(helper.IsDestinationFileExists(folder.Path))
+                                if (helper.IsDestinationFileExists(folder.Path))
                                 {
                                     var splitPath = path.Split(@"\");
                                     var fileName = splitPath[splitPath.Length - 1];
@@ -287,7 +298,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                                         "No"
                                     );
 
-                                    if(dialogResult)
+                                    if (dialogResult)
                                     {
                                         helper.Copy(folder.Path);
                                     }
@@ -298,7 +309,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                                     helper.Copy(folder.Path);
                                 }
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 await MainWindow.ShowContentDialogAsync(
                                     "Error",
@@ -310,7 +321,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                             }
                         }
 
-                        if(isMaskAvailable)
+                        if (isMaskAvailable)
                         {
                             folder = null;
 
@@ -322,7 +333,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                                 "Skip"
                             );
 
-                            if(result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
+                            if (result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
                             {
                                 folder = await folderPicker.PickSingleFolderAsync();
 
@@ -357,6 +368,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                                 Close();
                             }
                         }
+                        else Close();
                     }
 
                     break;
@@ -367,7 +379,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                     if (viewModel.CurrentIndex > 1)
                     {
-                        if(!IsEditMode || EditModeEndIndex < viewModel.CurrentIndex)
+                        if (!IsEditMode || EditModeEndIndex < viewModel.CurrentIndex)
                         {
                             EditModeEndIndex = viewModel.CurrentIndex;
                         }
@@ -376,7 +388,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         LoadData();
                         viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
 
-                        switch(labeledDatas[viewModel.CurrentIndex - 1])
+                        switch ((isBBoxAvailable && viewModel.CurrentIndex <= BoundingBoxes.Count) ? labeledDatas[viewModel.CurrentIndex - 1] : labeledMaskDatas[viewModel.CurrentIndex - 1])
                         {
                             case 0:
                                 radio_A.IsChecked = true;
@@ -410,15 +422,14 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void scrollTo()
         {
-            if (viewModel.IsZoomModeEnabled && (img_scrollView.ZoomFactor <= 1F || img_maskScrollView.ZoomFactor <= 1F))
+            if (viewModel.IsZoomModeEnabled && (isBBoxAvailable && img_scrollView.ZoomFactor <= 1F))
             {
-                if(img_scrollView.ZoomFactor <= 1F) img_scrollView.ZoomTo(3F, new((float) currentData.X, (float) currentData.Y));
-                if(img_maskScrollView.ZoomFactor <= 1F) img_maskScrollView.ZoomTo(3F, new((float)currentData.X, (float)currentData.Y));
+                img_scrollView.ZoomTo(3F, new((float)currentData.X, (float)currentData.Y));
             }
-            else if(viewModel.IsZoomModeEnabled)
+
+            else if (viewModel.IsZoomModeEnabled)
             {
                 double zoomFactor = img_scrollView.ZoomFactor;
-                double maskZoomFactor = img_maskScrollView.ZoomFactor;
 
                 double viewportWidth = img_scrollView.ViewportWidth;
                 double viewportHeight = img_scrollView.ViewportHeight;
@@ -426,10 +437,24 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                 double scrollOffsetX = currentData.X * zoomFactor - (viewportWidth / 2);
                 double scrollOffsetY = currentData.Y * zoomFactor - (viewportHeight / 2);
 
+                img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
+            }
+
+            if (viewModel.IsZoomModeEnabled && (isMaskAvailable && img_maskScrollView.ZoomFactor <= 1F))
+            {
+                img_maskScrollView.ZoomTo(3F, new((float)currentData.X, (float)currentData.Y));
+            }
+
+            else if (viewModel.IsZoomModeEnabled)
+            {
+                double maskZoomFactor = img_maskScrollView.ZoomFactor;
+
+                double viewportWidth = img_maskScrollView.ViewportWidth;
+                double viewportHeight = img_maskScrollView.ViewportHeight;
+
                 double maskOffsetX = currentData.X * maskZoomFactor - (viewportWidth / 2);
                 double maskOffsetY = currentData.Y * maskZoomFactor - (viewportHeight / 2);
 
-                img_scrollView.ScrollTo(scrollOffsetX, scrollOffsetY);
                 img_maskScrollView.ScrollTo(maskOffsetX, maskOffsetY);
             }
         }
@@ -458,16 +483,22 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
         {
             DeleteBBoxes();
 
-            Rectangle bBox = new()
+            if(viewModel.CurrentIndex <= BoundingBoxes.Count)
             {
-                Width = currentData.Width,
-                Height = currentData.Height,
-                Stroke = new SolidColorBrush(Color.FromArgb(255, 219, 66, 66))
-            };
+                noDataPanel.Visibility = Visibility.Collapsed;
+                img_scrollView.Visibility = Visibility.Visible;
 
-            canvas.Children.Add(bBox);
-            bBox.SetValue(Canvas.LeftProperty, currentData.X);
-            bBox.SetValue(Canvas.TopProperty, currentData.Y);
+                Rectangle bBox = new()
+                {
+                    Width = currentData.Width,
+                    Height = currentData.Height,
+                    Stroke = new SolidColorBrush(Color.FromArgb(255, 219, 66, 66))
+                };
+
+                canvas.Children.Add(bBox);
+                bBox.SetValue(Canvas.LeftProperty, currentData.X);
+                bBox.SetValue(Canvas.TopProperty, currentData.Y);
+            }
         }
 
         private void CreateThumbnailBBox()
@@ -560,7 +591,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void AppBarToggleButton_Checked(object sender, RoutedEventArgs e)
         {
-            if(btn_hideBBox.IsChecked == true)
+            if (btn_hideBBox.IsChecked == true)
             {
                 DeleteMasks();
             }
@@ -573,18 +604,22 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
         private void DrawContours()
         {
-            DeleteContours();
-
-            for (int y = 1; y < 511; y++)
+            if(viewModel.CurrentIndex <= AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}"))
             {
-                for (int x = 1; x < 511; x++)
+                DeleteContours();
+
+                for (int y = 1; y < 511; y++)
                 {
-                    if (currentMask[y, x] == 1 && IsContour(currentMask, x, y))
+                    for (int x = 1; x < 511; x++)
                     {
-                        DrawContourPixel(x, y);
+                        if (currentMask[y, x] == 1 && IsContour(currentMask, x, y))
+                        {
+                            DrawContourPixel(x, y);
+                        }
                     }
                 }
             }
+
         }
 
         private bool IsContour(int[,] data, int x, int y)
@@ -626,7 +661,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if(BoundingBoxes.Count > viewModel.CurrentIndex)
+                    if ((BoundingBoxes.Count >= viewModel.CurrentIndex) && isBBoxAvailable)
                     {
                         viewModel.AllIndex = BoundingBoxes.Count;
                         currentData = BoundingBoxes[viewModel.CurrentIndex - 1];
@@ -640,10 +675,16 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         CreateThumbnailBBox();
                         scrollTo();
                     }
+
+                    else
+                    {
+                        img_scrollView.Visibility = Visibility.Collapsed;
+                        noDataPanel.Visibility = Visibility.Visible;
+                    }
                 });
             });
 
-            if(isMaskAvailable)
+            if (isMaskAvailable)
             {
                 await Task.Run(() =>
                 {
@@ -655,12 +696,17 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                     DispatcherQueue.TryEnqueue(() =>
                     {
-                        viewModel.AllIndex = AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}");
+                        viewModel.AllIndex = BoundingBoxes.Count > AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}") ? BoundingBoxes.Count : AnalyzeHelper.GetMaskCount($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}");
                         viewModel.CurrentBoundingBox = $"X: {currentData.X}, Y: {currentData.Y}, W: {currentData.Width}, H: {currentData.Height}";
 
-                        if (btn_hideBBox.IsChecked == false)
+                        if (btn_hideBBox.IsChecked == false && viewModel.CurrentIndex <= viewModel.AllIndex)
                         {
                             DrawContours();
+                        }
+                        else if (viewModel.CurrentIndex > viewModel.AllIndex)
+                        {
+                            img_maskScrollView.Visibility = Visibility.Collapsed;
+                            noDataPanel.Visibility = Visibility.Visible;
                         }
 
                         CreateThumbnailBBox();

@@ -63,15 +63,15 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Segmentation", "- Newly designed HomeView.\n- You can now add files by dragging.\n- You can now segment multiple images.\n- You can now choose which GPU to use for inference.\n- Parallel GPU option is now available.")
+                new("Segmentation", "- Newly designed HomeView.\n- You can now add files by dragging.\n- You can now segment multiple images.\n- You can now choose which GPU to use for inference.\n- Parallel GPU option is now available.\n- Shortcuts have been applied to some functions.")
             );
 
             ReleaseNotes.Add(
-                new("Labeling", "- Now you can check the mask and bounding box at the same time.")
+                new("Labeling", "- Now you can check the mask and bounding box at the same time.\n- Shortcuts have been applied to some functions.\n- Fixed the issue where Bounding Box indexes were not displayed completely.")
             );
 
             ReleaseNotes.Add(
-                new("Analyze", "- You can now check mask data and bounding box data at the same time.")
+                new("Analyze", "- You can now check mask data and bounding box data at the same time.\n- Shortcuts have been applied to some functions.")
             );
         }
 

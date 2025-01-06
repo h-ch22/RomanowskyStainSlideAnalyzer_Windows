@@ -283,7 +283,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                         FileName = "output";
                     }
 
-                    if(IsSegmentationComplete)
+                    if (IsSegmentationComplete)
                     {
                         LabelingBtnVisibility = (FilesToSegment[value].extractBoundingBoxes || FilesToSegment[value].extractMasks) ? Visibility.Visible : Visibility.Collapsed;
                     }
@@ -873,7 +873,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
         private async void OnMenuFlyoutClick(object sender, RoutedEventArgs e)
         {
-            switch((sender as MenuFlyoutItem).Name)
+            switch ((sender as MenuFlyoutItem).Name)
             {
                 case "btn_loadImage":
                     ShowFilePicker();
@@ -882,7 +882,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 case "btn_deleteImage":
                     var isConfirm = await MainWindow.ShowContentDialogAsync("Delete", "Are you sure you want to remove this image?\nThe actual file will not be removed.", "Yes", "No");
 
-                    if(isConfirm)
+                    if (isConfirm)
                     {
                         var isIndexAtEnd = false;
 
@@ -1213,7 +1213,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         {
             Device = (sender as MenuFlyoutItem).Text;
 
-            if(!IsChangingIndex && FilesToSegment.Count() > 0)
+            if (!IsChangingIndex && FilesToSegment.Count() > 0)
             {
                 FilesToSegment[CurrentIndex].Device = Device;
             }
