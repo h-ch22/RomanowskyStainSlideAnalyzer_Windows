@@ -111,19 +111,19 @@
             <RadioButtons Grid.Column="0" Header="Select Class">
                 <RadioButton x:Name="radio_A" Content="None" IsChecked="True" Checked="OnClassSelected">
                     <RadioButton.KeyboardAccelerators>
-                        <KeyboardAccelerator Key="N"/>
+                        <KeyboardAccelerator Key="Number1"/>
                     </RadioButton.KeyboardAccelerators>
                 </RadioButton>
 
                 <RadioButton x:Name="radio_B" Content="Large Cell" Checked="OnClassSelected">
                     <RadioButton.KeyboardAccelerators>
-                        <KeyboardAccelerator Key="L"/>
+                        <KeyboardAccelerator Key="Number2"/>
                     </RadioButton.KeyboardAccelerators>
                 </RadioButton>
 
                 <RadioButton x:Name="radio_C" Content="Small Cell" Checked="OnClassSelected">
                     <RadioButton.KeyboardAccelerators>
-                        <KeyboardAccelerator Key="S"/>
+                        <KeyboardAccelerator Key="Number3"/>
                     </RadioButton.KeyboardAccelerators>
                 </RadioButton>
             </RadioButtons>

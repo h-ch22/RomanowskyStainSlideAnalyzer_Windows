@@ -59,7 +59,7 @@
 
             <AppBarSeparator/>
 
-            <AppBarButton Icon="Find" Label="Parameters">
+            <AppBarButton Icon="Setting" Label="Parameters">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F2"/>
                 </AppBarButton.KeyboardAccelerators>

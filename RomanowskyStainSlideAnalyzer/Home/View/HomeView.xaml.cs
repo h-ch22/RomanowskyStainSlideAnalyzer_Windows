@@ -1307,7 +1307,6 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                             else if ((item as StorageFile).FileType.ToLower() == ".jpg" || (item as StorageFile).FileType.ToLower() == ".jpeg" || (item as StorageFile).FileType.ToLower() == ".png")
                             {
                                 FilesToSegment.Add(new(item.Path, "", "", "output", "", new(), new()));
-                                btn_loadImage.Visibility = Visibility.Collapsed;
                                 imageTutorialView.Visibility = Visibility.Collapsed;
                                 btn_clear.Visibility = Visibility.Visible;
                                 selectedImagePanel.Visibility = Visibility.Visible;
