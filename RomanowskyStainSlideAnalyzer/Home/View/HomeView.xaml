@@ -117,11 +117,17 @@
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
+            <AppBarButton x:Name="btn_setAllOptions" Icon="Bullets" Label="Apply to All Files" Click="OnClick">
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="F8"/>
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
+
             <AppBarSeparator/>
 
             <AppBarButton x:Name="btn_segment" Icon="Accept" Label="Segment" Click="OnClick">
                 <AppBarButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="F8"/>
+                    <KeyboardAccelerator Key="F9"/>
                 </AppBarButton.KeyboardAccelerators>
             </AppBarButton>
         </CommandBar>

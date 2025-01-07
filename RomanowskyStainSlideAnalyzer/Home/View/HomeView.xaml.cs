@@ -389,6 +389,12 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             FilesToSegment.CollectionChanged += (s, e) =>
             {
                 btn_deleteImage.IsEnabled = FilesToSegment.Count() > 1;
+
+                if(UseParallel)
+                {
+                    UseParallel = FilesToSegment.Count() > 1;
+                }
+
                 OnPropertyChanged(nameof(FilesToSegment.Count));
             };
         }
@@ -831,6 +837,22 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
 
                     break;
 
+                case "btn_setAllOptions":
+                    if(await MainWindow.ShowContentDialogAsync("Apply to All Files", "Apply Automatic Segmentation, Post-process, Extract Masks, Extract Bounding Boxes options to all files. \nParameter settings are not applied. To apply parameters equally to all files, click Set All Parameters in the Parameters menu. \nDo you want to continue?", "Yes", "No"))
+                    {
+                        foreach(var file in FilesToSegment)
+                        {
+                            file.useAutomaticSegmentation = UseAutomaticSegmentation;
+                            file.usePostProcess = UsePostProcess;
+                            file.extractMasks = ExtractMasks;
+                            file.extractBoundingBoxes = ExtractBBoxes;
+                        }
+
+                        await MainWindow.ShowContentDialogAsync("Done", "The task has been completed.", "OK");
+                    }
+
+                    break;
+
                 case "btn_segment":
                     if (FilesToSegment.Count() <= 0)
                     {
@@ -867,8 +889,14 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                         }
                     }
 
-                    DispatcherQueue.TryEnqueue(() =>
+                    DispatcherQueue.TryEnqueue(async () =>
                     {
+                        if(UseParallel && FilesToSegment.Count() < 2)
+                        {
+                            UseParallel = false;
+                            await MainWindow.ShowContentDialogAsync("Warning", "Parallel GPU is available when there are at least 2 files.\nDisable this option.", "OK");
+                        }
+
                         commandBar.IsEnabled = false;
                         Indeterminate = true;
                         btn_cancel.Visibility = Visibility.Visible;
