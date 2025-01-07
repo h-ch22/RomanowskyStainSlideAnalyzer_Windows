@@ -332,6 +332,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         private bool IsChangingIndex = false;
         private bool IsSegmentationComplete = false;
         private bool IsError = false;
+        private bool IsCanceled = false;
         private List<string> DeviceList = new();
 
         private EnvironmentHelper helper = new();
@@ -360,6 +361,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 progressView.Visibility = Visibility.Collapsed;
                 configurationView.Visibility = Visibility.Collapsed;
                 imageView.Visibility = Visibility.Visible;
+            }
+
+            var presetResult = segmentationHelper.checkDefaultPresetExists();
+
+            if(!presetResult)
+            {
+                MainWindow.ShowContentDialogAsync("Error", "Unable to create default preset.", "OK");
             }
 
             DeviceList = EnvironmentHelper.GetGPUList();
@@ -784,6 +792,45 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     helper.reboot();
                     break;
 
+                case "btn_cancel":
+                    DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        var dialogResult = await MainWindow.ShowContentDialogAsync("Cancel", "Are you sure you want to cancel the operation?", "Yes", "No");
+
+                        if(dialogResult)
+                        {
+                            IsCanceled = true;
+
+                            try
+                            {
+                                var result = segmentationHelper.cancelSegment();
+
+
+                                if(!result)
+                                {
+                                    IsCanceled = false;
+                                    await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while canceling the operation.", "OK");
+                                    return;
+                                }
+
+                                btn_cancel.Visibility = Visibility.Collapsed;
+                                StatusText = "The user canceled the operation.\nClick the Clear button to reset and try again.";
+                                progressBar.Visibility = Visibility.Collapsed;
+                                btn_clear.IsEnabled = true;
+                                pipsPager.IsEnabled = true;
+                                flipView.IsEnabled = true;
+                            }
+
+                            catch(Exception ex)
+                            {
+                                IsCanceled = false;
+                                await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while canceling the operation.\n{ex.Message}", "OK");
+                            }
+                        }
+                    });
+
+                    break;
+
                 case "btn_segment":
                     if (FilesToSegment.Count() <= 0)
                     {
@@ -824,11 +871,15 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     {
                         commandBar.IsEnabled = false;
                         Indeterminate = true;
+                        btn_cancel.Visibility = Visibility.Visible;
                         controlsView.Visibility = Visibility.Collapsed;
                         progressBar.IsIndeterminate = (FilesToSegment.Count() == 1 || UseParallel);
                         progressBar.Visibility = Visibility.Visible;
                         progressView.Visibility = Visibility.Visible;
                         segmentHelpPanel.Visibility = Visibility.Collapsed;
+                        btn_clear.IsEnabled = false;
+                        btn_deleteImage.IsEnabled = false;
+                        btn_loadImage.IsEnabled = false;
                         StatusText = "Romanowsky Stain Slide Analyzer is processing your request.\nPlease wait.";
                         Progress = 0;
                     });
@@ -899,11 +950,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 case "btn_clear":
                     CurrentIndex = 0;
                     IsError = false;
+                    IsCanceled = false;
                     FilesToSegment.Clear();
                     IsSegmentationComplete = false;
                     LabelingBtnVisibility = Visibility.Collapsed;
 
                     btn_loadImage.Visibility = Visibility.Visible;
+                    btn_loadImage.IsEnabled = true;
                     imageTutorialView.Visibility = Visibility.Visible;
                     btn_clear.Visibility = Visibility.Collapsed;
                     selectedImagePanel.Visibility = Visibility.Collapsed;
@@ -916,6 +969,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     btn_selectPoint.IsEnabled = false;
                     progressView.Visibility = Visibility.Collapsed;
                     btn_save.Visibility = Visibility.Collapsed;
+                    btn_cancel.Visibility = Visibility.Collapsed;
 
                     SegmentHelpText = "Click the Segment button to start segmentation.";
                     FileName = "output";
@@ -1102,6 +1156,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     return;
                 }
 
+                DispatcherQueue.TryEnqueue(() => btn_cancel.Visibility = Visibility.Collapsed);
+
                 var originalFileName = file.filePath.Split(@"\");
                 var outputFileName = "";
 
@@ -1121,7 +1177,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                     outputFileName = $"{file.newName}.{file.ext}";
                 }
 
-                var targetPath = DateTime.Now.ToString("MM_dd_yyyy_HH_mm_ss");
+                var targetPath = DateTime.Now.ToString("MM_dd_yyyy_HH_mm_ss_ff");
 
                 var createHistoryResult = segmentationHelper.CreateHistory(
                     file.filePath,
@@ -1174,10 +1230,16 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
         {
             DispatcherQueue.TryEnqueue(async () =>
             {
+                btn_cancel.Visibility = Visibility.Collapsed;
                 commandBar.IsEnabled = true;
                 btn_customizeParams.IsEnabled = false;
                 btn_segment.IsEnabled = false;
                 btn_usePostProcess.IsEnabled = false;
+                btn_clear.IsEnabled = true;
+                btn_deleteImage.IsEnabled = false;
+                btn_loadImage.IsEnabled = false;
+                pipsPager.IsEnabled = true;
+                flipView.IsEnabled = true;
                 progressBar.Visibility = Visibility.Collapsed;
                 StatusText = "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nClick the Clear button to try again.";
                 await MainWindow.ShowContentDialogAsync("Error", "Romanowsky Stain Slide Analyzer encountered an error while processing the requested operation.\nPlease check that your PC environment is configured properly or try adjusting the parameters.", "OK");
@@ -1192,6 +1254,13 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 btn_customizeParams.IsEnabled = false;
                 btn_segment.IsEnabled = false;
                 btn_usePostProcess.IsEnabled = false;
+
+                btn_clear.IsEnabled = true;
+                btn_deleteImage.IsEnabled = false;
+                btn_loadImage.IsEnabled = false;
+
+                pipsPager.IsEnabled = true;
+                flipView.IsEnabled = true;
 
                 btn_save.Visibility = Visibility.Visible;
                 progressView.Visibility = Visibility.Collapsed;

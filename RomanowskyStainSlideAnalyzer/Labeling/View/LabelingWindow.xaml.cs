@@ -89,7 +89,8 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
             SystemBackdrop = new MicaBackdrop() { Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt };
             SetTitleBar(AppTitleBar);
 
-            img_maskScrollView.Visibility = (isMaskAvailable && isBBoxAvailable) ? Visibility.Visible : Visibility.Collapsed;
+            img_maskScrollView.Visibility = isMaskAvailable ? Visibility.Visible : Visibility.Collapsed;
+            img_scrollView.Visibility = isBBoxAvailable ? Visibility.Visible : Visibility.Collapsed;
 
             if (helper.GetFileAlreadyExists())
             {
@@ -676,7 +677,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                         scrollTo();
                     }
 
-                    else
+                    else if((BoundingBoxes.Count < viewModel.CurrentIndex) && isBBoxAvailable)
                     {
                         img_scrollView.Visibility = Visibility.Collapsed;
                         noDataPanel.Visibility = Visibility.Visible;

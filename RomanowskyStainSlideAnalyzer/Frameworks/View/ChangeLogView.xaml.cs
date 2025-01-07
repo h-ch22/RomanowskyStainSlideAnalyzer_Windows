@@ -63,7 +63,15 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Segmentation", "- Newly designed HomeView.\n- You can now add files by dragging.\n- You can now segment multiple images.\n- You can now choose which GPU to use for inference.\n- Parallel GPU option is now available.\n- Shortcuts have been applied to some functions.")
+                new("Segmentation", "- Newly designed HomeView.\n- You can now add files by dragging.\n- You can now segment multiple images.\n- You can now choose which GPU to use for inference.\n- Parallel GPU option is now available.\n- Shortcuts have been applied to some functions.\n- The ability to cancel segmentation is now available.")
+            );
+
+            ReleaseNotes.Add(
+                new("Customize Parameters", "- Parameter Preset is now available.")    
+            );
+
+            ReleaseNotes.Add(
+                new("History", "- The History list is now displayed by file name.\n- Shortcuts have been applied to some functions and menus.")
             );
 
             ReleaseNotes.Add(
@@ -72,6 +80,10 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
 
             ReleaseNotes.Add(
                 new("Analyze", "- You can now check mask data and bounding box data at the same time.\n- Shortcuts have been applied to some functions.")
+            );
+
+            ReleaseNotes.Add(
+                new("Settings", "- You can now delete the Preset.")
             );
         }
 

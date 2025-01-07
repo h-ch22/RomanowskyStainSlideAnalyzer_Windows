@@ -1,8 +1,11 @@
 ﻿using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using RomanowskyStainSlideAnalyzer.Home.Helper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,25 +16,58 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private string _filePath;
+        private string _filePath = "";
         public string filePath
         {
             get => _filePath;
             set
             {
-                _filePath = value;
-                OnPropertyChanged(nameof(filePath));
+                if(value != _filePath)
+                {
+                    _filePath = value;
+                    OnPropertyChanged(nameof(filePath));
+
+                    if(File.Exists(value)) source = new(new Uri(value));
+                }
             }
         }
 
-        private string _destination;
+        private string _destination = "";
         public string destination
         {
             get => _destination;
             set
             {
-                _destination = value;
-                OnPropertyChanged(nameof(destination));
+                if (value != _destination)
+                {
+                    _destination = value;
+                    OnPropertyChanged(nameof(destination));
+
+                    if(File.Exists(value)) destinationSource = new(new Uri(value));
+                }
+            }
+        }
+
+        private BitmapImage _source;
+        public BitmapImage source
+        {
+            get => _source;
+            set
+            {
+                _source = value;
+                OnPropertyChanged(nameof(source));
+            }
+        }
+
+        private BitmapImage _destinationSource;
+
+        public BitmapImage destinationSource
+        {
+            get => _destinationSource;
+            set
+            {
+                _destinationSource = value;
+                OnPropertyChanged(nameof(destinationSource));
             }
         }
 
@@ -41,8 +77,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             get => _prefix;
             set
             {
-                _prefix = value;
-                OnPropertyChanged(nameof(prefix));
+                if(value != _prefix)
+                {
+                    _prefix = value;
+                    OnPropertyChanged(nameof(prefix));
+                }
             }
         }
 
@@ -52,8 +91,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             get => _postfix;
             set
             {
-                _postfix = value;
-                OnPropertyChanged(nameof(postfix));
+                if(value != _postfix)
+                {
+                    _postfix = value;
+                    OnPropertyChanged(nameof(postfix));
+                }
             }
         }
 
@@ -63,8 +105,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             get => _newName;
             set
             {
-                _newName = value;
-                OnPropertyChanged(nameof(newName));
+                if(value != _newName)
+                {
+                    _newName = value;
+                    OnPropertyChanged(nameof(newName));
+                }
             }
         }
 
@@ -74,8 +119,11 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             get => _ext;
             set
             {
-                _ext = value;
-                OnPropertyChanged(nameof(ext));
+                if(value != _ext)
+                {
+                    _ext = value;
+                    OnPropertyChanged(nameof(ext));
+                }
             }
         }
 

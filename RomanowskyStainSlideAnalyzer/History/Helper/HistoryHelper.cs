@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Shapes;
 using RomanowskyStainSlideAnalyzer.Analyze.Helper;
 using RomanowskyStainSlideAnalyzer.Analyze.Models;
 using RomanowskyStainSlideAnalyzer.History.Models;
+using RomanowskyStainSlideAnalyzer.Home.Models;
 using RomanowskyStainSlideAnalyzer.Labeling.Helper;
 using RomanowskyStainSlideAnalyzer.Labeling.Models;
 using System;
@@ -13,8 +14,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
 
 namespace RomanowskyStainSlideAnalyzer.History.Helper
 {
@@ -94,6 +97,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
                         var fullDate = dir.Split(@"\");
                         var fullLog = "";
+                        var fileName = "";
 
                         using (var reader = new StreamReader($@"{dir}\log.txt", Encoding.UTF8))
                         {
@@ -101,6 +105,11 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                             {
                                 var line = reader.ReadLine();
                                 fullLog += $"{line}\n";
+
+                                if (line.Split(": ")[0] == "Output File Name")
+                                {
+                                    fileName = line.Split(": ")[1];
+                                }
                             }
                         }
 
@@ -169,7 +178,8 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                                 symbol: symbol,
                                 statusText: statusText,
                                 canItLabeled: canItLabeled,
-                                imgFile: file
+                                imgFile: file,
+                                fileName: fileName
                             )
                         );
                     }

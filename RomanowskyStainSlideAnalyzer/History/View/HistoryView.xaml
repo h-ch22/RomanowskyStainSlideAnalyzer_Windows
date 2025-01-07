@@ -20,7 +20,9 @@
 
                     <StackPanel Orientation="Vertical" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                         <Image Width="256" Height="256" Source="{x:Bind imagePath, Mode=TwoWay}" Stretch="Uniform"/>
-                        <TextBlock FontSize="15" FontWeight="SemiBold" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" Text="{x:Bind date, Mode=TwoWay}"/>
+                        <TextBlock FontSize="15" FontWeight="SemiBold" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" Text="{x:Bind fileName, Mode=TwoWay}"/>
+                        <TextBlock FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" Text="{x:Bind date, Mode=TwoWay}" Foreground="Gray"/>
+
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 10 0 0">
                             <SymbolIcon Symbol="{x:Bind symbol, Mode=TwoWay}" Foreground="Gray"/>
                             <TextBlock Text="{x:Bind statusText, Mode=TwoWay}" Margin="5 0 0 0" Foreground="Gray" FontSize="12"/>
@@ -53,6 +55,10 @@
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Caption"/>
                                         </MenuFlyoutItem.Icon>
+
+                                        <MenuFlyoutItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="R"/>
+                                        </MenuFlyoutItem.KeyboardAccelerators>
                                     </MenuFlyoutItem>
 
                                     <MenuFlyoutSubItem Text="Change Data">
@@ -60,11 +66,27 @@
                                             <SymbolIcon Symbol="MoveToFolder"/>
                                         </MenuFlyoutSubItem.Icon>
 
-                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingData" Text="Change Labeling Data" Visibility="{x:Bind BBoxPropertiesVisibility, Mode=TwoWay}"/>
+                                        <MenuFlyoutSubItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="C"/>
+                                        </MenuFlyoutSubItem.KeyboardAccelerators>
 
-                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingMaskData" Text="Change Labeled Mask Data" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingData" Text="Change Labeling Data" Visibility="{x:Bind BBoxPropertiesVisibility, Mode=TwoWay}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="L"/>
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
 
-                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeMaskData" Text="Change Mask Data"/>
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeLabelingMaskData" Text="Change Labeled Mask Data" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="C"/>
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
+
+                                        <MenuFlyoutItem Click="ChangeLabelingData" x:Name="btn_changeMaskData" Text="Change Mask Data">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="M"/>
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
                                     
                                     </MenuFlyoutSubItem>
 
@@ -73,11 +95,27 @@
                                             <SymbolIcon Symbol="Download"/>
                                         </MenuFlyoutSubItem.Icon>
 
-                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveLabelingData" Text="Save Labeling Data" Visibility="{x:Bind LabeledBBoxPropertiesVisibility, Mode=TwoWay}"/>
+                                        <MenuFlyoutSubItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="S"/>
+                                        </MenuFlyoutSubItem.KeyboardAccelerators>
 
-                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveMaskData" Text="Save Labeled Mask Data" Visibility="{x:Bind LabeledMaskPropertiesVisibility, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveLabelingData" Text="Save Labeling Data" Visibility="{x:Bind LabeledBBoxPropertiesVisibility, Mode=TwoWay}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="L"/>
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
 
-                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveOriginalMask" Text="Save Original Mask Data" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}"/>
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveMaskData" Text="Save Labeled Mask Data" Visibility="{x:Bind LabeledMaskPropertiesVisibility, Mode=TwoWay}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="M"/>
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
+
+                                        <MenuFlyoutItem Click="OnSaveLabelingDataClick" x:Name="btn_saveOriginalMask" Text="Save Original Mask Data" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}">
+                                            <MenuFlyoutItem.KeyboardAccelerators>
+                                                <KeyboardAccelerator Key="O"/>
+                                            </MenuFlyoutItem.KeyboardAccelerators>
+                                        </MenuFlyoutItem>
 
                                     </MenuFlyoutSubItem>
                                     
@@ -85,24 +123,40 @@
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Crop"/>
                                         </MenuFlyoutItem.Icon>
+
+                                        <MenuFlyoutItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="B"/>
+                                        </MenuFlyoutItem.KeyboardAccelerators>
                                     </MenuFlyoutItem>
 
                                     <MenuFlyoutItem Click="SaveWithLabeledMasks" x:Name="btn_saveImageWithMask" Text="Save Image with Masks" Visibility="{x:Bind MaskPropertiesVisibility, Mode=TwoWay}">
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Pictures"/>
                                         </MenuFlyoutItem.Icon>
+
+                                        <MenuFlyoutItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="S"/>
+                                        </MenuFlyoutItem.KeyboardAccelerators>
                                     </MenuFlyoutItem>
 
                                     <MenuFlyoutItem Click="Delete" x:Name="btn_delete" Text="Delete">
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Delete"/>
                                         </MenuFlyoutItem.Icon>
+
+                                        <MenuFlyoutItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="Delete"/>
+                                        </MenuFlyoutItem.KeyboardAccelerators>
                                     </MenuFlyoutItem>
 
                                     <MenuFlyoutItem Click="ShowLog" x:Name="btn_showLog" Text="Show Segmentation Settings">
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Setting"/>
                                         </MenuFlyoutItem.Icon>
+
+                                        <MenuFlyoutItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="P"/>
+                                        </MenuFlyoutItem.KeyboardAccelerators>
                                     </MenuFlyoutItem>
                                 </MenuFlyout>
                             </Button.Flyout>
@@ -127,7 +181,7 @@
                 </AppBarButton.Content>
             </AppBarButton>
 
-            <AppBarButton x:Name="btn_refresh" Click="Refresh" Label="Refresh (F5)" Icon="Refresh">
+            <AppBarButton x:Name="btn_refresh" Click="Refresh" Label="Refresh" Icon="Refresh">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F5"/>
                 </AppBarButton.KeyboardAccelerators>

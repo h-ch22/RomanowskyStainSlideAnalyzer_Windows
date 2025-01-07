@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using RomanowskyStainSlideAnalyzer.Frameworks.Helper;
 using RomanowskyStainSlideAnalyzer.Frameworks.Models;
+using RomanowskyStainSlideAnalyzer.Home.Helper;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -79,6 +80,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             get; private set;
         }
 
+        public ObservableCollection<string> Presets
+        {
+            get; private set;
+        }
+
         private Dictionary<int, string> Titles = new()
         {
             { 0, "WSL Status" },
@@ -110,6 +116,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
         {
             Datas = new();
             PluginVersions = new();
+            Presets = new();
 
             foreach (var title in Titles)
             {
@@ -121,6 +128,11 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
                 PluginVersions.Add(
                     new(title.Key, title.Value, helper.GetLibrariesVersion(title.Value))
                 );
+            }
+
+            foreach (var preset in SegmentationHelper.loadPresets())
+            {
+                Presets.Add(preset);
             }
 
             IsEnvironmentSet = helper.GetFinalStatus() ? "Set" : "Not Set";
@@ -176,6 +188,56 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
                     }
 
                     break;
+            }
+        }
+
+        private async void DeletePreset(object sender, RoutedEventArgs e)
+        {
+            string presetName = (sender as HyperlinkButton).DataContext as string;
+
+            if(presetName.ToLower() == "default")
+            {
+                await MainWindow.ShowContentDialogAsync(
+                    "Warning",
+                    "Default preset cannot be removed.",
+                    "OK"
+                );
+
+                return;
+            }
+
+            var confirmDelete = await MainWindow.ShowContentDialogAsync(
+                "Delete Preset",
+                "Are you sure to delete this preset?",
+                "Yes",
+                "No"
+            );
+
+            if(confirmDelete)
+            {
+                try
+                {
+                    var deleteResult = SegmentationHelper.DeletePreset(presetName);
+
+                    if(!deleteResult)
+                    {
+                        await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while deleting preset.", "OK");
+
+                        return;
+                    }
+
+                    Presets.Clear();
+
+                    foreach (var preset in SegmentationHelper.loadPresets())
+                    {
+                        Presets.Add(preset);
+                    }
+                }
+
+                catch(Exception ex)
+                {
+                    await MainWindow.ShowContentDialogAsync("Error", $"An error occurred while deleting preset.\n{ex.Message}", "OK");
+                }
             }
         }
 

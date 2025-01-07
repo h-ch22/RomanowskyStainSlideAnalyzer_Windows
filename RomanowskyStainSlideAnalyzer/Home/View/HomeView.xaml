@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <CommandBar x:Name="commandBar" IsEnabled="False" Background="Transparent" DefaultLabelPosition="Right" Grid.Row="0">
-            <AppBarButton Icon="Pictures" Label="Images (F1)">
+            <AppBarButton Icon="Pictures" Label="Images">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F1"/>
                 </AppBarButton.KeyboardAccelerators>
@@ -36,9 +36,9 @@
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
-                        <MenuFlyoutItem x:Name="btn_clear" Icon="Cancel" Text="Clear" Click="OnMenuFlyoutClick" Visibility="Collapsed">
+                        <MenuFlyoutItem x:Name="btn_labeling" Icon="Caption" Text="Labeling" Visibility="{Binding LabelingBtnVisibility, Mode=TwoWay}" Click="OnMenuFlyoutClick">
                             <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="Escape"/>
+                                <KeyboardAccelerator Key="L" Modifiers="Control"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
@@ -47,13 +47,19 @@
                                 <KeyboardAccelerator Key="S" Modifiers="Control"/>
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
+
+                        <MenuFlyoutItem x:Name="btn_clear" Icon="Cancel" Text="Clear" Click="OnMenuFlyoutClick" Visibility="Collapsed">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="Escape"/>
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
 
             <AppBarSeparator/>
 
-            <AppBarButton Icon="Find" Label="Parameters (F2)">
+            <AppBarButton Icon="Find" Label="Parameters">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F2"/>
                 </AppBarButton.KeyboardAccelerators>
@@ -72,12 +78,6 @@
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
 
-                        <MenuFlyoutItem x:Name="btn_labeling" Icon="Caption" Text="Labeling" Visibility="{Binding LabelingBtnVisibility, Mode=TwoWay}" Click="OnMenuFlyoutClick">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="L" Modifiers="Control"/>
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-
                         <MenuFlyoutItem x:Name="btn_selectPoint" Icon="Favorite" Text="Select Points" IsEnabled="False" Click="OnMenuFlyoutClick">
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="P" Modifiers="Control"/>
@@ -87,39 +87,39 @@
                 </AppBarButton.Flyout>
             </AppBarButton>
 
-            <AppBarToggleButton x:Name="btn_useAutomaticSegmentation" Icon="ViewAll" Label="Use Automatic Segmentation (F3)" IsChecked="{Binding UseAutomaticSegmentation, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_useAutomaticSegmentation" Icon="ViewAll" Label="Use Automatic Segmentation" IsChecked="{Binding UseAutomaticSegmentation, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F3"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_usePostProcess" Icon="Find" Label="Use Post-Process (F4)" IsChecked="{Binding UsePostProcess, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_usePostProcess" Icon="Find" Label="Use Post-Process" IsChecked="{Binding UsePostProcess, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="F4" Modifiers="Shift"/>
+                    <KeyboardAccelerator Key="F4"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_extractMasks" Icon="Pictures" Label="Extract Masks (F5)" IsChecked="{Binding ExtractMasks, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_extractMasks" Icon="Pictures" Label="Extract Masks" IsChecked="{Binding ExtractMasks, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="F5" Modifiers="Shift"/>
+                    <KeyboardAccelerator Key="F5"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_extractBBoxes" Icon="Crop" Label="Extract Bounding Boxes (F6)" IsChecked="{Binding ExtractBBoxes, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_extractBBoxes" Icon="Crop" Label="Extract Bounding Boxes" IsChecked="{Binding ExtractBBoxes, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="F6" Modifiers="Shift"/>
+                    <KeyboardAccelerator Key="F6"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_useParallel" Icon="Switch" Label="Use Parallel GPU (F7)" IsChecked="{Binding UseParallel, Mode=TwoWay}" IsEnabled="{Binding IsParallelEnabled, Mode=TwoWay}">
+            <AppBarToggleButton x:Name="btn_useParallel" Icon="Switch" Label="Use Parallel GPU" IsChecked="{Binding UseParallel, Mode=TwoWay}" IsEnabled="{Binding IsParallelEnabled, Mode=TwoWay}">
                 <AppBarToggleButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="F7" Modifiers="Shift"/>
+                    <KeyboardAccelerator Key="F7"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
             <AppBarSeparator/>
 
-            <AppBarButton x:Name="btn_segment" Icon="Accept" Label="Segment (F8)" Click="OnClick">
+            <AppBarButton x:Name="btn_segment" Icon="Accept" Label="Segment" Click="OnClick">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F8"/>
                 </AppBarButton.KeyboardAccelerators>
@@ -141,13 +141,13 @@
             </StackPanel>
 
             <StackPanel Orientation="Vertical" Visibility="Collapsed" x:Name="selectedImagePanel" VerticalAlignment="Center" HorizontalAlignment="Stretch">
-                <FlipView SelectedIndex="{x:Bind CurrentIndex, Mode=TwoWay}" ItemsSource="{x:Bind FilesToSegment, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Height="350" Width="1010" Background="Transparent">
+                <FlipView x:Name="flipView" SelectedIndex="{x:Bind CurrentIndex, Mode=TwoWay}" ItemsSource="{x:Bind FilesToSegment, Mode=TwoWay}" VerticalAlignment="Center" HorizontalAlignment="Center" Height="350" Width="1010" Background="Transparent">
                     <FlipView.ItemTemplate>
                         <DataTemplate x:DataType="models:SegmentParameterDataModel">
                             <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <StackPanel Orientation="Horizontal">
-                                    <Image x:Name="selectedImageView" Width="500" Height="350" Stretch="Uniform" Source="{x:Bind filePath, Mode=TwoWay}"/>
-                                    <Image x:Name="resultImageView" Margin="10 0 0 0" Width="500" Height="350" Stretch="Uniform" Source="{x:Bind destination, Mode=TwoWay}"/>
+                                    <Image x:Name="selectedImageView" Width="500" Height="350" Stretch="Uniform" Source="{x:Bind source, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Image x:Name="resultImageView" Margin="10 0 0 0" Width="500" Height="350" Stretch="Uniform" Source="{x:Bind destinationSource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                             </StackPanel>
                         </DataTemplate>
@@ -171,6 +171,7 @@
             <TextBlock x:Name="txt_status" Margin="0 10 0 0" Text="{Binding StatusText, Mode=TwoWay}" Foreground="Gray" TextAlignment="Center"></TextBlock>
 
             <Button x:Name="btn_reboot" Click="OnClick" Visibility="Collapsed">Reboot</Button>
+            <Button HorizontalAlignment="Center" x:Name="btn_cancel" Click="OnClick" Visibility="Collapsed">Cancel</Button>
         </StackPanel>
 
         <Grid Margin="20 0" x:Name="controlsView" Grid.Row="2" Visibility="Collapsed" VerticalAlignment="Center">
@@ -183,19 +184,19 @@
             </Grid.ColumnDefinitions>
 
             <RadioButtons Grid.Column="0" Header="Output File Name">
-                <RadioButton x:Name="radio_prefix" Content="Prefix (P)" Checked="OnRadioButtonChecked">
+                <RadioButton x:Name="radio_prefix" Content="Prefix" Checked="OnRadioButtonChecked">
                     <RadioButton.KeyboardAccelerators>
                         <KeyboardAccelerator Key="P"/>
                     </RadioButton.KeyboardAccelerators>
                 </RadioButton>
 
-                <RadioButton x:Name="radio_postfix" Content="Postfix (S)" Checked="OnRadioButtonChecked" IsChecked="True">
+                <RadioButton x:Name="radio_postfix" Content="Postfix" Checked="OnRadioButtonChecked" IsChecked="True">
                     <RadioButton.KeyboardAccelerators>
                         <KeyboardAccelerator Key="S"/>
                     </RadioButton.KeyboardAccelerators>
                 </RadioButton>
 
-                <RadioButton x:Name="radio_newName" Content="New Name (N)" Checked="OnRadioButtonChecked">
+                <RadioButton x:Name="radio_newName" Content="New Name" Checked="OnRadioButtonChecked">
                     <RadioButton.KeyboardAccelerators>
                         <KeyboardAccelerator Key="N"/>
                     </RadioButton.KeyboardAccelerators>
@@ -205,7 +206,7 @@
             <AppBarSeparator Grid.Column="1"/>
 
             <StackPanel Orientation="Vertical" Grid.Column="2">
-                <TextBlock Text="Select Device (D)"/>
+                <TextBlock Text="Select Device"/>
 
                 <DropDownButton x:Name="dropdown_devices" Content="{Binding Device, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <DropDownButton.Flyout>

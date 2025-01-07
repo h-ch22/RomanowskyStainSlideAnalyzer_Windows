@@ -19,6 +19,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
         public string statusText;
         public bool canItLabeled;
         public string imgFile;
+        public string fileName;
         public Visibility LabeledMaskPropertiesVisibility { get; set; }
         public Visibility LabeledBBoxPropertiesVisibility { get; set; }
         public Visibility BBoxPropertiesVisibility { get; set; }
@@ -36,6 +37,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             string labelingDataPath,
             string imagePath,
             string log,
+            string fileName,
             Visibility labeledMaskPropertiesVisibility,
             Visibility labeledBBoxPropertiesVisibility,
             Visibility maskPropertiesVisibility,
@@ -55,6 +57,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Models
             this.statusText = statusText;
             this.canItLabeled = canItLabeled;
             this.imgFile = imgFile;
+            this.fileName = fileName;
             LabeledBBoxPropertiesVisibility = labeledBBoxPropertiesVisibility;
             LabeledMaskPropertiesVisibility = labeledMaskPropertiesVisibility;
             MaskPropertiesVisibility = maskPropertiesVisibility;

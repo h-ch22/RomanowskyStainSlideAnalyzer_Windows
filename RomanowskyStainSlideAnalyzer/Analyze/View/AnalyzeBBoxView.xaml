@@ -38,7 +38,7 @@
         </Grid>
 
         <CommandBar Grid.Row="1" DefaultLabelPosition="Right">
-            <AppBarButton x:Name="btn_exportData" Click="btn_exportData_Click" IsEnabled="False" Label="Export Data (F1)" Icon="Upload">
+            <AppBarButton x:Name="btn_exportData" Click="btn_exportData_Click" IsEnabled="False" Label="Export Data" Icon="Upload">
                 <AppBarButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F1"/>
                 </AppBarButton.KeyboardAccelerators>
@@ -48,31 +48,31 @@
                 <ProgressRing></ProgressRing>
             </AppBarButton>
 
-            <AppBarToggleButton x:Name="btn_showAllData" Click="ToggleAllData" IsChecked="{x:Bind viewModel.ShowAllData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Show All Data (F2)" Icon="ViewAll">
+            <AppBarToggleButton x:Name="btn_showAllData" Click="ToggleAllData" IsChecked="{x:Bind viewModel.ShowAllData, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Show All Data" Icon="ViewAll">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F2"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton IsEnabled="False" x:Name="btn_useBBox" Click="ToggleDataTarget" IsChecked="{x:Bind viewModel.UseBoundingBoxAsTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Use Bounding Box to Analyze Data (F3)" Icon="Crop">
+            <AppBarToggleButton IsEnabled="False" x:Name="btn_useBBox" Click="ToggleDataTarget" IsChecked="{x:Bind viewModel.UseBoundingBoxAsTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Use Bounding Box to Analyze Data" Icon="Crop">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F3"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_hideBBox" Checked="AppBarToggleButton_Checked" Unchecked="AppBarToggleButton_Checked" IsChecked="False" Label="Hide Mask (F4)" Icon="ClearSelection">
+            <AppBarToggleButton x:Name="btn_hideBBox" Checked="AppBarToggleButton_Checked" Unchecked="AppBarToggleButton_Checked" IsChecked="False" Label="Hide Mask" Icon="ClearSelection">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F4"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton x:Name="btn_toggleBBoxColor" Checked="ToggleBBoxColor" Unchecked="ToggleBBoxColor" IsChecked="True" Label="Show Color By Class (F5)" Icon="Flag">
+            <AppBarToggleButton x:Name="btn_toggleBBoxColor" Checked="ToggleBBoxColor" Unchecked="ToggleBBoxColor" IsChecked="True" Label="Show Color By Class" Icon="Flag">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F5"/>
                 </AppBarToggleButton.KeyboardAccelerators>
             </AppBarToggleButton>
 
-            <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Zoom Mode (F6)" Icon="Find">
+            <AppBarToggleButton IsChecked="{x:Bind viewModel.IsZoomModeEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Label="Zoom Mode" Icon="Find">
                 <AppBarToggleButton.KeyboardAccelerators>
                     <KeyboardAccelerator Key="F6"/>
                 </AppBarToggleButton.KeyboardAccelerators>
