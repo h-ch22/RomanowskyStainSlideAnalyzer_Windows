@@ -208,7 +208,7 @@
             </AppBarButton>
         </CommandBar>
 
-        <DatePicker Grid.Row="1" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>
+        <CalendarDatePicker Grid.Row="1" Date="{x:Bind Date, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" x:Name="datePicker"/>
 
         <ProgressRing Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ShowProgress, Mode=TwoWay}" IsIndeterminate="True"/>
 
