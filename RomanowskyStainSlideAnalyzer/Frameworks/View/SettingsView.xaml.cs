@@ -177,11 +177,17 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
 
                         foreach (FileInfo file in di.GetFiles())
                         {
-                            file.Delete();
+                            if(file.DirectoryName != "Presets")
+                            {
+                                file.Delete();
+                            }
                         }
                         foreach (DirectoryInfo dir in di.GetDirectories())
                         {
-                            dir.Delete(true);
+                            if(dir.Name != "Presets")
+                            {
+                                dir.Delete(true);
+                            }
                         }
 
                         await MainWindow.ShowContentDialogAsync("Done", "All history has been removed.", "OK");

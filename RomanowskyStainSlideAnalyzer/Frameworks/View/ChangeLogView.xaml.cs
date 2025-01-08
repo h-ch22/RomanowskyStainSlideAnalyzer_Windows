@@ -63,7 +63,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Framework", "- Saving a single file now displays the File Save Dialog instead of the Folder Picker, allowing you to customize the file's name and extension.")    
+                new("Framework", "- Saving a single file now displays the File Save Dialog\ninstead of the Folder Picker, allowing you to customize the file's name and extension.")    
             );
 
             ReleaseNotes.Add(
@@ -75,7 +75,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             );
 
             ReleaseNotes.Add(
-                new("History", "- The History list is now displayed by file name.\n- Shortcuts have been applied to some functions and menus.\n- Image Viewer is now available.")
+                new("History", "- The History list is now displayed by file name.\n- Shortcuts have been applied to some functions and menus.\n- Image Viewer is now available.\n- Calendar Date Picker is now available.")
             );
 
             ReleaseNotes.Add(
