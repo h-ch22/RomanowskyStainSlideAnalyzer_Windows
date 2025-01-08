@@ -6,12 +6,24 @@
 ⓒ 2024 Changjin Ha. All Rights Reserved.<br>
 ---
 ## Segmentation<br>
-<img src="./Docs/Images/img_segmentation.png"><br>
-> Just load the image, name the file, and segmentation is complete.<br>
+<img src="./Docs/Images/img_home_1.png"><br>
+> Just load the images, name the file, and segmentation is complete.<br>
+
+<img src="./Docs/Images/img_home_2.png"><br>
+> You can select GPU to segment.<br>
+
+<img src="./Docs/Images/img_home_3.png"><br>
+> Also, you can use GPU Parallel for use multiple GPUs.<br>
+
+<img src="./Docs/Images/img_home_4.png"><br>
+> And you can choose model to use.<br>
 
 ### Customize Parameters<br>
 <img src="./Docs/Images/img_customize_Parameters.png"><br>
 > If you proceed with Automatic Segmentation, you can also modify SAM parameters.<br>
+
+<img src="./Docs/Images/img_customize_Parameters_2.png"><br>
+> You can also save presets and use them again later.<br>
 
 ### Select Points<br>
 <img src="./Docs/Images/img_selectPoints.png"><br>
@@ -32,6 +44,10 @@
 ## History<br>
 <img src="./Docs/Images/img_history.png"><br>
 > A strong assistant that not only checks and saves past results, but also replaces and exports labeling data, and analyzes and saves bounding boxes.<br>
+
+## Image Viewer<br>
+<img src="./Docs/Images/img_imageViewer.png"><br>
+> A simple yet powerful tool to view, zoom, rotate and save images.<br>
 
 ## Analyze<br>
 <img src="./Docs/Images/img_analyze.png"><br>
@@ -66,6 +82,43 @@
 
 ## Release Note<br>
 > Here are the release notes for each version of Romanowsky Stain Slide Analyzer for Windows.<br>
+
+- ### Romanowsky Stain Slide Analyzer 1.4.0.0 Release Note
+> #### Framework<br>
+> - Saving a single file now displays the File Save Dialog instead of the Folder Picker, allowing you to customize the file's name and extension.<br>
+
+> #### Segmentation<br>
+> - Newly designed HomeView.<br>
+> - You can now add files by dragging.<br>
+> - You can now segment multiple images.<br>
+> - You can now choose which GPU to use for inference.<br>
+> - Parallel GPU option is now available.<br>
+> - Shortcuts have been applied to some functions.<br>
+> - The ability to cancel segmentation is now available.<br>
+> - You can now apply the currently set options to all files.<br>
+> - Model Selection is now available.<br>
+
+> #### Customize Parameters<br>
+> - Parameter Preset is now available.<br>
+> - Number Box is now available.<br>
+
+> #### History<br>
+> - The History list is now displayed by file name.<br>
+> - Shortcuts have been applied to some functions and menus.<br>
+> - Image Viewer is now available.<br>
+> - Calendar Date Picker is now available.<br>
+
+> #### Labeling<br>
+> - Now you can check the mask and bounding box at the same time.<br>
+> - Shortcuts have been applied to some functions.<br>
+> - Fixed the issue where Bounding Box indexes were not displayed completely.<br>
+
+> #### Analyze<br>
+> - You can now check mask data and bounding box data at the same time.<br>
+> - Shortcuts have been applied to some functions.<br>
+
+> #### Settings<br>
+> - You can now delete the Preset.<br>
 
 - ### Romanowsky Stain Slide Analyzer 1.3.0.0 Release Note
 > #### Segmentation<br>

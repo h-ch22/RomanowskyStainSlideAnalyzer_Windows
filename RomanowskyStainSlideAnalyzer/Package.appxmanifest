@@ -9,7 +9,7 @@
   <Identity
     Name="cf76b30f-d3e9-4a12-abbd-6b693ed85025"
     Publisher="CN=Changjin Ha"
-    Version="1.4.2.0" />
+    Version="1.4.3.0" />
 
   <Properties>
     <DisplayName>Romanowsky Stain Slide Analyzer</DisplayName>
