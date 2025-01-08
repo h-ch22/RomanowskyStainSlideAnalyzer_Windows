@@ -63,15 +63,19 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             gridView.DataContext = this;
 
             ReleaseNotes.Add(
-                new("Segmentation", "- Newly designed HomeView.\n- You can now add files by dragging.\n- You can now segment multiple images.\n- You can now choose which GPU to use for inference.\n- Parallel GPU option is now available.\n- Shortcuts have been applied to some functions.\n- The ability to cancel segmentation is now available.\n- You can now apply the currently set options to all files.")
+                new("Framework", "- Saving a single file now displays the File Save Dialog instead of the Folder Picker, allowing you to customize the file's name and extension.")    
             );
 
             ReleaseNotes.Add(
-                new("Customize Parameters", "- Parameter Preset is now available.")    
+                new("Segmentation", "- Newly designed HomeView.\n- You can now add files by dragging.\n- You can now segment multiple images.\n- You can now choose which GPU to use for inference.\n- Parallel GPU option is now available.\n- Shortcuts have been applied to some functions.\n- The ability to cancel segmentation is now available.\n- You can now apply the currently set options to all files.\n- Model Selection is now available.")
             );
 
             ReleaseNotes.Add(
-                new("History", "- The History list is now displayed by file name.\n- Shortcuts have been applied to some functions and menus.")
+                new("Customize Parameters", "- Parameter Preset is now available.\n- Number Box is now available.")    
+            );
+
+            ReleaseNotes.Add(
+                new("History", "- The History list is now displayed by file name.\n- Shortcuts have been applied to some functions and menus.\n- Image Viewer is now available.")
             );
 
             ReleaseNotes.Add(

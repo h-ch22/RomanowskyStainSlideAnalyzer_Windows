@@ -272,43 +272,16 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
                             );
                         }
 
-                        var folderPicker = new FolderPicker();
-                        var window = App.window;
-                        var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
-                        WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
-
-                        folderPicker.ViewMode = PickerViewMode.Thumbnail;
-                        folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
-
-                        var folder = await folderPicker.PickSingleFolderAsync();
+                        var folder = await MainWindow.ShowSaveDialog(
+                            new List<string> { "Comma-Separated Values (CSV) File" },
+                            new List<string> { ".csv" }
+                        );
 
                         if (folder != null)
                         {
                             try
                             {
-                                if (helper.IsDestinationFileExists(folder.Path))
-                                {
-                                    var splitPath = path.Split(@"\");
-                                    var fileName = splitPath[splitPath.Length - 1];
-
-                                    var dialogResult = await MainWindow.ShowContentDialogAsync(
-                                        "File Already Exists",
-                                        $@"The file {folder.Path}\{fileName.Split(@".txt")[0]}.csv already exists.\nDo you want to overwrite it?",
-                                        "Yes",
-                                        "No"
-                                    );
-
-                                    if (dialogResult)
-                                    {
-                                        helper.Copy(folder.Path);
-                                    }
-                                }
-
-                                else
-                                {
-                                    helper.Copy(folder.Path);
-                                }
+                                helper.Copy(folder.Path);
                             }
                             catch (Exception ex)
                             {
@@ -336,18 +309,27 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.View
 
                             if (result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
                             {
-                                folder = await folderPicker.PickSingleFolderAsync();
+                                var folderPicker = new FolderPicker();
+                                var window = App.window;
+                                var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
 
-                                if (folder != null)
+                                WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
+
+                                folderPicker.ViewMode = PickerViewMode.Thumbnail;
+                                folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+                                var saveDir = await folderPicker.PickSingleFolderAsync();
+
+                                if (saveDir != null)
                                 {
                                     try
                                     {
-                                        LabelingHelper.Copy($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}", folder.Path, result == ContentDialogResult.Primary);
-                                        LabelingHelper.writePythonFile(result == ContentDialogResult.Primary, folder.Path);
+                                        LabelingHelper.Copy($@"C:\RomanowskyStainSlideAnalyzer\{root}\Masks\{inputFile}", saveDir.Path, result == ContentDialogResult.Primary);
+                                        LabelingHelper.writePythonFile(result == ContentDialogResult.Primary, saveDir.Path);
 
                                         await MainWindow.ShowContentDialogAsync(
                                             "Training Information",
-                                            $"Copied the file(s) to {folder.Path}.\nTo train this file(s), use the code inside the main.py file.",
+                                            $"Copied the file(s) to {saveDir.Path}.\nTo train this file(s), use the code inside the main.py file.",
                                             "OK"
                                         );
 

@@ -150,6 +150,7 @@ if __name__ == '__main__':
     parser.add_argument("-cor", "--crop_overlap_ratio", type=float, default=512/1500)
     parser.add_argument("-cnp", "--crop_n_points_downscale_factor", type=int, default=1)
     parser.add_argument("-mmr", "--min_mask_region_area", type=int, default=-1)
+    parser.add_argument("-model", "--model", required=True, type=str, help='Model File Name to segment')
     args = parser.parse_args()
 
     file = args.file
@@ -175,6 +176,7 @@ if __name__ == '__main__':
     crop_n_points_downscale_factor = args.crop_n_points_downscale_factor
     min_mask_region_area = args.min_mask_region_area
     selected_device = args.device
+    model_to_use = args.model
 
     input_points = args.input_points
     input_labels = args.input_labels
@@ -204,8 +206,27 @@ if __name__ == '__main__':
     min_area = min(image.width, image.height)
     resized_image = image.resize((512, 512))
 
-    sam2_checkpoint = './checkpoints/sam2.1_hiera_large.pt'
-    model_cfg = './configs/sam2.1/sam2.1_hiera_l.yaml'
+    sam2_checkpoint = f'./checkpoints/{model_to_use}.pt'
+
+    cfg_path = model_to_use.split("_")[0]
+    cfg_name = ""
+
+    if "large" in model_to_use:
+        cfg_name = f"{cfg_path}_hiera_l.yaml"
+
+    elif "base" in model_to_use:
+        cfg_name = f"{cfg_path}_hiera_b+.yaml"
+
+    elif "small" in model_to_use:
+        cfg_name = f"{cfg_path}_hiera_s.yaml"
+
+    elif "tiny" in model_to_use:
+        cfg_name = f"{cfg_path}_hiera_t.yaml"
+
+    else:
+        raise Exception("Unknown Model Name or Cannot find config file.")
+
+    model_cfg = f'./configs/{cfg_path}/{cfg_name}'
 
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)

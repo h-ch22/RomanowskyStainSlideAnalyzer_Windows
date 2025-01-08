@@ -20,6 +20,8 @@ using RomanowskyStainSlideAnalyzer.Frameworks.Helper;
 using RomanowskyStainSlideAnalyzer.Home.View;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage.Pickers;
+using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -118,6 +120,27 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             }
         }
 
+        public static async Task<StorageFile?> ShowSaveDialog(List<string> headers, List<string> types)
+        {
+            FileSavePicker savePicker = new();
+            var window = App.window;
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hWnd);
+
+            savePicker.SuggestedStartLocation = PickerLocationId.Desktop;
+
+            for(var i = 0; i < headers.Count(); i++)
+            {
+                savePicker.FileTypeChoices.Add(
+                    headers[i], new List<string>() { types[i] }    
+                );
+            }
+
+            StorageFile file = await savePicker.PickSaveFileAsync();
+
+            return file;
+        }
+
         private void Init()
         {
             ExtendsContentIntoTitleBar = true;
@@ -132,7 +155,7 @@ namespace RomanowskyStainSlideAnalyzer.Frameworks.View
             {
                 DirectoryInfo directoryInfo = new DirectoryInfo(rssaFolder);
 
-                directoryInfo.Attributes |= FileAttributes.Hidden;
+                directoryInfo.Attributes |= System.IO.FileAttributes.Hidden;
             }
 
             var lastLaunchedVersion = environmentHelper.GetLastLaunchedVersion();

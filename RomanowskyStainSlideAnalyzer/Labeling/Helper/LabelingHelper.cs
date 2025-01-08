@@ -158,7 +158,7 @@ namespace RomanowskyStainSlideAnalyzer.Labeling.Helper
             
             try
             {
-                File.Copy($"{path.Split(".txt")[0]}.csv", $@"{folder}\{fileName.Split(@".txt")[0]}.csv", true);
+                File.Copy($"{path.Split(".txt")[0]}.csv", folder, true);
             }
             catch(Exception e)
             {

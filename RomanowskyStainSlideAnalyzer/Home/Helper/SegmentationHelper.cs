@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RomanowskyStainSlideAnalyzer.Home.Helper
 {
@@ -57,6 +58,23 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             }
         }
 
+        public static List<string> GetAvailableModels()
+        {
+            var path = @"\\wsl$\Ubuntu\root\RomanowskyStainSlideAnalyzer\checkpoints";
+            var files = Directory.GetFiles(path, "*.pt");
+            List<string> models = new();
+
+            foreach(var file in files)
+            {
+                var fileSplit = file.Split(@"\");
+                models.Add(
+                    fileSplit[fileSplit.Length - 1].Split(".pt")[0]    
+                );
+            }
+
+            return models;
+        }
+
         public bool cancelSegment()
         {
             try
@@ -101,7 +119,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string cropOverlapRatio,
             string cropNPointsDownscaleFactor,
             string minMaskRegionArea,
-            string device
+            string device,
+            string model
         )
         {
             var pathSplitByDrive = filePath.Split(@":\");
@@ -109,20 +128,22 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
 
             var path = pathSplitByDrive[1].Replace(@"\", "/").Replace(":/", "/");
 
-            var cli = $"cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && python main.py -f /mnt/{drive}/{path} -dev {device}";
+            var cli = $"cd ~/RomanowskyStainSlideAnalyzer && source RomanowskyStainSlideAnalyzer_venv/bin/activate && python main.py -f /mnt/{drive}/{path} -dev {device} -model {model}";
 
-            if(prefix != "")
+            if (prefix != "")
             {
                 cli += $" -prefix {prefix}";
-            } else if(postfix != "")
+            }
+            else if (postfix != "")
             {
                 cli += $" -postfix {postfix}";
-            } else
+            }
+            else
             {
                 cli += $" -d {destination} -e {ext}";
             }
 
-            if(useAutomaticSegmentation)
+            if (useAutomaticSegmentation)
             {
                 cli += " -a y";
 
@@ -133,14 +154,14 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             {
                 cli += " -a n -ip ";
 
-                foreach(var point in inputCoords)
+                foreach (var point in inputCoords)
                 {
                     cli += $"{point.ToString()} ";
                 }
 
                 cli += "-il ";
 
-                foreach(var label in inputLabels)
+                foreach (var label in inputLabels)
                 {
                     cli += $"{label.ToString()} ";
                 }
@@ -219,7 +240,9 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
             string cropOverlapRatio,
             string cropNPointsDownscaleFactor,
             string minMaskRegionArea,
-            string device
+            string device,
+            string model,
+            bool useParallel
         )
         {
             var rssaFolder = @"C:\RomanowskyStainSlideAnalyzer";
@@ -298,7 +321,9 @@ namespace RomanowskyStainSlideAnalyzer.Home.Helper
                     $"Min Mask Region Area: {minMaskRegionArea}",
                     $"Use Post Process: {usePostProcess}",
                     $"Output File Name: {outputFileName}",
-                    $"Device: {device}"
+                    $"Device: {device}",
+                    $"Model: {model}",
+                    $"Use Parallel: {useParallel}"
                 };
 
                 string docPath = $@"{finalPath}\log.txt";

@@ -33,7 +33,7 @@
                 Grid.Column="1"
                 VerticalAlignment="Center"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="Segmentation Settings"/>
+                Text="Segmentation Info"/>
         </Grid>
 
         <ScrollView Grid.Row="1">

@@ -230,7 +230,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
             try
             {
-                File.Copy($"{from.Split(".txt")[0]}", $@"{to}\{fileName.Split(@".txt")[0]}", true);
+                File.Copy($"{from.Split(".txt")[0]}", to, true);
             }
             catch (Exception e)
             {
@@ -479,7 +479,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
 
         }
 
-        public async Task<string> ExportWithBBoxes(Bitmap bmp, string csvFile, bool exportWithClasses, string dir, string fileName, bool isCSV)
+        public async Task<string> ExportWithBBoxes(Bitmap bmp, string csvFile, bool exportWithClasses, string dir, bool isCSV)
         {
             try
             {
@@ -507,7 +507,7 @@ namespace RomanowskyStainSlideAnalyzer.History.Helper
                         }
                     }
 
-                    bmp.Save(@$"{dir}\{fileName}.png");
+                    bmp.Save(dir);
                     bmp.Dispose();
                 });
 

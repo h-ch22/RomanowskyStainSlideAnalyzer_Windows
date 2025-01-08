@@ -358,6 +358,17 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             }
         }
 
+        private string _Model = "";
+        public string Model
+        {
+            get => _Model;
+            set
+            {
+                _Model = value;
+                OnPropertyChanged(nameof(Model));
+            }
+        }
+
         public List<PointDataModel> Points = new();
 
         public SegmentParameterDataModel(
@@ -382,7 +393,8 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             string cropNMSThresh = "0.7",
             string cropOverlapRatio = "0.3413",
             string cropNPointsDownscaleFactor = "1",
-            string minMaskRegionArea = "-1"
+            string minMaskRegionArea = "-1",
+            string model = ""
         )
         {
             this.filePath = filePath;
@@ -407,6 +419,7 @@ namespace RomanowskyStainSlideAnalyzer.Home.Models
             CropOverlapRatio.Value = cropOverlapRatio;
             CropNPointsDownScaleFactor.Value = cropNPointsDownscaleFactor;
             MinMaskRegionArea.Value = minMaskRegionArea;
+            Model = model;
         }
 
         public void ResetParams()

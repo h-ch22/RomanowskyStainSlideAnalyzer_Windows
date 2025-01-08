@@ -19,6 +19,26 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Orientation="Vertical" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                        <Button HorizontalAlignment="Right" x:Name="btn_zoom">
+                            <SymbolIcon Symbol="ZoomIn"/>
+
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Click="MenuFlyoutItem_Click" x:Name="btn_original" Text="Original Image">
+                                        <MenuFlyoutItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="O"/>
+                                        </MenuFlyoutItem.KeyboardAccelerators>
+                                    </MenuFlyoutItem>
+
+                                    <MenuFlyoutItem Click="MenuFlyoutItem_Click" x:Name="btn_result" Text="Result Image">
+                                        <MenuFlyoutItem.KeyboardAccelerators>
+                                            <KeyboardAccelerator Key="R"/>
+                                        </MenuFlyoutItem.KeyboardAccelerators>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                        
                         <Image Width="256" Height="256" Source="{x:Bind imagePath, Mode=TwoWay}" Stretch="Uniform"/>
                         <TextBlock FontSize="15" FontWeight="SemiBold" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" Text="{x:Bind fileName, Mode=TwoWay}"/>
                         <TextBlock FontSize="12" TextAlignment="Center" HorizontalAlignment="Center" HorizontalTextAlignment="Center" Text="{x:Bind date, Mode=TwoWay}" Foreground="Gray"/>
@@ -149,7 +169,7 @@
                                         </MenuFlyoutItem.KeyboardAccelerators>
                                     </MenuFlyoutItem>
 
-                                    <MenuFlyoutItem Click="ShowLog" x:Name="btn_showLog" Text="Show Segmentation Settings">
+                                    <MenuFlyoutItem Click="ShowLog" x:Name="btn_showLog" Text="Segmentation Info">
                                         <MenuFlyoutItem.Icon>
                                             <SymbolIcon Symbol="Setting"/>
                                         </MenuFlyoutItem.Icon>

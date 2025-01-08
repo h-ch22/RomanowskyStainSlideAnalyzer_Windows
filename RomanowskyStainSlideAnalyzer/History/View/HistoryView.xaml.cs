@@ -159,16 +159,10 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
             var file = GetImage(dataModel.root);
 
-            var folderPicker = new FolderPicker();
-            var window = App.window;
-            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
-            WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
-
-            folderPicker.ViewMode = PickerViewMode.Thumbnail;
-            folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
-
-            var folder = await folderPicker.PickSingleFolderAsync();
+            var folder = await MainWindow.ShowSaveDialog(
+                type == 0 ? new List<string> { "Comma-Separated Values (CSV) File" } : new List<string> { "Portable Network Graphics (PNG) File", "Joint Photographic Experts Group (JPG) File", "Joint Photographic Experts Group (JPEG) File" },
+                type == 0 ? new List<string> { ".csv" } : new List<string> { ".png", ".jpg", ".jpeg" }
+            );
 
             if (folder != null)
             {                
@@ -177,44 +171,7 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                     var splitPath = (type == 0 ? dataModel.labelingDataPath : file).Split(@"\");
                     var fileName = splitPath[splitPath.Length - 1];
 
-                    if (File.Exists($@"{folder.Path}\{fileName.Split(".txt")[0]}"))
-                    {
-                        DispatcherQueue.TryEnqueue(async () =>
-                        {
-                            var isCopy = await MainWindow.ShowContentDialogAsync(
-                                "File Already Exists",
-                                $@"The file {folder.Path}\{fileName.Split(".txt")[0]} already exists. Do you want to overwrite it?",
-                                "Yes",
-                                "No"
-                            );
-
-                            if (isCopy)
-                            {
-                                helper.Copy(type == 0 ? dataModel.labelingDataPath : file, folder.Path);
-
-                                await MainWindow.ShowContentDialogAsync(
-                                    "Done",
-                                    $@"The file was saved as {folder.Path}\{fileName.Split(".txt")[0]}.",
-                                    "OK"
-                                );
-                            }
-                        });
-                    }
-                    else
-                    {
-                        helper.Copy(type == 0 ? dataModel.labelingDataPath : file, folder.Path);
-
-                        DispatcherQueue.TryEnqueue(async () =>
-                        {
-                            await MainWindow.ShowContentDialogAsync(
-                                "Done",
-                                $@"The file was saved as {folder.Path}\{fileName.Split(".txt")[0]}.",
-                                "OK"
-                            );
-                        });
-
-                    }
-
+                    helper.Copy(type == 0 ? dataModel.labelingDataPath : file, folder.Path);
                 }
                 catch (Exception ex)
                 {
@@ -351,23 +308,12 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             if (result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary)
             {
                 var exportWithClasses = result == ContentDialogResult.Primary;
-                var postfix = exportWithClasses ? "with_classes" : "without_classes";
 
                 var imageFile = GetOriginalImage(dataModel.root);
 
                 var csvFile = dataModel.labelingDataPath;
 
-                var resultFileName = "";
                 var imgFileSplit = dataModel.imgFile.Split(@"\");
-                var imgFileWithOutExt = imgFileSplit[imgFileSplit.Length - 1].Split(dataModel.imgFile.Contains(".jpg") ? ".jpg" : ".jpeg");
-
-                if (imgFileWithOutExt.Length == 1)
-                {
-                    imgFileWithOutExt = imgFileSplit[imgFileSplit.Length - 1].Split(".png");
-                }
-
-                resultFileName = imgFileWithOutExt[0];
-
                 var txtFile = $@"{dataModel.root}\{imgFileSplit[imgFileSplit.Length - 1]}.txt";
 
                 if (imageFile == "")
@@ -389,30 +335,17 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                     });
                 }
 
-                var folderPicker = new FolderPicker();
-                var window = App.window;
-                var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
-                WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
-
-                folderPicker.ViewMode = PickerViewMode.Thumbnail;
-                folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
-
-                var folder = await folderPicker.PickSingleFolderAsync();
+                var folder = await MainWindow.ShowSaveDialog(
+                    new List<string> { "Portable Network Graphics (PNG) File", "Joint Photographic Experts Group (JPG) File", "Joint Photographic Experts Group (JPEG) File" },
+                    new List<string> { ".png", ".jpg", ".jpeg" }
+                );
 
                 if (folder != null)
                 {
                     using (Bitmap _bmp = new(imageFile))
                     {
                         Bitmap bmp = new(_bmp, new Size(2048, 2048));
-
-                        var exportResult = await helper.ExportWithBBoxes(bmp, exportWithClasses ? csvFile : txtFile, exportWithClasses, folder.Path, $"{resultFileName}_{postfix}", exportWithClasses);
-
-                        await MainWindow.ShowContentDialogAsync(
-                            exportResult == "" ? "Done" : "Error",
-                            exportResult == "" ? $@"Image Saved to {folder.Path}\{resultFileName}_{postfix}.png" : $"An error occurred while exporting the image.\nError: {exportResult}",
-                            "OK"
-                        );
+                        var exportResult = await helper.ExportWithBBoxes(bmp, exportWithClasses ? csvFile : txtFile, exportWithClasses, folder.Path, exportWithClasses);
                     }
                 }
 
@@ -699,7 +632,6 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
                 var csvFile = dataModel.labelingDataPath;
 
-                var resultFileName = "";
                 var imgFileSplit = dataModel.imgFile.Split(@"\");
                 var imgFileWithOutExt = imgFileSplit[imgFileSplit.Length - 1].Split(dataModel.imgFile.Contains(".jpg") ? ".jpg" : ".jpeg");
 
@@ -707,8 +639,6 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                 {
                     imgFileWithOutExt = imgFileSplit[imgFileSplit.Length - 1].Split(".png");
                 }
-
-                resultFileName = imgFileWithOutExt[0];
 
                 var txtFile = $@"{dataModel.root}\{imgFileSplit[imgFileSplit.Length - 1]}.txt";
 
@@ -731,16 +661,10 @@ namespace RomanowskyStainSlideAnalyzer.History.View
                     });
                 }
 
-                var folderPicker = new FolderPicker();
-                var window = App.window;
-                var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
-                WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hWnd);
-
-                folderPicker.ViewMode = PickerViewMode.Thumbnail;
-                folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
-
-                var folder = await folderPicker.PickSingleFolderAsync();
+                var folder = await MainWindow.ShowSaveDialog(
+                    new List<string> { "Portable Network Graphics (PNG) File", "Joint Photographic Experts Group (JPG) File", "Joint Photographic Experts Group (JPEG) File" },
+                    new List<string> { ".png", ".jpg", ".jpeg" }
+                );
 
                 if (folder != null)
                 {
@@ -753,13 +677,13 @@ namespace RomanowskyStainSlideAnalyzer.History.View
 
                         if (exportResult != null)
                         {
-                            exportResult.Save(@$"{folder.Path}\{resultFileName}_Mask_{postfix}.png");
+                            exportResult.Save(folder.Path);
                             exportResult.Dispose();
                         }
 
                         await MainWindow.ShowContentDialogAsync(
                             exportResult != null ? "Done" : "Error",
-                            exportResult != null ? $@"Image Saved to {folder.Path}\{resultFileName}_Mask_{postfix}.png" : $"An error occurred while exporting the image.\nPlease restart the software, or segment it again.",
+                            exportResult != null ? $@"Image Saved to {folder.Path}" : $"An error occurred while exporting the image.\nPlease restart the software, or segment it again.",
                             "OK"
                         );
                     }
@@ -803,6 +727,27 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             var labelingViewModel = new LabelingViewModel();
             string originalImage = GetOriginalImage(dataModel.root);
             var imgFileSplit = dataModel.imgFile.Split(@"\");
+
+            var csvFile = dataModel.labelingDataPath;
+
+            if (originalImage == "")
+            {
+                string[] allowedTypes = [".jpg", ".jpeg", ".png"];
+
+                originalImage = await ShowFilePickerDialog("No Input File", "The input file could not be found.\nIt appears that segmentation was performed using an older version of Romanowsky Stain Slide Analyzer, or the file was deleted.\nWould you like to load the input file manually?", allowedTypes);
+
+                if (originalImage == "")
+                {
+                    return;
+                }
+
+                await Task.Run(() => {
+                    var filePathSplit = originalImage.Split(".");
+                    var ext = filePathSplit[filePathSplit.Length - 1];
+
+                    File.Copy(originalImage, $@"{dataModel.root}\input.{ext}");
+                });
+            }
 
             var isMaskAvailable = helper.IsMaskAvailable(dataModel.root, imgFileSplit[imgFileSplit.Length - 1]);
             var isBBoxAvailable = helper.IsBBoxAvailable(dataModel.root, imgFileSplit[imgFileSplit.Length - 1]);
@@ -874,6 +819,36 @@ namespace RomanowskyStainSlideAnalyzer.History.View
             }
 
             return file;
+        }
+
+        private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+        {
+            HistoryDataModel dataModel = (sender as MenuFlyoutItem).DataContext as HistoryDataModel;
+            var name = (sender as MenuFlyoutItem).Name;
+
+            string target = name == "btn_original" ? GetOriginalImage(dataModel.root) : dataModel.imgFile;
+
+            if(name == "btn_original" && target == "")
+            {
+                string[] allowedTypes = [".jpg", ".jpeg", ".png"];
+
+                target = await ShowFilePickerDialog("No Input File", "The input file could not be found.\nIt appears that segmentation was performed using an older version of Romanowsky Stain Slide Analyzer, or the file was deleted.\nWould you like to load the input file manually?", allowedTypes);
+
+                if (target == "")
+                {
+                    return;
+                }
+
+                await Task.Run(() => {
+                    var filePathSplit = target.Split(".");
+                    var ext = filePathSplit[filePathSplit.Length - 1];
+
+                    File.Copy(target, $@"{dataModel.root}\input.{ext}");
+                });
+            }
+
+            ImageView imgView = new(target, dataModel.log);
+            imgView.Activate();
         }
     }
 }
