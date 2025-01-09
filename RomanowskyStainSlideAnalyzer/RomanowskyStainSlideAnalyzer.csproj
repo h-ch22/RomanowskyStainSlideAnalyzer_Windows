@@ -24,6 +24,7 @@
     <None Remove="Home\View\HomeView.xaml" />
     <None Remove="Home\View\PointSelectionView.xaml" />
     <None Remove="Labeling\View\LabelingWindow.xaml" />
+    <None Remove="Video\View\VideoSegmentationView.xaml" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -151,6 +152,9 @@
     <None Update="Include\SetupForFeatureInstaller.msi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="Video\View\VideoSegmentationView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Labeling\View\LabelingWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -197,7 +201,7 @@
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <FileVersion>1.4.0.0</FileVersion>
-    <AssemblyVersion>1.4.0.0</AssemblyVersion>
+    <FileVersion>1.4.1.0</FileVersion>
+    <AssemblyVersion>1.4.1.0</AssemblyVersion>
   </PropertyGroup>
 </Project>

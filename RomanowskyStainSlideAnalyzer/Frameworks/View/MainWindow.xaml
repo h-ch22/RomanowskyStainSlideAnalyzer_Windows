@@ -43,7 +43,9 @@
             IsTitleBarAutoPaddingEnabled="False"
             AlwaysShowHeader="True">
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Segmentation" Icon="Find" Tag="RomanowskyStainSlideAnalyzer.Home.View.HomeView" IsSelected="True"/>
+                <NavigationViewItem Content="Segmentation" Icon="Find" Tag="RomanowskyStainSlideAnalyzer.Home.View.HomeView" IsSelected="True">
+
+                </NavigationViewItem>
                 <NavigationViewItem Content="History" Tag="RomanowskyStainSlideAnalyzer.History.View.HistoryView" Icon="Rotate"/>
             </NavigationView.MenuItems>
 

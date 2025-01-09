@@ -378,11 +378,28 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 progressView.Visibility = Visibility.Collapsed;
                 configurationView.Visibility = Visibility.Collapsed;
                 imageView.Visibility = Visibility.Visible;
+
+                PostInit();
             }
 
+            FilesToSegment.CollectionChanged += (s, e) =>
+            {
+                btn_deleteImage.IsEnabled = FilesToSegment.Count() > 1;
+
+                if(UseParallel)
+                {
+                    UseParallel = FilesToSegment.Count() > 1;
+                }
+
+                OnPropertyChanged(nameof(FilesToSegment.Count));
+            };
+        }
+
+        private void PostInit()
+        {
             var presetResult = segmentationHelper.checkDefaultPresetExists();
 
-            if(!presetResult)
+            if (!presetResult)
             {
                 MainWindow.ShowContentDialogAsync("Error", "Unable to create default preset.", "OK");
             }
@@ -419,18 +436,6 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
             Device = "Auto";
 
             GetPresets();
-
-            FilesToSegment.CollectionChanged += (s, e) =>
-            {
-                btn_deleteImage.IsEnabled = FilesToSegment.Count() > 1;
-
-                if(UseParallel)
-                {
-                    UseParallel = FilesToSegment.Count() > 1;
-                }
-
-                OnPropertyChanged(nameof(FilesToSegment.Count));
-            };
         }
 
         private void ToggleButtonStatus()
@@ -665,7 +670,10 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 progressView.Visibility = Visibility.Collapsed;
                 configurationView.Visibility = Visibility.Collapsed;
                 imageView.Visibility = Visibility.Visible;
+                PostInit();
+
             });
+
         }
 
         private async void updateLibraries()
@@ -704,7 +712,10 @@ namespace RomanowskyStainSlideAnalyzer.Home.View
                 progressView.Visibility = Visibility.Collapsed;
                 configurationView.Visibility = Visibility.Collapsed;
                 imageView.Visibility = Visibility.Visible;
+                PostInit();
+
             });
+
         }
 
         private void showErrorMessage()
