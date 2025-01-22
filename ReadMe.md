@@ -3,7 +3,7 @@
 
 # Romanowsky Stain Slide Analyzer for Windows<br>
 > Segmentation & Labeling Tool for Data Learning and Verification Exclusive to Romanowsky Stain Slide Analyzer<br>
-ⓒ 2024 Changjin Ha. All Rights Reserved.<br>
+ⓒ 2024-2025 Changjin Ha. All Rights Reserved.<br>
 ---
 ## Segmentation<br>
 <img src="./Docs/Images/img_home_1.png"><br>
